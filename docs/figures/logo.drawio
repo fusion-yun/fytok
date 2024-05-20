@@ -1,0 +1,16 @@
+<mxfile host="65bd71144e">
+    <diagram id="niHMIWGFPCrXExW-Ue_x" name="Page-1">
+        <mxGraphModel dx="1781" dy="1007" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="3" value="&lt;font style=&quot;font-size: 400px;&quot;&gt;&lt;font color=&quot;#ff8000&quot;&gt;&lt;i&gt;&lt;b&gt;Fy&lt;/b&gt;&lt;/i&gt;&lt;/font&gt;&lt;b&gt;&lt;font color=&quot;#002fa7&quot;&gt;Tok&lt;/font&gt;&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="90" y="90" width="1100" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=400;fontColor=#002FA7;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+                    <mxGeometry width="1280" height="640" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
