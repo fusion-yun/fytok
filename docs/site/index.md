@@ -1,6 +1,5 @@
 ---
 layout: default
-title: "神马"都是"浮云"
 ---
 
 ![FyTok](./figures/fytok_en.png)
