@@ -3,9 +3,9 @@ import numpy as np
 from scipy import constants
 from spdm.utils.tags import _not_found_
 from spdm.core.Dict import Dict
-from spdm.core.Entry import as_entry
-from spdm.core.Expression import Expression 
-from spdm.core.HTree import List
+from spdm.core.entry import as_entry
+from spdm.core.expression import Expression 
+from spdm.core.htree import List
 from spdm.core.Node import Node
 from spdm.core.sp_property import sp_property, SpTree
 

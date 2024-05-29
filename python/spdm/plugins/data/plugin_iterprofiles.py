@@ -4,9 +4,9 @@ import scipy.constants
 import numpy as np
 import pandas as pd
 
-from spdm.core.Expression import  Variable
+from spdm.core.expression import  Variable
 from spdm.core.File import File
-from spdm.core.Entry import Entry
+from spdm.core.entry import Entry
 from spdm.utils.typing import _not_found_
 from spdm.numlib.smooth import smooth_1d
 

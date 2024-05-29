@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 from spdm.utils.logger import logger
 from spdm.core.File import File
-from spdm.core.Entry import Entry
+from spdm.core.entry import Entry
 
 
 def sp_read_iterdb_txt(path: str | pathlib.Path):

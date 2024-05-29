@@ -4,8 +4,8 @@ import re
 import numpy as np
 from spdm.utils.logger import logger
 from spdm.core.File import File
-from spdm.core.Entry import Entry
-from spdm.core.Expression import Expression
+from spdm.core.entry import Entry
+from spdm.core.expression import Expression
 from scipy.interpolate import CubicHermiteSpline
 
 

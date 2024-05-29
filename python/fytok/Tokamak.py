@@ -1,11 +1,11 @@
 from __future__ import annotations
 import typing
-from spdm.core.Path import update_tree
-from spdm.core.Entry import open_entry
-from spdm.core.HTree import HTree
-from spdm.core.Actor import Actor
+from spdm.core.path import update_tree
+from spdm.core.entry import open_entry
+from spdm.core.htree import HTree
+from spdm.core.actor import Actor
 from spdm.core.sp_property import sp_tree
-from spdm.geometry.GeoObject import GeoObject
+from spdm.geometry.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------
@@ -13,23 +13,23 @@ from .utils.envs import *
 from .utils.logger import logger
 
 # ---------------------------------
-from .modules.DatasetFAIR import DatasetFAIR
-from .modules.Summary import Summary
+from .modules.dataset_fair import DatasetFAIR
+from .modules.summary import Summary
 from .modules.CoreProfiles import CoreProfiles
-from .modules.CoreSources import CoreSources
+from .modules.core_sources import CoreSources
 from .modules.CoreTransport import CoreTransport
-from .modules.ECLaunchers import ECLaunchers
+from .modules.ec_launchers import ECLaunchers
 from .modules.Equilibrium import Equilibrium
-from .modules.ICAntennas import ICAntennas
-from .modules.Interferometer import Interferometer
-from .modules.LHAntennas import LHAntennas
+from .modules.ic_antennas import ICAntennas
+from .modules.interferometer import Interferometer
+from .modules.lh_antennas import LHAntennas
 from .modules.Magnetics import Magnetics
-from .modules.NBI import NBI
-from .modules.Pellets import Pellets
+from .modules.nbi import NBI
+from .modules.pellets import Pellets
 from .modules.PFActive import PFActive
 from .modules.TF import TF
 from .modules.Wall import Wall
-from .modules.TransportSolverNumerics import TransportSolverNumerics
+from .modules.transport_solver_numerics import TransportSolverNumerics
 
 from .ontology import GLOBAL_ONTOLOGY
 

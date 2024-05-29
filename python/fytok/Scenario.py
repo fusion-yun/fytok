@@ -1,9 +1,9 @@
 from functools import cached_property
 
-from spdm.core.Actor import Actor
+from spdm.core.actor import Actor
 from spdm.core.sp_property import sp_tree
-from .modules.PulseSchedule import PulseSchedule
-from .modules.TransportSolverNumerics import TransportSolverNumerics
+from .modules.pulse_schedule import PulseSchedule
+from .modules.transport_solver_numerics import TransportSolverNumerics
 
 from .utils.logger import logger
 from .Tokamak import Tokamak
