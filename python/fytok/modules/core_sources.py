@@ -1,6 +1,7 @@
 from __future__ import annotations
 from copy import copy, deepcopy
 import math
+
 from spdm.core.aos import AoS
 from spdm.core.sp_property import sp_property, sp_tree
 from spdm.core.time_series import TimeSeriesAoS

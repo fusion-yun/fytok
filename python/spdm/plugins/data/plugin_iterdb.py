@@ -1,9 +1,9 @@
 import pathlib
 
 import numpy as np
-from spdm.utils.logger import logger
-from spdm.core.File import File
+from spdm.core.file import File
 from spdm.core.entry import Entry
+from spdm.utils.logger import logger
 
 
 def sp_read_iterdb_txt(path: str | pathlib.Path):

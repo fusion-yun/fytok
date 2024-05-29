@@ -1,13 +1,14 @@
 import typing
-
+import pathlib
 import numpy as np
 from scipy import interpolate
 from spdm.core.entry import Entry, as_entry
-from spdm.core.File import File, FileEntry
-from spdm.utils.logger import logger
-import pathlib
+from spdm.core.file import File, FileEntry
 from spdm.core.field import Field
 from spdm.core.function import Function
+
+from spdm.utils.logger import logger
+
 
 
 def sp_read_geqdsk(file):

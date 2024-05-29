@@ -20,7 +20,7 @@ from spdm.core.time_series import TimeSeriesAoS, TimeSlice
 from spdm.geometry.curve import Curve
 from spdm.utils.typing import array_type, is_array, as_array
 from spdm.utils.tags import _not_found_
-from spdm.view import View as sp_view
+from spdm.view import sp_view as sp_view
 
 from ..utils.logger import logger
 from ..utils.envs import FY_JOBID

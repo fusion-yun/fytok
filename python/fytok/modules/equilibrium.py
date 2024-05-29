@@ -469,10 +469,10 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     #     return geo, styles
 
 
-from .Wall import Wall
-from .TF import TF
-from .Magnetics import Magnetics
-from .PFActive import PFActive
+from .wall import Wall
+from .tf import TF
+from .magnetics import Magnetics
+from .pf_active import PFActive
 
 
 @sp_tree

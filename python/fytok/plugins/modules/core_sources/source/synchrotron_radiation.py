@@ -3,13 +3,16 @@ import scipy.constants
 from spdm.core.expression import Variable, Expression, zero
 from spdm.core.sp_property import sp_tree
 
-from fytok.utils.logger import logger
-from fytok.utils.atoms import atoms
+
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.utilities import *
+
+from fytok.utils.atoms import atoms
+
+from fytok.utils.logger import logger
 
 PI = scipy.constants.pi
 

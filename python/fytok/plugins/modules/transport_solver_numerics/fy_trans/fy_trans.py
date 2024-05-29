@@ -2,8 +2,6 @@
 # @NOTE：
 #   在插件中 from __future__ import annotations 会导致插件无法加载，
 #   故障点是：typing.get_type_hints() 找不到类型， i.e. Code,TimeSeriesAoS
-from scipy.interpolate import InterpolatedUnivariateSpline
-
 
 import typing
 import numpy as np
@@ -12,20 +10,19 @@ import scipy.constants
 from spdm.core.expression import Variable, Expression, Scalar, one, zero, derivative
 from spdm.core.sp_property import sp_tree
 from spdm.core.path import as_path
-
 from spdm.utils.typing import array_type
 from spdm.utils.tags import _not_found_
 
 
-from fytok.modules.utilities import *
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics, TransportSolverNumericsTimeSlice
+from fytok.modules.utilities import *
 
-from fytok.utils.logger import logger
 from fytok.utils.atoms import atoms
+from fytok.utils.logger import logger
 
 from .bvp import solve_bvp
 

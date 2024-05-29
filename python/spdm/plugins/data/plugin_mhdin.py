@@ -2,7 +2,7 @@ import pathlib
 
 import numpy as np
 from spdm.core.entry import Entry
-from spdm.core.File import File
+from spdm.core.file import File
 from spdm.utils.logger import logger
 
 

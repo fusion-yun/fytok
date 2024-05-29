@@ -6,7 +6,7 @@ from .modules.pulse_schedule import PulseSchedule
 from .modules.transport_solver_numerics import TransportSolverNumerics
 
 from .utils.logger import logger
-from .Tokamak import Tokamak
+from .tokamak import Tokamak
 
 
 @sp_tree

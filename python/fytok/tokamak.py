@@ -15,20 +15,20 @@ from .utils.logger import logger
 # ---------------------------------
 from .modules.dataset_fair import DatasetFAIR
 from .modules.summary import Summary
-from .modules.CoreProfiles import CoreProfiles
+from .modules.core_profiles import CoreProfiles
 from .modules.core_sources import CoreSources
-from .modules.CoreTransport import CoreTransport
+from .modules.core_transport import CoreTransport
 from .modules.ec_launchers import ECLaunchers
-from .modules.Equilibrium import Equilibrium
+from .modules.equilibrium import Equilibrium
 from .modules.ic_antennas import ICAntennas
 from .modules.interferometer import Interferometer
 from .modules.lh_antennas import LHAntennas
-from .modules.Magnetics import Magnetics
+from .modules.magnetics import Magnetics
 from .modules.nbi import NBI
 from .modules.pellets import Pellets
-from .modules.PFActive import PFActive
-from .modules.TF import TF
-from .modules.Wall import Wall
+from .modules.pf_active import PFActive
+from .modules.tf import TF
+from .modules.wall import Wall
 from .modules.transport_solver_numerics import TransportSolverNumerics
 
 from .ontology import GLOBAL_ONTOLOGY
