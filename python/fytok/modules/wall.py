@@ -12,7 +12,11 @@ from ..utils.logger import logger
 
 class Wall(wall._T_wall):
     """Description of the torus wall and its interaction with the plasma"""
-    Description2D= wall._T_wall_2d
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    Description2D = wall._T_wall_2d
 
     description_2d: AoS[Description2D]
 

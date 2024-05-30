@@ -11,7 +11,7 @@
     <homogeneous_time dtype="int">2</homogeneous_time>
   </ids_properties>
 
-  <description_2d id="0">
+  <description_2d id="*">
     <type>
       <name>equilibrium</name>
       <index dtype='int'>1</index>

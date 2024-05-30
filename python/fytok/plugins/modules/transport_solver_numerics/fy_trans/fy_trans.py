@@ -10,7 +10,7 @@ import scipy.constants
 from spdm.core.expression import Variable, Expression, Scalar, one, zero, derivative
 from spdm.core.sp_property import sp_tree
 from spdm.core.path import as_path
-from spdm.utils.typing import array_type
+from spdm.core.typing import array_type
 from spdm.utils.tags import _not_found_
 
 
@@ -840,8 +840,8 @@ class FyTrans(TransportSolverNumerics):
                 v1 = v1(x1, *yb, *args) if isinstance(v1, Expression) else v1
                 w1 = w1(x1, *yb, *args) if isinstance(w1, Expression) else w1
             except Exception as error:
-                logger.error(((u0, v0, w0), (u1, v1, w1)))
-                raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
+                logger.error(((u0, v0, w0), (u1, v1, w1)), exc_info=error)
+                # raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
 
             y0 = ya[2 * idx]
             flux0 = ya[2 * idx + 1]

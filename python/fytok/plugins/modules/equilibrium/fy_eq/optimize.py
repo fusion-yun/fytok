@@ -8,7 +8,7 @@ import scipy.ndimage  # for maximum_filter,binary_erosion, generate_binary_struc
 from spdm.core.expression import Variable
 from spdm.core.field import Field
 from spdm.utils.logger import logger
-from spdm.utils.typing import ArrayType, NumericType, ScalarType
+from spdm.core.typing import ArrayType, NumericType, ScalarType
 
 SP_EXPERIMENTAL = os.environ.get("SP_EXPERIMENTAL", False)
 

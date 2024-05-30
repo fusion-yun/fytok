@@ -8,7 +8,7 @@ from spdm.core.sp_property import sp_tree, sp_property, PropertyTree
 from spdm.core.time_series import TimeSlice, TimeSeriesAoS
 from spdm.core.aos import AoS
 from spdm.utils.tags import _not_found_
-from spdm.utils.typing import array_type
+from spdm.core.typing import array_type
 
 from .core_profiles import CoreProfiles
 from .core_sources import CoreSources
@@ -109,7 +109,7 @@ class TransportSolverNumericsTimeSlice(TimeSlice):
 class TransportSolverNumerics(IDS):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
-    _plugin_prefix = "fytok.plugins.transport_solver_numerics."
+    _plugin_prefix = "fytok.modules.transport_solver_numerics"
 
     code: Code = {"name": "fy_trans"}
 
@@ -131,7 +131,7 @@ class TransportSolverNumerics(IDS):
 
     variables: typing.Dict[str, Expression]
 
-    profiles_1d: CoreProfiles.TimeSlice.Profiles1D
+    profiles_1d: CoreProfiles.TimeSlice.Profiles1D = {}
 
     TimeSlice = TransportSolverNumericsTimeSlice
 

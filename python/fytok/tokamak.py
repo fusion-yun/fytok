@@ -96,8 +96,8 @@ Modules:
     equilibrium             : {self.equilibrium.code }
 
     core_profiles           : N/A             
-    core_transport          : {','.join([str(s.code) for s in self.core_transport.model])}
-    core_sources            : {','.join([str(s.code)  for s in self.core_sources.source])}
+    core_transport          : {', '.join([str(s.code).split(".")[-1] for s in self.core_transport.model])}
+    core_sources            : {', '.join([str(s.code).split(".")[-1]  for s in self.core_sources.source])}
 ---------------------------------------------------------------------------------------------------
 """
 
@@ -187,7 +187,7 @@ Modules:
         profiles_1d = self.transport_solver.fetch()
 
         self.core_profiles.time_slice.current["profiles_1d"] = profiles_1d
-    
+
         return solver_1d
 
     def flush(self):
@@ -228,7 +228,7 @@ Modules:
                 g = g.__geometry__(**kwargs)
 
             except Exception as error:
-                logger.error(f"Can not get {g.__class__.__name__}.__geometry__ ! {error}")
+                logger.error(f"Can not get {g.__class__.__name__}.__geometry__ ! {error}", exc_info=error)
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__geometry__ !") from error
             else:
                 geo[o_name] = g

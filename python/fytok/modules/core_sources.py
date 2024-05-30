@@ -137,7 +137,7 @@ class CoreSourcesTimeSlice(TimeSlice):
 
 @sp_tree
 class CoreSourcesSource(Module):
-    _plugin_prefix = "fytok.plugins.core_sources.source."
+    _plugin_prefix = "fytok.modules.core_sources.source"
 
     identifier: str
 
@@ -219,8 +219,8 @@ class CoreSources(IDS):
     def refresh(self, *args, equilibrium: Equilibrium = None, core_profiles: CoreProfiles = None, **kwargs):
         super().refresh(*args, **kwargs)
 
-        kwargs.pop("time",None)
-            
+        kwargs.pop("time", None)
+
         for source in self.source:
             source.refresh(time=self.time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 

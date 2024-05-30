@@ -21,9 +21,9 @@ from spdm.mesh.mesh import Mesh
 
 from spdm.utils.constants import *
 from spdm.utils.logger import logger
-from spdm.utils.numeric import bitwise_and, squeeze
+from spdm.numlib.numeric import bitwise_and, squeeze
 from spdm.utils.tags import _not_found_
-from spdm.utils.typing import ArrayLike, ArrayType, NumericType, array_type, as_array, as_scalar, is_array, scalar_type
+from spdm.core.typing import ArrayLike, ArrayType, NumericType, array_type, as_array, as_scalar, is_array, scalar_type
 
 from fytok.plugins.equilibrium.fy_eq import FyEqAnalyze
 

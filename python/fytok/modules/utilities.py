@@ -18,7 +18,7 @@ from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
 from spdm.core.time_series import TimeSeriesAoS, TimeSlice
 
 from spdm.geometry.curve import Curve
-from spdm.utils.typing import array_type, is_array, as_array
+from spdm.core.typing import array_type, is_array, as_array
 from spdm.utils.tags import _not_found_
 from spdm.view import sp_view as sp_view
 
@@ -47,15 +47,15 @@ class Library:
 
 @sp_tree
 class Code:
-    name: str
+    name: str = "unnamed"
     """代码名称，也是调用 plugin 的 identifier"""
 
     module_path: str
     """模块路径， 可用于 import 模块"""
 
     commit: str
-    version: str
-    copyright: str
+    version: str = "0.0.0"
+    copyright: str = "NO_COPYRIGHT_STATEMENT"
     repository: str
     output_flag: array_type
     library: List[Library]
@@ -63,9 +63,7 @@ class Code:
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
-        return "-".join(
-            [s for s in [self.module_path, self.version, self.copyright] if s not in (_not_found_, None, "")]
-        )
+        return "-".join([s for s in [self.name, self.version.replace(".", "_"), self.copyright] if isinstance(s, str)])
 
     def __repr__(self) -> str:
         desc = {
@@ -102,8 +100,7 @@ class Identifier:
 @sp_tree
 class Module(Actor):
 
-    @classmethod
-    def _plugin_complete_path(cls, *args, **kwargs) -> str:
+    def __new__(cls, *args, **kwargs) -> typing.Type[typing.Self]:
         pth = Path("code/name")
         plugin_name = None
         if len(args) > 0 and isinstance(args[0], dict):
@@ -112,7 +109,8 @@ class Module(Actor):
             plugin_name = pth.get(kwargs, None)
         if plugin_name is None:
             plugin_name = Path("default_value/name").get(cls.code, None)
-        return super()._plugin_complete_path(plugin_name)
+
+        return super().__new__(cls, {"$class": plugin_name})
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,13 +118,13 @@ class Module(Actor):
         if not self.code.name:
             self.code.name = self.__class__.__name__
 
-        self.code.module_path = getattr(self, "plugin_path", self.__module__)
+        self.code.module_path = self.__module__ + "." + self.__class__.__name__
 
-        logger.info(f"Initialize module {self.code} ")
+        logger.verbose(f"Initialize module {self.code} ")
 
     code: Code
     """ 对于 Module 的一般性说明。 
-        @note code 在 __init__ 时由初始化参数定义，同时会根据 code.name 查找相应的 plugin 。"""
+        @note code 在 __init__ 时由初始化参数定义。"""
 
     @property
     def tag(self) -> str:
@@ -137,7 +135,8 @@ class Module(Actor):
         更新当前状态树 （time_slice），并执行 self.iteration+=1
 
         """
-        logger.info(f"Refresh module {self.code.module_path}")
+        logger.verbose(f"Refresh module {self.code.module_path}")
+
         current = super().refresh(*args, **kwargs)
 
         return current

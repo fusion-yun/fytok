@@ -379,15 +379,16 @@ class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
 
 @sp_tree
 class CoreProfilesTimeSlice(TimeSlice):
+    
     Profiles1D = CoreProfiles1D
 
     GlobalQuantities = CoreGlobalQuantities
 
-    profiles_1d: CoreProfiles1D
+    profiles_1d: CoreProfiles1D = {}
 
-    global_quantities: CoreGlobalQuantities
+    global_quantities: CoreGlobalQuantities = {}
 
-    vacuum_toroidal_field: VacuumToroidalField
+    vacuum_toroidal_field: VacuumToroidalField = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

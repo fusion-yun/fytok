@@ -38,4 +38,4 @@ class PredefinedSource(CoreSources.Source):
         return current
 
 
-CoreTransport.Model.register(["predefined"], PredefinedSource)
+CoreSources.Source.register(["predefined"], PredefinedSource)

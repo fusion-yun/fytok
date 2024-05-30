@@ -3,7 +3,6 @@ __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 import os
 
 
-
 from spdm.utils.envs import SP_MPI
 
 from .ontology import GLOBAL_ONTOLOGY
@@ -30,5 +29,5 @@ except Exception as error:
 ############################################################
 
 
-if not FY_QUIET and (SP_MPI is  None or SP_MPI.COMM_WORLD.Get_rank() == 0):  # 粗略猜测是否在交互环境下运行
+if FY_LOGO is not False and (SP_MPI is None or SP_MPI.COMM_WORLD.Get_rank() == 0):  # 粗略猜测是否在交互环境下运行
     logger.info(FY_LOGO)
