@@ -1,8 +1,6 @@
 import pathlib
-from fytok.Tokamak import Tokamak
-from fytok.modules.Equilibrium import Equilibrium
-from fytok.utils.logger import logger
-from spdm.view.View import display
+from fytok.tokamak import Tokamak
+
 WORKSPACE = "/home/salmon/workspace"  # "/ssd01/salmon_work/workspace/"
 output_path = pathlib.Path(f"{WORKSPACE}/output/")
 

@@ -2,11 +2,11 @@ __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 import os
 import typing
-from spdm.core.sp_property import PropertyTree
+
 from ..utils.logger import logger
 
 
-GLOBAL_ONTOLOGY = os.environ.get("FYTOK_ONTOLOGY", f"imas/3")
+GLOBAL_ONTOLOGY = os.environ.get("FY_ONTOLOGY", f"imas/3")
 
 
 try:
@@ -62,6 +62,12 @@ try:
 
 
 except ModuleNotFoundError as error:
+    logger.warning(f"Failed to import IMAS ontology: {error}")
+
+    logger.verbose(f"Using dummy ontology instead IMAS ontology as fallback.")
+
+    from spdm.core.sp_property import PropertyTree
+
     imas_version = "None"
 
     class DummyModule:
@@ -81,4 +87,6 @@ except ModuleNotFoundError as error:
 
 else:
     if GLOBAL_ONTOLOGY != f"imas/{imas_version[1:].split('_')[0]}":
-        raise RuntimeError(f"Global ontology {GLOBAL_ONTOLOGY} is not compatible with IMAS version {imas_version[1:].split('.')[0]}")
+        raise RuntimeError(
+            f"Global ontology {GLOBAL_ONTOLOGY} is not compatible with IMAS version {imas_version[1:].split('.')[0]}"
+        )

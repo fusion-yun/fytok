@@ -2,14 +2,14 @@ import collections.abc
 import typing
 import numpy as np
 import scipy.constants
-from spdm.core.Path import Path
-from spdm.core.HTree import Dict
-from spdm.core.Expression import Variable, Expression
-from spdm.core.Function import Function
+from spdm.core.path import Path
+from spdm.core.htree import Dict
+from spdm.core.expression import Variable, Expression
+from spdm.core.function import Function
 from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
-from spdm.core.AoS import AoS
-from spdm.core.Path import update_tree
-from spdm.utils.typing import get_args
+from spdm.core.aos import AoS
+from spdm.core.path import update_tree
+from spdm.core.typing import get_args
 from spdm.utils.tags import _not_found_
 
 #################################################

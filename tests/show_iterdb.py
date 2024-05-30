@@ -1,8 +1,8 @@
 import os
 import pathlib
 
-from fytok.Tokamak import Tokamak
-from spdm.view.View import display
+from fytok.tokamak import Tokamak
+from spdm.view.sp_view import display
 
 WORKSPACE = "/home/salmon/workspace"  # "/ssd01/salmon_work/workspace/"
 

@@ -1,9 +1,10 @@
 import os
 import pathlib
 
-from fytok.Tokamak import Tokamak
+from fytok.tokamak import Tokamak
 from fytok.utils.logger import logger
-from spdm.view.View import display
+
+from spdm.view.sp_view import display
 
 WORKSPACE = "/home/salmon/workspace"  # "/ssd01/salmon_work/workspace/"
 

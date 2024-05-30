@@ -2,11 +2,12 @@ import pathlib
 import itertools
 import re
 import numpy as np
-from spdm.utils.logger import logger
-from spdm.core.File import File
-from spdm.core.Entry import Entry
-from spdm.core.Expression import Expression
 from scipy.interpolate import CubicHermiteSpline
+
+from spdm.utils.logger import logger
+from spdm.core.file import File
+from spdm.core.entry import Entry
+from spdm.core.expression import Expression
 
 
 def sp_read_pfile_txt(path: str | pathlib.Path):
