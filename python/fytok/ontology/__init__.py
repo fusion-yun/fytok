@@ -62,9 +62,9 @@ try:
 
 
 except ModuleNotFoundError as error:
-    logger.warning(f"Failed to import IMAS ontology: {error}")
+    logger.verbose(f"Failed to import IMAS ontology: {error}")
 
-    logger.verbose(f"Using dummy ontology instead IMAS ontology as fallback.")
+    logger.info(f"Failed to import IMAS wrapper. Using dummy ontology as fallback.")
 
     from spdm.core.sp_property import PropertyTree
 

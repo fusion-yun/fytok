@@ -56,10 +56,10 @@ class Code:
     commit: str
     version: str = "0.0.0"
     copyright: str = "NO_COPYRIGHT_STATEMENT"
-    repository: str
+    repository: str = ""
     output_flag: array_type
     library: List[Library]
-    parameters: PropertyTree
+    parameters: PropertyTree = {}
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
@@ -122,7 +122,7 @@ class Module(Actor):
 
         logger.verbose(f"Initialize module {self.code} ")
 
-    code: Code
+    code: Code = {}
     """ 对于 Module 的一般性说明。 
         @note code 在 __init__ 时由初始化参数定义。"""
 

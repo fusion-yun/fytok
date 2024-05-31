@@ -433,4 +433,3 @@ class GEQdskFile(File):
         self._fid.flush()
 
 
-__SP_EXPORT__ = GEQdskFile

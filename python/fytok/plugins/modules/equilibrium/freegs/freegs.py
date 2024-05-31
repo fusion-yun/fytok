@@ -34,7 +34,6 @@ except ModuleNotFoundError as error:
     raise ModuleNotFoundError(f"Can not find module 'freegs'!") from error
 
 
-@Equilibrium.register(["freegs"])
 @sp_tree
 class EquilibriumFreeGS(FyEqAnalyze):
     def __init__(self, *args, **kwargs):
@@ -412,3 +411,6 @@ class EquilibriumFreeGS(FyEqAnalyze):
         current._entry = None
 
         super().postprocess(current)
+
+
+Equilibrium.register(["freegs"], EquilibriumFreeGS)

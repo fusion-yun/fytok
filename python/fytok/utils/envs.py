@@ -16,27 +16,24 @@ except ImportError:
 else:
     FY_EXT_VERSION = extension_tags
 
+FY_LABEL = os.environ.get("FY_LABEL", "fytok")
+
+FY_DEBUG = os.environ.get("FY_DEBUG", False)
+
+FY_VERBOSE = os.environ.get("FY_VERBOSE", "info")
+
+FY_JOBID = f"fytok_{getpass.getuser().lower()}_{os.uname().nodename.lower()}_{os.getpid()}"
+
+
 
 for k, v in os.environ.items():
     if k.startswith("FY_"):
         os.environ[f"SP_{k[3:]}"] = v
 
-
-FY_LABEL = os.environ.get("FY_LABEL", "fytok")
-
-FY_DEBUG = os.environ.get("FY_DEBUG", True)
-
-FY_LOG = os.environ.get("FY_LOG", FY_DEBUG)
-
-FY_JOBID = f"fytok_{getpass.getuser().lower()}_{os.uname().nodename.lower()}_{os.getpid()}"
-
 from spdm.utils import envs as sp_envs
 
-FY_NO_LOGO = os.environ.get("FY_NO_LOGO", False)
-if FY_NO_LOGO:
-    FY_LOGO = False
-else:
-    FY_LOGO = rf"""
+
+FY_LOGO = rf"""
 ###################################################################################################
 
     ______      _____     _
@@ -56,4 +53,4 @@ else:
 ###################################################################################################
 """
 
-__all__ = ["FY_DEBUG", "FY_JOBID", "FY_LOGO", "FY_LOG", "FY_VERSION", "FY_EXT_VERSION"]
+__all__ = ["FY_DEBUG", "FY_JOBID", "FY_LOGO", "FY_VERBOSE", "FY_VERSION", "FY_EXT_VERSION"]
