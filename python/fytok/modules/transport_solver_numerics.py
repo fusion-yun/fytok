@@ -127,15 +127,15 @@ class TransportSolverNumerics(IDS):
     r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
       rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    equations: AoS[TransportSolverNumericsEquation]
+    equations: AoS[TransportSolverNumericsEquation] = []
 
-    variables: typing.Dict[str, Expression]
+    variables: typing.Dict[str, Expression] = {}
 
     profiles_1d: CoreProfiles.TimeSlice.Profiles1D = {}
 
     TimeSlice = TransportSolverNumericsTimeSlice
 
-    time_slice: TimeSeriesAoS[TransportSolverNumericsTimeSlice]
+    time_slice: TimeSeriesAoS[TransportSolverNumericsTimeSlice] = []
 
     def initialize(self, *args, **kwargs):
         return super().initialize(*args, **kwargs)

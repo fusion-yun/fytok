@@ -66,9 +66,9 @@ class Tokamak(Actor):
     # transport: state of device
     equilibrium             : Equilibrium               
 
-    core_profiles           : CoreProfiles              
-    core_transport          : CoreTransport             
-    core_sources            : CoreSources               
+    core_profiles           : CoreProfiles              ={}
+    core_transport          : CoreTransport             ={}
+    core_sources            : CoreSources               ={}
 
     # edge_profiles         : EdgeProfiles              
     # edge_transport        : EdgeTransport             
