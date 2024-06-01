@@ -239,7 +239,7 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
     mass_density: Expression = sp_property(units="kg \cdot m^{-3}")
 
 
-@sp_tree(mesh="grid")
+@sp_tree(domain="grid")
 class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d):
     type: Identifier
 
@@ -484,7 +484,7 @@ class Equilibrium(IDS):
 
     - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS", Computer Physics Communications 184, 2 (2013), pp. 293--302.
     """
-    
+
     code: Code = {"name": "fy_eq"}  # default plugin
 
     ids_properties: IDSProperties
@@ -494,7 +494,9 @@ class Equilibrium(IDS):
     time_slice: TimeSeriesAoS[EquilibriumTimeSlice]
 
     def __geometry__(self, *args, **kwargs):
-        return self.time_slice.current.__geometry__(*args, **kwargs)
+        current = self.time_slice.current
+        logger.info(type(current))
+        return current.__geometry__(*args, **kwargs) if current is not _not_found_ else {}
 
     def refresh(
         self,

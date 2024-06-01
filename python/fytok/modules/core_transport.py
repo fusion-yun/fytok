@@ -111,7 +111,7 @@ class CoreTransportTimeSlice(TimeSlice):
 
 @sp_tree
 class CoreTransportModel(Module):
-    _plugin_prefix = "fytok.modules.core_transport.model"
+    _plugin_prefix = "fytok.modules.core_transport.model."
 
     identifier: str
 

@@ -55,7 +55,7 @@ class Tokamak(Actor):
 
     # aux
     ec_launchers            : ECLaunchers               
-    ic_antennas             : ICAntennas                    
+    ic_antennas             : ICAntennas                
     lh_antennas             : LHAntennas                
     nbi                     : NBI                       
     pellets                 : Pellets                   
@@ -66,9 +66,9 @@ class Tokamak(Actor):
     # transport: state of device
     equilibrium             : Equilibrium               
 
-    core_profiles           : CoreProfiles              ={}
-    core_transport          : CoreTransport             ={}
-    core_sources            : CoreSources               ={}
+    core_profiles           : CoreProfiles              
+    core_transport          : CoreTransport             
+    core_sources            : CoreSources               
 
     # edge_profiles         : EdgeProfiles              
     # edge_transport        : EdgeTransport             

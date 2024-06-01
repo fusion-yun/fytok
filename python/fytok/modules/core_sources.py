@@ -137,7 +137,7 @@ class CoreSourcesTimeSlice(TimeSlice):
 
 @sp_tree
 class CoreSourcesSource(Module):
-    _plugin_prefix = "fytok.modules.core_sources.source"
+    _plugin_prefix = "fytok.modules.core_sources.source."
 
     identifier: str
 

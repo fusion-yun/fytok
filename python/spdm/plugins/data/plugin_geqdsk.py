@@ -10,7 +10,6 @@ from spdm.core.function import Function
 from spdm.utils.logger import logger
 
 
-
 def sp_read_geqdsk(file):
     """
     :param file: input file / file path
@@ -386,8 +385,12 @@ def sp_from_geqdsk(geqdsk: dict, eq: typing.Optional[Entry] = None) -> Entry:
             },
             "profiles_2d": {  # profiles 2D
                 "type": "total",  # total field
-                "grid_type": {"name": "rectangular", "index": 1},
-                "grid": {"dim1": np.linspace(rmin, rmax, nw), "dim2": np.linspace(zmin, zmax, nh)},
+                "grid_type": {"name": "rectangular"},
+                "grid": {
+                    "dim1": np.linspace(rmin, rmax, nw),
+                    "dim2": np.linspace(zmin, zmax, nh),
+                    "@type": "rectangular",
+                },
                 "psi": psirz,
             },
         }
@@ -431,5 +434,3 @@ class GEQdskFile(File):
         geqdsk = sp_to_geqdsk(d, *args, **kwargs)
         sp_write_geqdsk(geqdsk, self._fid)
         self._fid.flush()
-
-
