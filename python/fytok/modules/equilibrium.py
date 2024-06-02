@@ -9,10 +9,10 @@ from spdm.core.time_series import TimeSeriesAoS, TimeSlice
 from spdm.core.path import update_tree
 
 from spdm.geometry.curve import Curve
-from spdm.geometry.geo_object import GeoObject, GeoObjectSet
+from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
 
-from spdm.mesh.mesh import Mesh
+from spdm.core.mesh import Mesh
 
 from spdm.utils.tags import _not_found_
 
@@ -98,7 +98,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-@sp_tree(domain="psi_norm", extrapolate="zeros")
+@sp_tree(domain={"reference": "psi_norm", "extrapolate": "zeros"})
 class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
     """
     1D profiles of the equilibrium quantities
@@ -243,8 +243,6 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
 class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d):
     type: Identifier
 
-    grid_type: Identifier
-
     grid: Mesh
 
     r: Field = sp_property(units="m")
@@ -386,7 +384,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     GGD = EquilibriumGGD
     ggd: GGD
 
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __geometry__(self, view_point="RZ", **kwargs):
         """
         plot o-point,x-point,lcfs,separatrix and contour of psi
         """

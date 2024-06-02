@@ -5,7 +5,7 @@ from spdm.core.entry import open_entry
 from spdm.core.htree import HTree
 from spdm.core.actor import Actor
 from spdm.core.sp_property import sp_tree
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------

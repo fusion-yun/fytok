@@ -12,10 +12,10 @@ from spdm.core.sp_property import sp_property, sp_tree
 from spdm.core.time_series import TimeSeriesAoS
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
-from spdm.geometry.geo_object import GeoObject, GeoObjectSet
+from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
 from spdm.geometry.curve import Curve
-from spdm.mesh.mesh import Mesh
+from spdm.core.mesh import Mesh
 from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
 from spdm.core.typing import ArrayLike, NumericType, array_type, scalar_type

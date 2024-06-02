@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 
 from ..ontology import ic_antennas 
 

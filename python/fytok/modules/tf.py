@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Polygon
 from spdm.utils.constants import TWOPI
 from spdm.core.typing import _not_found_

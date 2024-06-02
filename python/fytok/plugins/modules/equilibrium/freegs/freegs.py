@@ -17,7 +17,7 @@ from fytok.modules.utilities import *
 
 from spdm.core.time_series import TimeSlice
 from spdm.core.field import Field
-from spdm.mesh.mesh import Mesh
+from spdm.core.mesh import Mesh
 
 from spdm.utils.constants import *
 from spdm.utils.logger import logger

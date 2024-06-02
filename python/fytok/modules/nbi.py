@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.line import Line
 from spdm.geometry.polygon import Rectangle
 

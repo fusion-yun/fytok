@@ -9,7 +9,7 @@ from skimage import measure
 from spdm.core.field import Field
 from spdm.core.expression import Variable
 from spdm.geometry.curve import Curve
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.point import Point
 from spdm.utils.logger import deprecated, logger
 from spdm.utils.tags import _not_found_

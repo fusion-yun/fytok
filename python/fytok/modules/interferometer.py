@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ..utils.logger import logger
 
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.line import Line
 from spdm.utils.tags import _not_found_
 from ..ontology import interferometer

@@ -1,7 +1,7 @@
 import typing
 from spdm.core.aos import AoS
 from spdm.geometry.circle import Circle
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.polyline import Polyline
 from spdm.utils.tags import _not_found_
 

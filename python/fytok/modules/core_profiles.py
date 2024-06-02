@@ -23,7 +23,7 @@ PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-@sp_tree(coordinate1=".../grid/rho_tor_norm")
+@sp_tree
 class CoreProfilesSpecies:
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -66,7 +66,7 @@ class CoreProfilesSpecies:
     velocity: CoreVectorComponents = sp_property(units="m.s^-1")
 
 
-@sp_tree(coordinate1=".../grid/rho_tor_norm")
+@sp_tree
 class CoreProfilesState(CoreProfilesSpecies):
     label: str
     """ String identifying state"""
@@ -86,7 +86,7 @@ class CoreProfilesState(CoreProfilesSpecies):
         cold; 2: thermal; 3: fast; 4: NBI"""
 
 
-@sp_tree(coordinate1=".../grid/rho_tor_norm")
+@sp_tree
 class CoreProfilesIon(CoreProfilesSpecies):
     z_ion_1d: Expression = sp_property(unit="C")
 
@@ -116,7 +116,7 @@ class CoreProfilesIon(CoreProfilesSpecies):
         )
 
 
-@sp_tree(coordinate1=".../grid/rho_tor_norm")
+@sp_tree
 class CoreProfilesNeutral(CoreProfilesSpecies):
     element: AoS[PlasmaCompositionSpecies]
     """ List of elements forming the atom or molecule"""
@@ -129,7 +129,7 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-@sp_tree(coordinate1=".../grid/rho_tor_norm", name="electrons")
+@sp_tree(name="electrons")
 class CoreProfilesElectrons(CoreProfilesSpecies):
     label: str = "e"
 
@@ -146,9 +146,10 @@ class CoreProfilesElectrons(CoreProfilesSpecies):
         return np.sqrt(self.temperature * scipy.constants.electron_volt / scipy.constants.electron_mass)
 
 
-@sp_tree(coordinate1="grid/rho_tor_norm")
+@sp_tree(domain="grid")
 class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
-    grid: CoreRadialGrid
+
+    grid: CoreRadialGrid = {"extrapolate": 0}
 
     Electrons = CoreProfilesElectrons
     electrons: CoreProfilesElectrons
@@ -379,7 +380,7 @@ class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
 
 @sp_tree
 class CoreProfilesTimeSlice(TimeSlice):
-    
+
     Profiles1D = CoreProfiles1D
 
     GlobalQuantities = CoreGlobalQuantities

@@ -1,4 +1,4 @@
-from spdm.geometry.geo_object import GeoObject
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Rectangle
 from ..utils.logger import logger
 from ..ontology import pf_active
