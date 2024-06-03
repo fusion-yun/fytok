@@ -9,7 +9,7 @@ class Magnetics(magnetics._T_magnetics):
     """Magnetic diagnostics for equilibrium identification and plasma shape control.
     """
 
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
         match view_point.lower():
             case "rz":

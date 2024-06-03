@@ -5,7 +5,7 @@ from ..ontology import pf_active
 
 
 class PFActive(pf_active._T_pf_active):
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
 
         match view_point.lower():

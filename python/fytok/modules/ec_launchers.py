@@ -6,7 +6,7 @@ from ..ontology import ec_launchers
 
 
 class ECLaunchers(ec_launchers._T_ec_launchers):
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
         styles = {}
         match view_point.lower():

@@ -203,7 +203,7 @@ Modules:
 
         super().flush()
 
-    def __geometry__(self, **kwargs) -> GeoObject | typing.Dict:
+    def __view__(self, **kwargs) -> GeoObject | typing.Dict:
         geo = {}
 
         o_list = [
@@ -225,11 +225,11 @@ Modules:
                 g = getattr(self, o_name, None)
                 if g is None:
                     continue
-                g = g.__geometry__(**kwargs)
+                g = g.__view__(**kwargs)
 
             except Exception as error:
-                logger.error(f"Can not get {g.__class__.__name__}.__geometry__ ! {error}", exc_info=error)
-                # raise RuntimeError(f"Can not get {g.__class__.__name__}.__geometry__ !") from error
+                logger.error(f"Can not get {g.__class__.__name__}.__view__ ! {error}", exc_info=error)
+                # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g
 

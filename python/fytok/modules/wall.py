@@ -17,7 +17,7 @@ class Wall(wall._T_wall):
 
     description_2d: AoS[Description2D]
 
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject | typing.List[GeoObject]:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject | typing.List[GeoObject]:
         geo = {}
 
         desc = self.description_2d[0]  # 0 for equilibrium codes

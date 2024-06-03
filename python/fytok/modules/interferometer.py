@@ -9,7 +9,7 @@ from ..ontology import interferometer
 
 
 class Interferometer(interferometer._T_interferometer):
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
         match view_point.lower():
             case "rz":

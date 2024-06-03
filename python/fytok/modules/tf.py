@@ -11,7 +11,7 @@ from ..ontology import tf
 
 class TF(tf._T_tf):
 
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
         styles = {}
         r0 = self.r0

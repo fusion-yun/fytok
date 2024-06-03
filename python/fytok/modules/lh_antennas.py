@@ -6,7 +6,7 @@ from ..ontology import lh_antennas
 
 
 class LHAntennas(lh_antennas._T_lh_antennas):
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
 
         geo = {}
         styles = {}

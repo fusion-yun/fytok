@@ -21,7 +21,7 @@ def draw_nbi_unit(unit: nbi._T_nbi_unit, name: str):
 
 
 class NBI(nbi._T_nbi):
-    def __geometry__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
         styles = {}
 

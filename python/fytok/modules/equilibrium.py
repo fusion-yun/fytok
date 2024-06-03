@@ -384,7 +384,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     GGD = EquilibriumGGD
     ggd: GGD
 
-    def __geometry__(self, view_point="RZ", **kwargs):
+    def __view__(self, view_point="RZ", **kwargs):
         """
         plot o-point,x-point,lcfs,separatrix and contour of psi
         """
@@ -393,7 +393,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
 
         match view_point.lower():
             case "rz":
-                geo["psi"] = self.profiles_2d.psi.__geometry__()
+                geo["psi"] = self.profiles_2d.psi.__view__()
 
                 try:
                     geo["o_points"] = Point(
@@ -432,7 +432,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
 
         return geo
 
-    # def __geometry__(self, view_port="RZ", **kwargs) -> GeoObject:
+    # def __view__(self, view_port="RZ", **kwargs) -> GeoObject:
     #     geo = {}
 
     #     if view_port == "RZ":
@@ -448,7 +448,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     #             self.boundary_separatrix.outline.z.__array__(),
     #         )
 
-    #     geo["psi"] = self.profiles_2d.psi.__geometry__()
+    #     geo["psi"] = self.profiles_2d.psi.__view__()
 
     #     styles = {
     #         "o_points": {"$matplotlib": {"c": "red", "marker": "."}},
@@ -491,10 +491,9 @@ class Equilibrium(IDS):
 
     time_slice: TimeSeriesAoS[EquilibriumTimeSlice]
 
-    def __geometry__(self, *args, **kwargs):
+    def __view__(self, *args, **kwargs):
         current = self.time_slice.current
-        logger.info(type(current))
-        return current.__geometry__(*args, **kwargs) if current is not _not_found_ else {}
+        return current.__view__(*args, **kwargs) if current is not _not_found_ else {}
 
     def refresh(
         self,

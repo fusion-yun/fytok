@@ -150,9 +150,9 @@ class IDS(Module):
     """Interface Data Structure properties. This element identifies the node above as an IDS"""
 
     def _repr_svg_(self) -> str:
-        if hasattr(self.__class__, "__geometry__"):
+        if hasattr(self.__class__, "__view__"):
             try:
-                res = sp_view.display(self.__geometry__(), output="svg")
+                res = sp_view.display(self.__view__(), output="svg")
             except Exception as error:
                 raise RuntimeError(f"{self}") from error
         else:
@@ -326,7 +326,7 @@ class CoreVectorComponents(SpTree):
 
 
 class DetectorAperture:  # (utilities._T_detector_aperture):
-    def __geometry__(self, view="RZ", **kwargs):
+    def __view__(self, view="RZ", **kwargs):
         geo = {}
         styles = {}
         return geo, styles
