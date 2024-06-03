@@ -185,7 +185,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
         surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
 
-        return CurvilinearMesh(psi_norm, theta, geometry=surfs, cycles=[False, 2.0 * scipy.constants.pi])
+        return CurvilinearMesh(psi_norm, theta, geometry=surfs, mesh={"periods":[False, 2.0 * scipy.constants.pi]})
 
     @sp_property(mesh="grid")
     def r(self) -> Field:
