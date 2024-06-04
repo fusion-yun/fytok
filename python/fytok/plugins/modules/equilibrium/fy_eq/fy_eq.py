@@ -150,7 +150,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
     @sp_property
     def dvolume_dpsi(self) -> Expression:
-        return Expression(*self._surface_integral(1.0), name="dvolume_dpsi", label=r"\frac{d V}{d\psi}")
+        return Function(*self._surface_integral(1.0), name="dvolume_dpsi", label=r"\frac{d V}{d\psi}")
 
     @sp_property
     def Bpol(self) -> Expression:
@@ -185,7 +185,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
         surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
 
-        return CurvilinearMesh(psi_norm, theta, geometry=surfs, mesh={"periods":[False, 2.0 * scipy.constants.pi]})
+        return CurvilinearMesh(psi_norm, theta, geometry=surfs, mesh={"periods": [False, 2.0 * scipy.constants.pi]})
 
     @sp_property(mesh="grid")
     def r(self) -> Field:
@@ -348,10 +348,11 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
         if np.isscalar(psi_norm):
             return value
         else:
-            return Expression(
+            label = getattr(func, "__label__", func)
+            return Function(
                 psi_norm,
                 value,
-                name=f"surface_integral({func.__label__})",
+                name=f"surface_integral({label})",
                 label=rf"<{func.__repr__()}>",
             )
 
@@ -463,18 +464,18 @@ class FyEquilibriumProfiles1D(Equilibrium.TimeSlice.Profiles1D):
     @sp_property
     def grid(self) -> CoreRadialGrid:
         psi_norm = self.psi_norm
-        rho_tor_norm = self.rho_tor_norm(self.psi_norm)
-        if rho_tor_norm[0] < 0:
-            rho_tor_norm[0] = 0.0
+        # rho_tor_norm = self.rho_tor_norm(self.psi_norm)
+        # if rho_tor_norm[0] < 0:
+        #     rho_tor_norm[0] = 0.0
         return CoreRadialGrid(
             {
                 "psi_norm": psi_norm,
-                "rho_tor_norm": rho_tor_norm,
                 "psi_axis": self._coord.psi_axis,
                 "psi_boundary": self._coord.psi_boundary,
-                "rho_tor_boundary": np.sqrt(
-                    np.abs(self.phi(self.psi_norm[-1]) / (scipy.constants.pi * self._coord.b0))
-                ),
+                # "rho_tor_norm": rho_tor_norm,
+                # "rho_tor_boundary": np.sqrt(
+                #     np.abs(self.phi(self.psi_norm[-1]) / (scipy.constants.pi * self._coord.b0))
+                # ),
             }
         )
 
@@ -512,7 +513,7 @@ class FyEquilibriumProfiles1D(Equilibrium.TimeSlice.Profiles1D):
 
     @sp_property
     def dvolume_dpsi(self) -> Expression:
-        return Expression(*self._coord._surface_integral(1.0), name="dvolume_dpsi", label=r"\frac{d V}{d\psi}")
+        return Function(*self._coord._surface_integral(1.0), name="dvolume_dpsi", label=r"\frac{d V}{d\psi}")
 
     @sp_property(label=r"q")
     def q(self) -> Expression:

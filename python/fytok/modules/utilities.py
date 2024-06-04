@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import IntFlag
 import numpy as np
 
-from spdm.core.path import Path, update_tree, merge_tree
+from spdm.core.path import Path
 from spdm.core.actor import Actor
 from spdm.core.aos import AoS
 from spdm.core.field import Field
@@ -16,6 +16,7 @@ from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
 from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
 from spdm.core.time_series import TimeSeriesAoS, TimeSlice
+from spdm.core.domain import PPolyDomain
 
 from spdm.geometry.curve import Curve
 from spdm.utils.typing import array_type, is_array, as_array
@@ -185,9 +186,10 @@ class VacuumToroidalField:
 
 
 @sp_tree
-class CoreRadialGrid:
+class CoreRadialGrid(PPolyDomain):
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        SpTree.__init__(self, *args, **kwargs)
+        PPolyDomain.__init__(self, self._cache["psi_norm"])
         # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
         # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
         # assert isinstance(self.rho_tor_boundary, float), f"rho_tor_boundary must be specified {self.rho_tor_boundary}"
@@ -306,7 +308,7 @@ class CoreRadialGrid:
 
 
 @sp_tree
-class CoreVectorComponents(SpTree):
+class CoreVectorComponents:
     """Vector components in predefined directions"""
 
     radial: Expression

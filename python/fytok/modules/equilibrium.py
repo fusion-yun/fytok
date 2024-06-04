@@ -6,13 +6,11 @@ from spdm.core.aos import AoS
 from spdm.core.expression import Expression
 from spdm.core.sp_property import sp_property
 from spdm.core.time_series import TimeSeriesAoS, TimeSlice
-from spdm.core.path import update_tree
+from spdm.core.geo_object import GeoObject, GeoObjectSet
+from spdm.core.mesh import Mesh
 
 from spdm.geometry.curve import Curve
-from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
-
-from spdm.core.mesh import Mesh
 
 from spdm.utils.tags import _not_found_
 
@@ -22,7 +20,7 @@ from ..utils.logger import logger
 from ..ontology import equilibrium
 
 
-@sp_tree(mesh="grid")
+@sp_tree(domain="grid")
 class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system):
     grid_type: Identifier
 
@@ -98,7 +96,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-@sp_tree(domain={"reference": "psi_norm", "extrapolate": "zeros"})
+@sp_tree(domain="grid")
 class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
     """
     1D profiles of the equilibrium quantities
