@@ -109,8 +109,6 @@ class TransportSolverNumericsTimeSlice(TimeSlice):
 class TransportSolverNumerics(IDS):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
-    _plugin_prefix = "fytok.modules.transport_solver_numerics"
-
     code: Code = {"name": "fy_trans"}
 
     solver: str = "ion_solver"
