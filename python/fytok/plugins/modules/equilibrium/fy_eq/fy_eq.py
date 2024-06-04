@@ -231,7 +231,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
                         yield psi_val, surf
                         break
                 else:
-                    logger.exception(f"Can not find surf at {psi_val}  ")
+                    logger.warning(f"Can not find surf at {psi_val}  ")
 
     def find_surfaces(self, psi_norm) -> typing.Generator[typing.Tuple[float, GeoObject], None, None]:
         psi = psi_norm * (self.psi_boundary - self.psi_axis) + self.psi_axis

@@ -228,7 +228,7 @@ Modules:
                 g = g.__view__(**kwargs)
 
             except Exception as error:
-                logger.error(f"Can not get {g.__class__.__name__}.__view__ ! {error}", exc_info=error)
+                logger.warning(f"Failed to get {g.__class__.__name__}.__view__ ! {error}") # , exc_info=error
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g
