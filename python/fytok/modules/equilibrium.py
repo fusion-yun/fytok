@@ -96,7 +96,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-@sp_tree(domain="grid")
+@sp_tree(domain="psi_norm")
 class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
     """
     1D profiles of the equilibrium quantities

@@ -30,9 +30,9 @@ from .modules.pf_active import PFActive
 from .modules.tf import TF
 from .modules.wall import Wall
 from .modules.transport_solver_numerics import TransportSolverNumerics
+from .modules.utilities import *
 
 from .ontology import GLOBAL_ONTOLOGY
-
 # from .modules.EdgeProfiles import EdgeProfiles
 # from .modules.EdgeSources import EdgeSources
 # from .modules.EdgeTransport import EdgeTransport
@@ -95,11 +95,13 @@ Modules:
     transport_solver        : {self.transport_solver.code }
     equilibrium             : {self.equilibrium.code }
 
-    core_profiles           : N/A             
+    core_profiles           : {self.core_profiles.code }             
     core_transport          : {', '.join([str(s.code).split(".")[-1] for s in self.core_transport.model])}
     core_sources            : {', '.join([str(s.code).split(".")[-1]  for s in self.core_sources.source])}
 ---------------------------------------------------------------------------------------------------
 """
+
+    code: Code = {"name": "fy_tok"}
 
     @property
     def title(self) -> str:
@@ -228,7 +230,7 @@ Modules:
                 g = g.__view__(**kwargs)
 
             except Exception as error:
-                logger.warning(f"Failed to get {g.__class__.__name__}.__view__ ! {error}") # , exc_info=error
+                logger.warning(f"Failed to get {g.__class__.__name__}.__view__ ! {error}")  # , exc_info=error
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g

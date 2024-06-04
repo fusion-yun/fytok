@@ -48,7 +48,7 @@ class Library:
 
 @sp_tree
 class Code:
-    name: str = "unnamed"
+    name: str = "default"
     """代码名称，也是调用 plugin 的 identifier"""
 
     module_path: str
@@ -64,7 +64,7 @@ class Code:
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
-        return "-".join([s for s in [self.name, self.version.replace(".", "_"), self.copyright] if isinstance(s, str)])
+        return "-".join([s for s in [self.name, self.version.replace(".", "_")] if isinstance(s, str)])
 
     def __repr__(self) -> str:
         desc = {
@@ -110,7 +110,8 @@ class Module(Actor):
             plugin_name = pth.get(kwargs, None)
         if plugin_name is None:
             plugin_name = Path("default_value/name").get(cls.code, None)
-
+        if plugin_name == "default":
+            plugin_name = None
         return super().__new__(cls, {"$class": plugin_name})
 
     def __init__(self, *args, **kwargs):
@@ -186,10 +187,10 @@ class VacuumToroidalField:
 
 
 @sp_tree
-class CoreRadialGrid(PPolyDomain):
+class CoreRadialGrid:
     def __init__(self, *args, **kwargs) -> None:
         SpTree.__init__(self, *args, **kwargs)
-        PPolyDomain.__init__(self, self._cache["psi_norm"])
+        # PPolyDomain.__init__(self, self._cache["psi_norm"])
         # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
         # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
         # assert isinstance(self.rho_tor_boundary, float), f"rho_tor_boundary must be specified {self.rho_tor_boundary}"

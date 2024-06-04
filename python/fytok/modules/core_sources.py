@@ -156,7 +156,7 @@ class CoreSourcesSource(Module):
         grid = current.get_cache("profiles_1d/grid", _not_found_)
 
         if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
+            eq_grid: CoreRadialGrid = self.inports["/equilibrium/time_slice/0/profiles_1d/grid"].fetch()
 
             if isinstance(grid, dict):
                 new_grid = grid
