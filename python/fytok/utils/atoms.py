@@ -9,7 +9,7 @@ from spdm.core.function import Function
 from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
 from spdm.core.aos import AoS
 from spdm.core.path import update_tree
-from spdm.core.typing import get_args
+from spdm.utils.typing import get_args
 from spdm.utils.tags import _not_found_
 
 #################################################

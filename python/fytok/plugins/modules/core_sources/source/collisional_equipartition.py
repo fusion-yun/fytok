@@ -3,7 +3,7 @@ import scipy.constants
 import typing
 
 
-from spdm.core.typing import array_type
+from spdm.utils.typing import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.expression import Expression, Variable, smooth, zero
 from spdm.core.sp_property import sp_tree

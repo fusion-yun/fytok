@@ -18,7 +18,7 @@ from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
 from spdm.core.time_series import TimeSeriesAoS, TimeSlice
 
 from spdm.geometry.curve import Curve
-from spdm.core.typing import array_type, is_array, as_array
+from spdm.utils.typing import array_type, is_array, as_array
 from spdm.utils.tags import _not_found_
 from spdm.view import sp_view as sp_view
 

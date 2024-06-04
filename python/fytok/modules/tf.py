@@ -4,7 +4,7 @@ import numpy as np
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Polygon
 from spdm.utils.constants import TWOPI
-from spdm.core.typing import _not_found_
+from spdm.utils.typing import _not_found_
 from ..utils.logger import logger
 from ..ontology import tf
 

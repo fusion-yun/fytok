@@ -5,7 +5,7 @@ from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from spdm.utils.logger import logger
-from spdm.core.typing import array_type
+from spdm.utils.typing import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.sp_property import sp_tree
 
