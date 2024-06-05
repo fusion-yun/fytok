@@ -62,7 +62,7 @@ try:
 
 
 except ModuleNotFoundError as error:
-    logger.verbose(f"Failed to import IMAS ontology: {error}")
+    logger.verbose(f"Failed to import IMAS ontology:")
 
     logger.info(f"Failed to import IMAS wrapper. Using dummy ontology as fallback.")
 
