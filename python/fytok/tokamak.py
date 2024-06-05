@@ -4,6 +4,7 @@ from spdm.core.path import update_tree
 from spdm.core.entry import open_entry
 from spdm.core.htree import HTree
 from spdm.core.actor import Actor
+from spdm.core.context import Context
 from spdm.core.sp_property import sp_tree
 from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
@@ -41,7 +42,7 @@ from .ontology import GLOBAL_ONTOLOGY
 
 
 @sp_tree
-class Tokamak(Actor):
+class Tokamak(Context):
     # fmt:off
     dataset_fair            : DatasetFAIR               
 
