@@ -1,7 +1,7 @@
 import typing
 import scipy.constants
 from spdm.core.expression import Variable, zero
-from spdm.core.sp_property import sp_tree
+from spdm.core.sp_tree import sp_tree
 from fytok.utils.atoms import nuclear_reaction, atoms
 from fytok.utils.logger import logger
 from fytok.modules.core_sources import CoreSources

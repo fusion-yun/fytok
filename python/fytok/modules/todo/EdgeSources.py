@@ -4,7 +4,7 @@ from  ..ontology import edge_sources import _T_edge_sources, _T_edge_sources_sou
 from spdm.utils.tags import _undefined_
 from spdm.core.Dict import Dict
 from spdm.core.htree import List
-from spdm.core.sp_property import sp_property, SpTree
+from spdm.core.sp_tree import sp_property, SpTree
 
 
 class EdgeSources(_T_edge_sources):

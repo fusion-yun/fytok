@@ -7,7 +7,7 @@ from spdm.core.entry import as_entry
 from spdm.core.expression import Expression 
 from spdm.core.htree import List
 from spdm.core.Node import Node
-from spdm.core.sp_property import sp_property, SpTree
+from spdm.core.sp_tree import sp_property, SpTree
 
 from .Atoms import atoms
 from .MagneticCoordSystem import RadialGrid

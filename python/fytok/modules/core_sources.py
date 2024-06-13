@@ -3,8 +3,8 @@ from copy import copy, deepcopy
 import math
 
 from spdm.core.aos import AoS
-from spdm.core.sp_property import sp_property, sp_tree
-from spdm.core.time_series import TimeSeriesAoS
+from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.time_sequence import TimeSequence
 from spdm.core.expression import Expression, Variable, zero, one
 from spdm.utils.tags import _not_found_
 
@@ -136,7 +136,7 @@ class CoreSourcesTimeSlice(TimeSlice):
 
 
 @sp_tree
-class CoreSourcesSource(Module):
+class CoreSourcesSource(FyActor):
     _plugin_prefix = "fytok.modules.core_sources.source."
 
     identifier: str
@@ -145,7 +145,7 @@ class CoreSourcesSource(Module):
 
     TimeSlice = CoreSourcesTimeSlice
 
-    time_slice: TimeSeriesAoS[CoreSourcesTimeSlice]
+    time_slice: TimeSequence[CoreSourcesTimeSlice]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -206,7 +206,10 @@ class CoreSourcesSource(Module):
 
 
 @sp_tree
-class CoreSources(IDS):
+class CoreSources:
+
+    ids_properties: IDSProperties
+
     Source = CoreSourcesSource
 
     source: AoS[CoreSourcesSource]

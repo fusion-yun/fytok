@@ -7,18 +7,22 @@ from enum import IntFlag
 import numpy as np
 
 from spdm.core.path import Path
-from spdm.core.actor import Actor
+from spdm.core.service import Service
 from spdm.core.aos import AoS
 from spdm.core.field import Field
 from spdm.core.expression import Expression, zero
 from spdm.core.function import Function
 from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
-from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
-from spdm.core.time_series import TimeSeriesAoS, TimeSlice
+from spdm.core.obsolete.sp_tree import SpTree, sp_property, sp_tree, PropertyTree
+from spdm.core.pluggable import Pluggable
 from spdm.core.domain import PPolyDomain
+from spdm.core.actor import Actor
+from spdm.core.component import Component
+from spdm.core.time_sequence import TimeSlice
 
 from spdm.geometry.curve import Curve
+
 from spdm.utils.typing import array_type, is_array, as_array
 from spdm.utils.tags import _not_found_
 from spdm.view import sp_view as sp_view
@@ -33,33 +37,43 @@ class IDSProperties:
     homogeneous_time: int
     provider: str
     creation_date: str
-    version_put: SpTree
-    provenance: SpTree
+    version_put: PropertyTree
+    provenance: PropertyTree
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 @sp_tree
 class Library:
     name: str
     commit: str
-    version: str
-    repository: str
-    parameters: SpTree
+    version: str = "0.0.0"
+    repository: str = ""
+    parameters: PropertyTree
 
 
 @sp_tree
 class Code:
-    name: str = "default"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self._cache.get("name", None) is None:
+            self._cache["name"] = self._parent.__class__.__name__
+        self._cache["module_path"] = self._parent.__module__ + "." + self._parent.__class__.__name__
+
+    name: str
     """代码名称，也是调用 plugin 的 identifier"""
 
     module_path: str
     """模块路径， 可用于 import 模块"""
 
     commit: str
-    version: str = "0.0.0"
+    version: str
     copyright: str = "NO_COPYRIGHT_STATEMENT"
     repository: str = ""
     output_flag: array_type
     library: List[Library]
+
     parameters: PropertyTree = {}
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
@@ -98,35 +112,42 @@ class Identifier:
     description: str
 
 
+def guess_plugin_name(cls, *args, **kwargs):
+    pth = Path("code/name")
+    plugin_name = None
+    if len(args) > 0 and isinstance(args[0], dict):
+        plugin_name = pth.get(args[0], None)
+    if plugin_name is None:
+        plugin_name = pth.get(kwargs, None)
+    if plugin_name is None:
+        plugin_name = Path("default_value/name").get(cls.code, None)
+    if plugin_name == "default":
+        plugin_name = None
+    return plugin_name
+
+
+from spdm.core.time_sequence import TimeSlice, TimeSequence
+
+
 @sp_tree
-class Module(Actor):
+class FyActor(Actor):
 
     def __new__(cls, *args, **kwargs) -> typing.Type[typing.Self]:
-        pth = Path("code/name")
-        plugin_name = None
-        if len(args) > 0 and isinstance(args[0], dict):
-            plugin_name = pth.get(args[0], None)
-        if plugin_name is None:
-            plugin_name = pth.get(kwargs, None)
-        if plugin_name is None:
-            plugin_name = Path("default_value/name").get(cls.code, None)
-        if plugin_name == "default":
-            plugin_name = None
-        return super().__new__(cls, {"$class": plugin_name})
+        if cls is not FyActor:
+            return super().__new__(cls)
+        else:
+            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not self.code.name:
-            self.code.name = self.__class__.__name__
-
-        self.code.module_path = self.__module__ + "." + self.__class__.__name__
-
         logger.verbose(f"Initialize module {self.code} ")
 
-    code: Code = {}
-    """ 对于 Module 的一般性说明。 
-        @note code 在 __init__ 时由初始化参数定义。"""
+    identifier: str
+
+    code: Code
+
+    time_slice: TimeSequence
 
     @property
     def tag(self) -> str:
@@ -144,22 +165,28 @@ class Module(Actor):
         return current
 
 
-class IDS(Module):
-    """Base class of IDS"""
-
-    ids_properties: IDSProperties
-
-    """Interface Data Structure properties. This element identifies the node above as an IDS"""
-
-    def _repr_svg_(self) -> str:
-        if hasattr(self.__class__, "__view__"):
-            try:
-                res = sp_view.display(self.__view__(), output="svg")
-            except Exception as error:
-                raise RuntimeError(f"{self}") from error
+@sp_tree
+class FyComponent(Component):
+    def __new__(cls, *args, **kwargs) -> typing.Type[FyComponent]:
+        if cls is not FyComponent:
+            return super().__new__(cls)
         else:
-            res = None
-        return res
+            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
+
+    identifier: str
+    code: Code = {}
+
+
+@sp_tree
+class FyService(Service):
+    def __new__(cls, *args, **kwargs) -> typing.Type[FyComponent]:
+        if cls is not FyService:
+            return super().__new__(cls)
+        else:
+            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
+
+    identifier: str
+    code: Code = {}
 
 
 @sp_tree

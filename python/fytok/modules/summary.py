@@ -1,4 +1,4 @@
-from spdm.core.sp_property import sp_tree, sp_property
+from spdm.core.sp_tree import sp_tree, sp_property
 from ..ontology import summary
 
 

@@ -1,7 +1,7 @@
 import typing
 import scipy.constants
 from spdm.core.expression import Variable, Expression, zero
-from spdm.core.sp_property import sp_tree
+from spdm.core.sp_tree import sp_tree
 
 
 

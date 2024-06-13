@@ -15,7 +15,7 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.wall import Wall
 from fytok.modules.utilities import *
 
-from spdm.core.time_series import TimeSlice
+from spdm.core.time_sequence import TimeSlice
 from spdm.core.field import Field
 from spdm.core.mesh import Mesh
 

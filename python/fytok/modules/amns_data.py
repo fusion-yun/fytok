@@ -3,7 +3,7 @@ import numpy as np
 from spdm.core.htree import Dict, HTree
 from spdm.core.expression import Expression
 from spdm.core.function import Function, Polynomials
-from spdm.core.sp_property import sp_property, sp_tree, SpTree
+from spdm.core.sp_tree import sp_property, sp_tree, SpTree
 from spdm.utils.tags import _not_found_
 from spdm.utils.typing import array_type
 

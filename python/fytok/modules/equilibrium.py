@@ -4,8 +4,8 @@ from typing_extensions import Self
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression
-from spdm.core.sp_property import sp_property
-from spdm.core.time_series import TimeSeriesAoS, TimeSlice
+from spdm.core.sp_tree import sp_property
+from spdm.core.time_sequence import TimeSequence, TimeSlice
 from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.core.mesh import Mesh
 
@@ -472,7 +472,7 @@ from .pf_active import PFActive
 
 
 @sp_tree
-class Equilibrium(IDS):
+class Equilibrium(FyActor):
     r"""
     Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
 
@@ -487,7 +487,7 @@ class Equilibrium(IDS):
 
     TimeSlice = EquilibriumTimeSlice
 
-    time_slice: TimeSeriesAoS[EquilibriumTimeSlice]
+    time_slice: TimeSequence[EquilibriumTimeSlice]
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current

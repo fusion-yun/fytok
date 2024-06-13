@@ -8,8 +8,8 @@ from dataclasses import dataclass
 
 
 from spdm.core.htree import List
-from spdm.core.sp_property import sp_property, sp_tree
-from spdm.core.time_series import TimeSeriesAoS
+from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.time_sequence import TimeSequence
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.geo_object import GeoObject, GeoObjectSet
@@ -884,7 +884,7 @@ class FyEqAnalyze(Equilibrium):
 
     TimeSlice = FyEquilibriumTimeSlice
 
-    time_slice: TimeSeriesAoS[FyEquilibriumTimeSlice]
+    time_slice: TimeSequence[FyEquilibriumTimeSlice]
 
 
 Equilibrium.register("fy_eq", FyEqAnalyze)

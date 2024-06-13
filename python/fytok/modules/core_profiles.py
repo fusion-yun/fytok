@@ -6,10 +6,10 @@ import scipy.constants
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression, Variable, zero, derivative
-from spdm.core.sp_property import sp_property, sp_tree
-from spdm.core.time_series import TimeSeriesAoS
+from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.time_sequence import TimeSequence
 from spdm.core.path import update_tree
-
+from spdm.core.entity import Entity
 from spdm.utils.tags import _not_found_
 
 from ..utils.atoms import atoms
@@ -385,11 +385,11 @@ class CoreProfilesTimeSlice(TimeSlice):
 
     GlobalQuantities = CoreGlobalQuantities
 
-    profiles_1d: CoreProfiles1D = {}
+    profiles_1d: CoreProfiles1D
 
-    global_quantities: CoreGlobalQuantities = {}
+    global_quantities: CoreGlobalQuantities
 
-    vacuum_toroidal_field: VacuumToroidalField = {}
+    vacuum_toroidal_field: VacuumToroidalField
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -410,13 +410,13 @@ class CoreProfilesTimeSlice(TimeSlice):
 
 
 @sp_tree
-class CoreProfiles(IDS):
+class CoreProfiles:
 
     ids_properties: IDSProperties
 
     TimeSlice = CoreProfilesTimeSlice
 
-    time_slice: TimeSeriesAoS[CoreProfilesTimeSlice]
+    time_slice: TimeSequence[CoreProfilesTimeSlice]
 
     def preprocess(self, *args, **kwargs) -> CoreProfilesTimeSlice:
         current: CoreProfilesTimeSlice = super().preprocess(*args, **kwargs)

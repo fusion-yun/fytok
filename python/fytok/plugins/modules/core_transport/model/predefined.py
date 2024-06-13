@@ -7,7 +7,7 @@ from fytok.modules.equilibrium import Equilibrium
 from spdm.utils.logger import logger
 from spdm.utils.typing import array_type
 from spdm.utils.tags import _not_found_
-from spdm.core.sp_property import sp_tree
+from spdm.core.sp_tree import sp_tree
 
 
 @sp_tree

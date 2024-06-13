@@ -3,37 +3,37 @@ import typing
 from spdm.core.path import update_tree
 from spdm.core.entry import open_entry
 from spdm.core.htree import HTree
-from spdm.core.actor import Actor
 from spdm.core.context import Context
-from spdm.core.sp_property import sp_tree
+from spdm.core.obsolete.sp_tree import sp_tree
 from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------
-from .utils.envs import *
-from .utils.logger import logger
+from ..utils.envs import *
+from ..utils.logger import logger
 
 # ---------------------------------
-from .modules.dataset_fair import DatasetFAIR
-from .modules.summary import Summary
-from .modules.core_profiles import CoreProfiles
-from .modules.core_sources import CoreSources
-from .modules.core_transport import CoreTransport
-from .modules.ec_launchers import ECLaunchers
-from .modules.equilibrium import Equilibrium
-from .modules.ic_antennas import ICAntennas
-from .modules.interferometer import Interferometer
-from .modules.lh_antennas import LHAntennas
-from .modules.magnetics import Magnetics
-from .modules.nbi import NBI
-from .modules.pellets import Pellets
-from .modules.pf_active import PFActive
-from .modules.tf import TF
-from .modules.wall import Wall
-from .modules.transport_solver_numerics import TransportSolverNumerics
-from .modules.utilities import *
+from ..modules.dataset_fair import DatasetFAIR
+from ..modules.summary import Summary
+from ..modules.core_profiles import CoreProfiles
+from ..modules.core_sources import CoreSources
+from ..modules.core_transport import CoreTransport
+from ..modules.ec_launchers import ECLaunchers
+from ..modules.equilibrium import Equilibrium
+from ..modules.ic_antennas import ICAntennas
+from ..modules.interferometer import Interferometer
+from ..modules.lh_antennas import LHAntennas
+from ..modules.magnetics import Magnetics
+from ..modules.nbi import NBI
+from ..modules.pellets import Pellets
+from ..modules.pf_active import PFActive
+from ..modules.tf import TF
+from ..modules.wall import Wall
+from ..modules.transport_solver_numerics import TransportSolverNumerics
+from ..modules.utilities import *
 
-from .ontology import GLOBAL_ONTOLOGY
+from ..ontology import GLOBAL_ONTOLOGY
+
 # from .modules.EdgeProfiles import EdgeProfiles
 # from .modules.EdgeSources import EdgeSources
 # from .modules.EdgeTransport import EdgeTransport
@@ -44,7 +44,6 @@ from .ontology import GLOBAL_ONTOLOGY
 @sp_tree
 class Tokamak(Context):
     # fmt:off
-    dataset_fair            : DatasetFAIR               
 
     # device
     wall                    : Wall                      
@@ -68,8 +67,8 @@ class Tokamak(Context):
     equilibrium             : Equilibrium               
 
     core_profiles           : CoreProfiles              
-    core_transport          : CoreTransport             
-    core_sources            : CoreSources               
+    core_transport          : AoS[CoreTransport.Model]  
+    core_sources            : AoS[CoreSources.Source]   
 
     # edge_profiles         : EdgeProfiles              
     # edge_transport        : EdgeTransport             
@@ -79,17 +78,20 @@ class Tokamak(Context):
     # solver
     transport_solver        : TransportSolverNumerics   
 
-    summary                 : Summary                   
+    summary                 : Summary
+
+    code                    : Code = {"name": "fy_tok"}
+    
+    dataset_fair            : DatasetFAIR
     # fmt:on
 
     @property
-    def brief_summary(self) -> str:
+    def description(self) -> str:
         """综述模拟内容"""
         return f"""{FY_LOGO}
 ---------------------------------------------------------------------------------------------------
-                                                Brief Summary
+                                                Description
 ---------------------------------------------------------------------------------------------------
-Dataset Description:
 {self.dataset_fair}
 ---------------------------------------------------------------------------------------------------
 Modules:
@@ -97,12 +99,11 @@ Modules:
     equilibrium             : {self.equilibrium.code }
 
     core_profiles           : {self.core_profiles.code }             
-    core_transport          : {', '.join([str(s.code).split(".")[-1] for s in self.core_transport.model])}
-    core_sources            : {', '.join([str(s.code).split(".")[-1]  for s in self.core_sources.source])}
+    core_transport          : {', '.join([s.code.name for s in self.core_transport])}
+    core_sources            : {', '.join([s.code.name  for s in self.core_sources])}
 ---------------------------------------------------------------------------------------------------
 """
 
-    code: Code = {"name": "fy_tok"}
 
     @property
     def title(self) -> str:

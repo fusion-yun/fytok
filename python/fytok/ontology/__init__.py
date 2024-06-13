@@ -66,7 +66,7 @@ except ModuleNotFoundError as error:
 
     logger.info(f"Failed to import IMAS wrapper. Using dummy ontology as fallback.")
 
-    from spdm.core.sp_property import PropertyTree
+    from spdm.core.sp_tree import PropertyTree
 
     imas_version = "None"
 

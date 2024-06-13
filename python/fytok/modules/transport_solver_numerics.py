@@ -4,8 +4,8 @@ from scipy import constants
 from copy import copy
 import math
 from spdm.core.expression import Expression, Variable, zero
-from spdm.core.sp_property import sp_tree, sp_property, PropertyTree
-from spdm.core.time_series import TimeSlice, TimeSeriesAoS
+from spdm.core.sp_tree import sp_tree, sp_property, PropertyTree
+from spdm.core.time_sequence import TimeSlice, TimeSequence
 from spdm.core.aos import AoS
 from spdm.utils.tags import _not_found_
 from spdm.utils.typing import array_type
@@ -106,8 +106,10 @@ class TransportSolverNumericsTimeSlice(TimeSlice):
 
 
 @sp_tree
-class TransportSolverNumerics(IDS):
+class TransportSolverNumerics(FyService):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
+
+    ids_properties: IDSProperties
 
     code: Code = {"name": "fy_trans"}
 
@@ -133,7 +135,7 @@ class TransportSolverNumerics(IDS):
 
     TimeSlice = TransportSolverNumericsTimeSlice
 
-    time_slice: TimeSeriesAoS[TransportSolverNumericsTimeSlice] = []
+    time_slice: TimeSequence[TransportSolverNumericsTimeSlice] = []
 
     def initialize(self, *args, **kwargs):
         return super().initialize(*args, **kwargs)

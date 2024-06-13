@@ -6,7 +6,7 @@ from spdm.core.path import Path
 from spdm.core.htree import Dict
 from spdm.core.expression import Variable, Expression
 from spdm.core.function import Function
-from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
+from spdm.core.sp_tree import SpTree, sp_property, sp_tree, PropertyTree
 from spdm.core.aos import AoS
 from spdm.core.path import update_tree
 from spdm.utils.typing import get_args

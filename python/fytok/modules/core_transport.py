@@ -3,10 +3,12 @@ from __future__ import annotations
 from copy import copy
 import math
 from spdm.core.aos import AoS
-from spdm.core.sp_property import sp_property, sp_tree
-from spdm.core.time_series import TimeSeriesAoS
+from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.time_sequence import TimeSequence
+from spdm.core.entity import Entity
 from spdm.core.expression import Expression
 from spdm.utils.tags import _not_found_
+
 from .utilities import *
 from .core_profiles import CoreProfiles
 from .equilibrium import Equilibrium
@@ -110,13 +112,14 @@ class CoreTransportTimeSlice(TimeSlice):
 
 
 @sp_tree
-class CoreTransportModel(Module):
+class CoreTransportModel(FyActor):
     _plugin_prefix = "fytok.modules.core_transport.model."
 
     identifier: str
 
     TimeSlice = CoreTransportTimeSlice
-    time_slice: TimeSeriesAoS[CoreTransportTimeSlice]
+
+    time_slice: TimeSequence[CoreTransportTimeSlice]
 
     def preprocess(self, *args, **kwargs) -> CoreTransportTimeSlice:
         current: CoreTransportTimeSlice = super().preprocess(*args, **kwargs)
@@ -197,7 +200,10 @@ class CoreTransportModel(Module):
 
 
 @sp_tree
-class CoreTransport(IDS):
+class CoreTransport(Entity):
+
+    ids_properties: IDSProperties
+
     Model = CoreTransportModel
 
     model: AoS[CoreTransportModel]
