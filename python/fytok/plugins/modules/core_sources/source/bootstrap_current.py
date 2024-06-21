@@ -10,7 +10,7 @@ from fytok.utils.logger import logger
 from spdm.core.function import Function
 from spdm.core.expression import Variable, Expression, piecewise
 from spdm.core.sp_tree import sp_tree
-from spdm.utils.typing import array_type
+from spdm.core.generic_helper import array_type
 
 
 @CoreSources.Source.register(["bootstrap"])

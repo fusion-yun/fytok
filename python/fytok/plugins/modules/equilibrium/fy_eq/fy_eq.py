@@ -18,7 +18,7 @@ from spdm.geometry.curve import Curve
 from spdm.core.mesh import Mesh
 from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
-from spdm.utils.typing import ArrayLike, NumericType, array_type, scalar_type
+from spdm.core.generic_helper import ArrayLike, NumericType, array_type, scalar_type
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import *

@@ -1,1 +1,10 @@
-{}
+{
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./python/fytok/tests",
+        "-p",
+        "*test*.py"
+    ]
+}

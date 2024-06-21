@@ -10,7 +10,7 @@ import scipy.constants
 from spdm.core.expression import Variable, Expression, Scalar, one, zero, derivative
 from spdm.core.sp_tree import sp_tree
 from spdm.core.path import as_path
-from spdm.utils.typing import array_type
+from spdm.core.generic_helper import array_type
 from spdm.utils.tags import _not_found_
 
 
