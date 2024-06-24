@@ -1,8 +1,5 @@
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
-import os
-
-from .ontology import GLOBAL_ONTOLOGY
 
 from .utils.envs import *
 
@@ -13,8 +10,8 @@ __version__ = FY_VERSION
 
 try:
     from importlib import resources as impresources
-    from . import _mapping
     from spdm.core.entry import EntryProxy
+    from . import _mapping
 
     EntryProxy._mapping_path.extend([p.resolve() for p in impresources.files(_mapping)._paths])
 

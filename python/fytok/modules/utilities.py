@@ -14,25 +14,27 @@ from spdm.core.expression import Expression, zero
 from spdm.core.function import Function
 from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
-from spdm.core.obsolete.sp_tree import SpTree, sp_property, sp_tree, PropertyTree
+from spdm.core.entry import as_entry
+from spdm.core.sp_tree import SpTree, sp_property, sp_tree
+from spdm.core.property_tree import PropertyTree
 from spdm.core.pluggable import Pluggable
 from spdm.core.domain import PPolyDomain
 from spdm.core.actor import Actor
 from spdm.core.component import Component
 from spdm.core.time_sequence import TimeSlice
+from spdm.core.time_sequence import TimeSlice, TimeSequence
 
 from spdm.geometry.curve import Curve
 
-from spdm.core.generic_helper import array_type, is_array, as_array
+from spdm.utils.type_hint import array_type, is_array, as_array
 from spdm.utils.tags import _not_found_
 from spdm.view import sp_view as sp_view
 
-from ..utils.logger import logger
-from ..utils.envs import FY_JOBID
+from fytok.utils.logger import logger
+from fytok.utils.envs import FY_JOBID
 
 
-@sp_tree
-class IDSProperties:
+class IDSProperties(SpTree):
     comment: str
     homogeneous_time: int
     provider: str
@@ -44,8 +46,7 @@ class IDSProperties:
         super().__init__(*args, **kwargs)
 
 
-@sp_tree
-class Library:
+class Library(SpTree):
     name: str
     commit: str
     version: str = "0.0.0"
@@ -53,8 +54,7 @@ class Library:
     parameters: PropertyTree
 
 
-@sp_tree
-class Code:
+class Code(SpTree):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self._cache.get("name", None) is None:
@@ -68,7 +68,7 @@ class Code:
     """模块路径， 可用于 import 模块"""
 
     commit: str
-    version: str
+    version: str = "0.0.0"
     copyright: str = "NO_COPYRIGHT_STATEMENT"
     repository: str = ""
     output_flag: array_type
@@ -96,8 +96,7 @@ class Code:
         )
 
 
-@sp_tree
-class Identifier:
+class Identifier(SpTree):
     def __init__(self, *args, **kwargs):
         if len(args) == 0:
             pass
@@ -126,32 +125,44 @@ def guess_plugin_name(cls, *args, **kwargs):
     return plugin_name
 
 
-from spdm.core.time_sequence import TimeSlice, TimeSequence
+class IDS(SpTree):
+
+    def __init__(self, *args, **kwargs):
+        if len(args) > 0 and isinstance(args[0], str) and kwargs.get("_entry", None) is None:
+            kwargs["_entry"] = as_entry(args[0])
+            args = args[1:]
+        super().__init__(*args, **kwargs)
+
+    ids_properties: IDSProperties
 
 
-@sp_tree
-class FyActor(Actor):
-
+class FyModule(SpTree):
     def __new__(cls, *args, **kwargs) -> typing.Type[typing.Self]:
-        if cls is not FyActor:
+        if cls not in (FyActor, FyComponent, FyModule, FyService):
             return super().__new__(cls)
         else:
             return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        logger.verbose(f"Initialize module {self.code} ")
-
+        logger.verbose(f"Initialize IDS module {self.code} ")
+        
     identifier: str
-
     code: Code
-
-    time_slice: TimeSequence
 
     @property
     def tag(self) -> str:
         return f"{FY_JOBID}/{self.code.module_path}"
+
+
+_TSlice = typing.TypeVar("_TSlice")
+
+
+class FyActor(FyModule, Actor[_TSlice]):
+
+    TimeSlice = _TSlice
+
+    time_slice: TimeSequence[_TSlice]
 
     def refresh(self, *args, **kwargs) -> typing.Type[TimeSlice]:
         """更新当前 Actor 的状态。
@@ -165,56 +176,35 @@ class FyActor(Actor):
         return current
 
 
-@sp_tree
-class FyComponent(Component):
-    def __new__(cls, *args, **kwargs) -> typing.Type[FyComponent]:
-        if cls is not FyComponent:
-            return super().__new__(cls)
-        else:
-            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
-
-    identifier: str
-    code: Code = {}
+class FyComponent(FyModule, Component):
+    pass
 
 
-@sp_tree
-class FyService(Service):
-    def __new__(cls, *args, **kwargs) -> typing.Type[FyComponent]:
-        if cls is not FyService:
-            return super().__new__(cls)
-        else:
-            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
-
-    identifier: str
-    code: Code = {}
+class FyService(FyModule, Service):
+    pass
 
 
-@sp_tree
-class RZTuple:
+class RZTuple(SpTree):
     r: typing.Any
     z: typing.Any
 
 
-@sp_tree
-class PointRZ:  # utilities._T_rz0d_dynamic_aos
+class PointRZ(SpTree):  # utilities._T_rz0d_dynamic_aos
     r: float
     z: float
 
 
-@sp_tree
-class CurveRZ:  # utilities._T_rz1d_dynamic_aos
+class CurveRZ(SpTree):  # utilities._T_rz1d_dynamic_aos
     r: array_type
     z: array_type
 
 
-@sp_tree
-class VacuumToroidalField:
+class VacuumToroidalField(SpTree):
     r0: float
     b0: float
 
 
-@sp_tree
-class CoreRadialGrid:
+class CoreRadialGrid(SpTree):
     def __init__(self, *args, **kwargs) -> None:
         SpTree.__init__(self, *args, **kwargs)
         # PPolyDomain.__init__(self, self._cache["psi_norm"])
@@ -335,8 +325,7 @@ class CoreRadialGrid:
         return np.sqrt(self.psi_norm)
 
 
-@sp_tree
-class CoreVectorComponents:
+class CoreVectorComponents(SpTree):
     """Vector components in predefined directions"""
 
     radial: Expression
@@ -355,15 +344,14 @@ class CoreVectorComponents:
     """ Toroidal component"""
 
 
-class DetectorAperture:  # (utilities._T_detector_aperture):
+class DetectorAperture(SpTree):  # (utilities._T_detector_aperture):
     def __view__(self, view="RZ", **kwargs):
         geo = {}
         styles = {}
         return geo, styles
 
 
-@sp_tree
-class PlasmaCompositionIonState:
+class PlasmaCompositionIonState(SpTree):
     label: str
     z_min: float = sp_property(units="Elementary Charge Unit")
     z_max: float = sp_property(units="Elementary Charge Unit")
@@ -372,29 +360,26 @@ class PlasmaCompositionIonState:
     vibrational_mode: str
 
 
-@sp_tree
-class PlasmaCompositionSpecies:
+class PlasmaCompositionSpecies(SpTree):
     label: str
     a: float  # = sp_property(units="Atomic Mass Unit", )
     z_n: float  # = sp_property(units="Elementary Charge Unit", )
 
 
-@sp_tree
 class PlasmaCompositionNeutralElement(SpTree):
     a: float  # = sp_property(units="Atomic Mass Unit", )
     z_n: float  # = sp_property(units="Elementary Charge Unit", )
     atoms_n: int
 
 
-@sp_tree
-class PlasmaCompositionIons:
+class PlasmaCompositionIons(SpTree):
     label: str
     element: AoS[PlasmaCompositionNeutralElement]
     z_ion: float  # = sp_property( units="Elementary Charge Unit")
     state: PlasmaCompositionIonState
 
 
-class PlasmaCompositionNeutralState:
+class PlasmaCompositionNeutralState(SpTree):
     label: str
     electron_configuration: str
     vibrational_level: float  # = sp_property(units="Elementary Charge Unit")
@@ -402,13 +387,12 @@ class PlasmaCompositionNeutralState:
     neutral_type: str
 
 
-class PlasmaCompositionNeutral:
+class PlasmaCompositionNeutral(SpTree):
     label: str
     element: AoS[PlasmaCompositionNeutralElement]
     state: PlasmaCompositionNeutralState
 
 
-@sp_tree
 class DistributionSpecies(SpTree):
     type: str
     ion: PlasmaCompositionIons

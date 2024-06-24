@@ -4,9 +4,9 @@ import numpy as np
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Polygon
 from spdm.utils.constants import TWOPI
-from spdm.core.generic_helper import _not_found_
-from ..utils.logger import logger
-from ..ontology import tf
+from spdm.utils.tags import _not_found_
+from fytok.utils.logger import logger
+from fytok.ontology import tf
 
 
 class TF(tf._T_tf):

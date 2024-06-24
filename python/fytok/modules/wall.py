@@ -4,13 +4,12 @@ from spdm.geometry.circle import Circle
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.polyline import Polyline
 from spdm.utils.tags import _not_found_
+from spdm.utils.logger import logger
 
-from ..ontology import wall
-
-from ..utils.logger import logger
+from fytok.ontology import wall
 
 
-class Wall(wall._T_wall):
+class Wall(wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
     Description2D = wall._T_wall_2d

@@ -1,12 +1,9 @@
 from __future__ import annotations
-import numpy as np
-from typing_extensions import Self
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property
-from spdm.core.time_sequence import TimeSequence, TimeSlice
-from spdm.core.geo_object import GeoObject, GeoObjectSet
+from spdm.core.geo_object import GeoObjectSet
 from spdm.core.mesh import Mesh
 
 from spdm.geometry.curve import Curve
@@ -14,10 +11,15 @@ from spdm.geometry.point import Point
 
 from spdm.utils.tags import _not_found_
 
-from .utilities import *
 
-from ..utils.logger import logger
-from ..ontology import equilibrium
+from fytok.ontology import equilibrium
+
+from fytok.modules.wall import Wall
+from fytok.modules.tf import TF
+from fytok.modules.magnetics import Magnetics
+from fytok.modules.pf_active import PFActive
+
+from fytok.modules.utilities import *
 
 
 @sp_tree(domain="grid")
@@ -465,14 +467,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     #     return geo, styles
 
 
-from .wall import Wall
-from .tf import TF
-from .magnetics import Magnetics
-from .pf_active import PFActive
-
-
-@sp_tree
-class Equilibrium(FyActor):
+class Equilibrium(FyActor[EquilibriumTimeSlice]):
     r"""
     Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
 
@@ -484,10 +479,6 @@ class Equilibrium(FyActor):
     code: Code = {"name": "fy_eq"}  # default plugin
 
     ids_properties: IDSProperties
-
-    TimeSlice = EquilibriumTimeSlice
-
-    time_slice: TimeSequence[EquilibriumTimeSlice]
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current
