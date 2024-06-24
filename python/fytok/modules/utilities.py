@@ -42,9 +42,6 @@ class IDSProperties(SpTree):
     version_put: PropertyTree
     provenance: PropertyTree
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
 
 class Library(SpTree):
     name: str
@@ -146,7 +143,7 @@ class FyModule(SpTree):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         logger.verbose(f"Initialize IDS module {self.code} ")
-        
+
     identifier: str
     code: Code
 
