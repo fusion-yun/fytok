@@ -145,6 +145,7 @@ class FyModule(SpTree):
         logger.verbose(f"Initialize IDS module {self.code} ")
 
     identifier: str
+
     code: Code
 
     @property
@@ -154,14 +155,9 @@ class FyModule(SpTree):
 
 _TSlice = typing.TypeVar("_TSlice")
 
-
 class FyActor(FyModule, Actor[_TSlice]):
 
-    TimeSlice = _TSlice
-
-    time_slice: TimeSequence[_TSlice]
-
-    def refresh(self, *args, **kwargs) -> typing.Type[TimeSlice]:
+    def refresh(self, *args, **kwargs) -> typing.Type[_TSlice]:
         """更新当前 Actor 的状态。
         更新当前状态树 （time_slice），并执行 self.iteration+=1
 

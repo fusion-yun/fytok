@@ -467,7 +467,7 @@ class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     #     return geo, styles
 
 
-class Equilibrium(FyActor[EquilibriumTimeSlice]):
+class Equilibrium(IDS, FyActor[EquilibriumTimeSlice]):
     r"""
     Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
 
@@ -477,8 +477,6 @@ class Equilibrium(FyActor[EquilibriumTimeSlice]):
     """
 
     code: Code = {"name": "fy_eq"}  # default plugin
-
-    ids_properties: IDSProperties
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current
