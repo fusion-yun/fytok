@@ -239,8 +239,7 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
     mass_density: Expression = sp_property(units="kg \cdot m^{-3}")
 
 
-@sp_tree(domain="grid")
-class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d):
+class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid"):
     type: Identifier
 
     grid: Mesh
@@ -346,17 +345,14 @@ class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatr
     active_limiter_point: Point
 
 
-@sp_tree
 class EequilibriumConstraints(equilibrium._T_equilibrium_constraints):
     pass
 
 
-@sp_tree
 class EquilibriumGGD(equilibrium._T_equilibrium_ggd):
     pass
 
 
-@sp_tree
 class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
     vacuum_toroidal_field: VacuumToroidalField
 
