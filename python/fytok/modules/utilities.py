@@ -16,6 +16,7 @@ from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
 from spdm.core.entry import as_entry
 from spdm.core.sp_tree import SpTree, sp_property, sp_tree
+from spdm.core.sp_object import SpObject
 from spdm.core.property_tree import PropertyTree
 from spdm.core.pluggable import Pluggable
 from spdm.core.domain import PPolyDomain
@@ -98,28 +99,14 @@ class Identifier(SpTree):
         if len(args) == 0:
             pass
         elif isinstance(args[0], str):
-            args[0] = {"name": args[0]}
+            args = ({"name": args[0]}, *args[1:])
         elif isinstance(args[0], int):
-            args[0] = {"int": args[0]}
+            args = ({"int": args[0]}, *args[1:])
         super().__init__(*args, **kwargs)
 
     name: str
     index: int
     description: str
-
-
-def guess_plugin_name(cls, *args, **kwargs):
-    pth = Path("code/name")
-    plugin_name = None
-    if len(args) > 0 and isinstance(args[0], dict):
-        plugin_name = pth.get(args[0], None)
-    if plugin_name is None:
-        plugin_name = pth.get(kwargs, None)
-    if plugin_name is None:
-        plugin_name = Path("default_value/name").get(cls.code, None)
-    if plugin_name == "default":
-        plugin_name = None
-    return plugin_name
 
 
 class IDS(SpTree):
@@ -133,16 +120,15 @@ class IDS(SpTree):
     ids_properties: IDSProperties
 
 
-class FyModule(SpTree):
-    def __new__(cls, *args, **kwargs) -> typing.Type[typing.Self]:
+class FyModule(SpObject):
+
+    _PLUGIN_TAGS = ("code/name",)
+
+    def __new__(cls, *args, **kwargs):
         if cls not in (FyActor, FyComponent, FyModule, FyService):
             return super().__new__(cls)
-        else:
-            return super().__new__(cls, {"$class": guess_plugin_name(cls, *args, **kwargs)})
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        logger.verbose(f"Initialize IDS module {self.code} ")
+        return super().__new__(cls, *args, **kwargs)
 
     identifier: str
 
@@ -154,6 +140,7 @@ class FyModule(SpTree):
 
 
 _TSlice = typing.TypeVar("_TSlice")
+
 
 class FyActor(FyModule, Actor[_TSlice]):
 
