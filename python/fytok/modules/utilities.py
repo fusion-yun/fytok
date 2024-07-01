@@ -14,12 +14,9 @@ from spdm.core.expression import Expression, zero
 from spdm.core.function import Function
 from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
-from spdm.core.entry import as_entry
-from spdm.core.sp_tree import SpTree, sp_property, sp_tree
+from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.sp_object import SpObject
 from spdm.core.property_tree import PropertyTree
-from spdm.core.pluggable import Pluggable
-from spdm.core.domain import PPolyDomain
 from spdm.core.actor import Actor
 from spdm.core.component import Component
 from spdm.core.time_sequence import TimeSlice
@@ -111,11 +108,11 @@ class Identifier(SpTree):
 
 class IDS(SpTree):
 
-    def __init__(self, *args, **kwargs):
-        if len(args) > 0 and isinstance(args[0], str) and kwargs.get("_entry", None) is None:
-            kwargs["_entry"] = as_entry(args[0])
+    def __init__(self, *args, _entry=None, **kwargs):
+        if len(args) > 0 and isinstance(args[0], str) and _entry is None:
+            _entry = args[0]
             args = args[1:]
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, _entry=_entry, **kwargs)
 
     ids_properties: IDSProperties
 

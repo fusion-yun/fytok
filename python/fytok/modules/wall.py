@@ -1,7 +1,8 @@
 import typing
-from spdm.core.aos import AoS
-from spdm.geometry.circle import Circle
+
+from spdm.core.htree import List
 from spdm.core.geo_object import GeoObject
+from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline
 from spdm.utils.tags import _not_found_
 from spdm.utils.logger import logger
@@ -14,7 +15,7 @@ class Wall(wall.Wall):
 
     Description2D = wall._T_wall_2d
 
-    description_2d: AoS[Description2D]
+    description_2d: List[Description2D]
 
     def __view__(self, view_point="RZ", **kwargs) -> GeoObject | typing.List[GeoObject]:
         geo = {}

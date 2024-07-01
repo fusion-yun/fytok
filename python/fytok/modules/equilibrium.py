@@ -2,17 +2,12 @@ from __future__ import annotations
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import sp_property
+from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.geo_object import GeoObjectSet
 from spdm.core.mesh import Mesh
-
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import Point
-
 from spdm.utils.tags import _not_found_
-
-
-from fytok.ontology import equilibrium
 
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
@@ -21,9 +16,10 @@ from fytok.modules.pf_active import PFActive
 
 from fytok.modules.utilities import *
 
+from fytok.ontology import equilibrium
 
-@sp_tree(domain="grid")
-class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system):
+
+class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system, domain="grid"):
     grid_type: Identifier
 
     grid: Mesh
@@ -39,7 +35,6 @@ class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system):
     tensor_contravariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
 
-@sp_tree
 class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     psi_axis: float = sp_property(units="Wb")
 
@@ -68,8 +63,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
 
     length_pol: float = sp_property(units="m")
 
-    @sp_tree
-    class CurrentCentre:
+    class CurrentCentre(SpTree):
         r: float = sp_property(units="m")
         z: float = sp_property(units="m")
         velocity_z: float = sp_property(units="m.s^-1")
@@ -80,8 +74,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
 
     q_95: float
 
-    @sp_tree
-    class Qmin:
+    class Qmin(SpTree):
         value: float
         rho_tor_norm: float
 
@@ -98,8 +91,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-@sp_tree(domain="psi_norm")
-class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d):
+class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_norm"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -265,7 +257,7 @@ class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid
     b_field_tor: Field = sp_property(units="T")
 
 
-@sp_tree
+
 class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
     type: int
 
@@ -306,7 +298,7 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
     active_limiter_point: Point
 
 
-@sp_tree
+
 class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatrix):
     type: int
 
