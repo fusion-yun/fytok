@@ -119,13 +119,15 @@ class IDS(SpTree):
 
 class FyModule(SpObject):
 
-    _PLUGIN_TAGS = ("code/name",)
+    _plugin_prefix = "fytok.modules."
+    _plugin_registry = {}
 
-    def __new__(cls, *args, **kwargs):
-        if cls not in (FyActor, FyComponent, FyModule, FyService):
-            return super().__new__(cls)
+    def __new__(cls, *args, _plugin_name=None, **kwargs):
+        if _plugin_name is None:
+            _plugin_name = cls.code.default_value.get("name", None)
 
-        return super().__new__(cls, *args, **kwargs)
+        return super().__new__(cls, *args, _plugin_name=_plugin_name, **kwargs)
+
 
     identifier: str
 

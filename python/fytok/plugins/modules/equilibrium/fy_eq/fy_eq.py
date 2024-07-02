@@ -859,7 +859,7 @@ class FyEquilibriumTimeSlice(Equilibrium.TimeSlice):
     coordinate_system: FyEquilibriumCoordinateSystem = sp_property(default_value={})
 
 
-class FyEqAnalyze(Equilibrium, plugin_name="fye_eq"):
+class FyEqAnalyze(Equilibrium, plugin_name="fy_eq"):
     """
     Magnetic surface analyze 磁面分析工具
     =============================

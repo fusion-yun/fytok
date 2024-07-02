@@ -345,7 +345,7 @@ class EquilibriumGGD(equilibrium._T_equilibrium_ggd):
     pass
 
 
-class EquilibriumTimeSlice(equilibrium._T_equilibrium_time_slice):
+class EquilibriumTimeSlice(SpTree):
     vacuum_toroidal_field: VacuumToroidalField
 
     Boundary = EquilibriumBoundary
@@ -461,8 +461,11 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice]):
 
     Reference:
 
-    - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS", Computer Physics Communications 184, 2 (2013), pp. 293--302.
+    - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS",
+      Computer Physics Communications 184, 2 (2013), pp. 293--302.
     """
+
+    _plugin_prefix = f"{FyActor._plugin_prefix}equilibrium."
 
     TimeSlice = EquilibriumTimeSlice
 
