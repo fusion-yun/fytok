@@ -123,11 +123,10 @@ class FyModule(SpObject):
     _plugin_registry = {}
 
     def __new__(cls, *args, _plugin_name=None, **kwargs):
-        if _plugin_name is None:
+        if _plugin_name is None and isinstance(cls.code.default_value, dict):
             _plugin_name = cls.code.default_value.get("name", None)
 
         return super().__new__(cls, *args, _plugin_name=_plugin_name, **kwargs)
-
 
     identifier: str
 
