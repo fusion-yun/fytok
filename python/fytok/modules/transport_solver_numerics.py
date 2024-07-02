@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 from scipy import constants
-from copy import copy
-import math
-from spdm.core.expression import Expression, Variable, zero
-from spdm.core.sp_tree import sp_tree, sp_property, PropertyTree
+
+from spdm.core.expression import Expression
+from spdm.core.sp_tree import sp_property
 from spdm.core.time_sequence import TimeSlice, TimeSequence
 from spdm.core.aos import AoS
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
-from .core_profiles import CoreProfiles
-from .core_sources import CoreSources
-from .core_transport import CoreTransport
-from .equilibrium import Equilibrium
-from .utilities import *
-from ..utils.logger import logger
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_transport import CoreTransport
+from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.utilities import *
+from fytok.utils.logger import logger
 
 # from ..ontology import transport_solver_numerics
 
@@ -25,8 +24,7 @@ TOLERANCE = 1.0e-6
 TWOPI = 2.0 * constants.pi
 
 
-@sp_tree
-class TransportSolverNumericsEquation:
+class TransportSolverNumericsEquation(SpTree):
     """Profile and derivatives a the primary quantity for a 1D transport equation"""
 
     identifier: str = sp_property(alias="@name")
@@ -85,8 +83,7 @@ class TransportSolverNumericsEquation:
     """ Convergence details"""
 
 
-@sp_tree(coordinate1="grid/rho_tor_norm")
-class TransportSolverNumericsTimeSlice(TimeSlice):
+class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm"):
     """Numerics related to 1D radial solver for a given time slice"""
 
     grid: CoreRadialGrid
@@ -105,13 +102,8 @@ class TransportSolverNumericsTimeSlice(TimeSlice):
       respect to the toroidal flux coordinate"""
 
 
-@sp_tree
-class TransportSolverNumerics(FyService):
+class TransportSolverNumerics(FyProcessor, default_plugin="fy_trans"):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
-
-    ids_properties: IDSProperties
-
-    code: Code = {"name": "fy_trans"}
 
     solver: str = "ion_solver"
 

@@ -455,7 +455,7 @@ class EquilibriumTimeSlice(SpTree):
     #     return geo, styles
 
 
-class Equilibrium(IDS, FyActor[EquilibriumTimeSlice]):
+class Equilibrium(IDS, FyActor[EquilibriumTimeSlice], default_plugin="fy_eq"):
     r"""
     Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
 
@@ -469,7 +469,6 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice]):
 
     TimeSlice = EquilibriumTimeSlice
 
-    code: Code = {"name": "fy_eq"}  # default plugin
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current

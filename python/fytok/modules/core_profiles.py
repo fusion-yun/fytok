@@ -7,16 +7,24 @@ import scipy.constants
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression, Variable, zero, derivative
 from spdm.core.sp_tree import sp_property, sp_tree, SpTree
-from spdm.core.time_sequence import TimeSequence
+from spdm.core.time_sequence import TimeSequence,TimeSlice
 from spdm.core.path import update_tree
 from spdm.core.entity import Entity
+from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.utilities import IDS, FyModule
+from fytok.modules.utilities import (
+    IDS,
+    FyModule,
+    CoreVectorComponents,
+    PlasmaCompositionSpecies,
+    CoreRadialGrid,
+    VacuumToroidalField,
+)
 from fytok.ontology import core_profiles, utilities
 
 PI = scipy.constants.pi
@@ -378,7 +386,7 @@ class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-@sp_tree
+
 class CoreProfilesTimeSlice(TimeSlice):
 
     Profiles1D = CoreProfiles1D

@@ -19,6 +19,7 @@ from spdm.core.sp_object import SpObject
 from spdm.core.property_tree import PropertyTree
 from spdm.core.actor import Actor
 from spdm.core.component import Component
+from spdm.core.processor import Processor
 from spdm.core.time_sequence import TimeSlice
 from spdm.core.time_sequence import TimeSlice, TimeSequence
 
@@ -52,9 +53,14 @@ class Library(SpTree):
 class Code(SpTree):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self._cache.get("name", None) is None:
-            self._cache["name"] = self._parent.__class__.__name__
-        self._cache["module_path"] = self._parent.__module__ + "." + self._parent.__class__.__name__
+
+        self._cache = Path().update(
+            self._cache,
+            {
+                "name": self._parent.__class__.__name__,
+                "module_path": self._parent.__module__ + "." + self._parent.__class__.__name__,
+            },
+        )
 
     name: str
     """代码名称，也是调用 plugin 的 identifier"""
@@ -107,12 +113,16 @@ class Identifier(SpTree):
 
 
 class IDS(SpTree):
-
     def __init__(self, *args, _entry=None, **kwargs):
         if len(args) > 0 and isinstance(args[0], str) and _entry is None:
             _entry = args[0]
             args = args[1:]
-        super().__init__(*args, _entry=_entry, **kwargs)
+
+        cache = {k: kwargs.pop(k) for k in list(kwargs.keys()) if not k.startswith("_")}
+
+        cache = Path().update(*args, cache)
+
+        super().__init__(cache, _entry=_entry, **kwargs)
 
     ids_properties: IDSProperties
 
@@ -121,12 +131,6 @@ class FyModule(SpObject):
 
     _plugin_prefix = "fytok.modules."
     _plugin_registry = {}
-
-    def __new__(cls, *args, _plugin_name=None, **kwargs):
-        if _plugin_name is None and isinstance(cls.code.default_value, dict):
-            _plugin_name = cls.code.default_value.get("name", None)
-
-        return super().__new__(cls, *args, _plugin_name=_plugin_name, **kwargs)
 
     identifier: str
 
@@ -158,7 +162,7 @@ class FyComponent(FyModule, Component):
     pass
 
 
-class FyService(FyModule, Service):
+class FyProcessor(FyModule, Processor):
     pass
 
 

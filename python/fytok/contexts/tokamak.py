@@ -29,9 +29,9 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.modules.wall import Wall
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics
-from fytok.modules.utilities import Code, FyModule
+from fytok.modules.utilities import Code, FyModule, IDS
 
-from fytok.ontology import GLOBAL_ONTOLOGY
+# from fytok.ontology import GLOBAL_ONTOLOGY
 
 # from .modules.EdgeProfiles import EdgeProfiles
 # from .modules.EdgeSources import EdgeSources
@@ -40,7 +40,7 @@ from fytok.ontology import GLOBAL_ONTOLOGY
 # ---------------------------------
 
 
-class Tokamak(Context, FyModule):
+class Tokamak(IDS, Context):
     # fmt:off
 
     # device
@@ -130,7 +130,6 @@ Modules:
         device: str = _not_found_,
         shot: int = _not_found_,
         run: int = _not_found_,
-        time: float = None,
         **kwargs,
     ):
         """
@@ -145,20 +144,15 @@ Modules:
         :param time:   指定当前时间
         :param kwargs: 指定子模块的初始化数据，，会与args中指定的数据源子节点合并。
         """
-        cache, entry, parent, kwargs = HTree._parser_args(*args, **kwargs)
-
-        cache = update_tree(cache, kwargs)
-
-        cache["dataset_fair"] = {"description": {"entry": entry, "device": device, "shot": shot or 0, "run": run or 0}}
-
-        entry = open_entry(entry, shot=shot, run=run, local_schema=device, global_schema=GLOBAL_ONTOLOGY)
-
-        super().__init__(cache, _entry=entry, _parent=parent)
+        super().__init__(
+            *args,
+            **kwargs,
+            dataset_fair={"description": {"device": device, "shot": shot or 0, "run": run or 0}},
+        )
 
         self._shot = shot
         self._run = run
         self._device = device
-        self._metadata.setdefault("name", device)
 
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
@@ -229,7 +223,7 @@ Modules:
                 g = g.__view__(**kwargs)
 
             except Exception as error:
-                logger.warning(f"Failed to get {g.__class__.__name__}.__view__ ! {error}")  # , exc_info=error
+                logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=error)
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g
