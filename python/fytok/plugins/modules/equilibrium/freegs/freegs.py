@@ -23,7 +23,7 @@ from spdm.utils.constants import *
 from spdm.utils.logger import logger
 from spdm.numlib.numeric import bitwise_and, squeeze
 from spdm.utils.tags import _not_found_
-from spdm.core.generic_helper import ArrayLike, ArrayType, NumericType, array_type, as_array, as_scalar, is_array, scalar_type
+from spdm.utils.type_hint import ArrayLike, ArrayType, NumericType, array_type, as_array, as_scalar, is_array, scalar_type
 
 from fytok.plugins.equilibrium.fy_eq import FyEqAnalyze
 

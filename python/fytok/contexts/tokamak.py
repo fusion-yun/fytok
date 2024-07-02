@@ -2,37 +2,36 @@ from __future__ import annotations
 import typing
 from spdm.core.path import update_tree
 from spdm.core.entry import open_entry
-from spdm.core.htree import HTree
+from spdm.core.htree import HTree, List
 from spdm.core.context import Context
-from spdm.core.obsolete.sp_tree import sp_tree
 from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------
-from ..utils.envs import *
-from ..utils.logger import logger
+from fytok.utils.envs import *
+from fytok.utils.logger import logger
 
 # ---------------------------------
-from ..modules.dataset_fair import DatasetFAIR
-from ..modules.summary import Summary
-from ..modules.core_profiles import CoreProfiles
-from ..modules.core_sources import CoreSources
-from ..modules.core_transport import CoreTransport
-from ..modules.ec_launchers import ECLaunchers
-from ..modules.equilibrium import Equilibrium
-from ..modules.ic_antennas import ICAntennas
-from ..modules.interferometer import Interferometer
-from ..modules.lh_antennas import LHAntennas
-from ..modules.magnetics import Magnetics
-from ..modules.nbi import NBI
-from ..modules.pellets import Pellets
-from ..modules.pf_active import PFActive
-from ..modules.tf import TF
-from ..modules.wall import Wall
-from ..modules.transport_solver_numerics import TransportSolverNumerics
-from ..modules.utilities import *
+from fytok.modules.dataset_fair import DatasetFAIR
+from fytok.modules.summary import Summary
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_transport import CoreTransport
+from fytok.modules.ec_launchers import ECLaunchers
+from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.ic_antennas import ICAntennas
+from fytok.modules.interferometer import Interferometer
+from fytok.modules.lh_antennas import LHAntennas
+from fytok.modules.magnetics import Magnetics
+from fytok.modules.nbi import NBI
+from fytok.modules.pellets import Pellets
+from fytok.modules.pf_active import PFActive
+from fytok.modules.tf import TF
+from fytok.modules.wall import Wall
+from fytok.modules.transport_solver_numerics import TransportSolverNumerics
+from fytok.modules.utilities import Code, FyModule
 
-from ..ontology import GLOBAL_ONTOLOGY
+from fytok.ontology import GLOBAL_ONTOLOGY
 
 # from .modules.EdgeProfiles import EdgeProfiles
 # from .modules.EdgeSources import EdgeSources
@@ -41,8 +40,7 @@ from ..ontology import GLOBAL_ONTOLOGY
 # ---------------------------------
 
 
-@sp_tree
-class Tokamak(Context):
+class Tokamak(Context, FyModule):
     # fmt:off
 
     # device
@@ -67,8 +65,8 @@ class Tokamak(Context):
     equilibrium             : Equilibrium               
 
     core_profiles           : CoreProfiles              
-    core_transport          : AoS[CoreTransport.Model]  
-    core_sources            : AoS[CoreSources.Source]   
+    core_transport          : List[CoreTransport.Model]  
+    core_sources            : List[CoreSources.Source]   
 
     # edge_profiles         : EdgeProfiles              
     # edge_transport        : EdgeTransport             
@@ -103,7 +101,6 @@ Modules:
     core_sources            : {', '.join([s.code.name  for s in self.core_sources])}
 ---------------------------------------------------------------------------------------------------
 """
-
 
     @property
     def title(self) -> str:

@@ -8,7 +8,7 @@ from spdm.core.sp_tree import sp_tree, sp_property, PropertyTree
 from spdm.core.time_sequence import TimeSlice, TimeSequence
 from spdm.core.aos import AoS
 from spdm.utils.tags import _not_found_
-from spdm.core.generic_helper import array_type
+from spdm.utils.type_hint import array_type
 
 from .core_profiles import CoreProfiles
 from .core_sources import CoreSources

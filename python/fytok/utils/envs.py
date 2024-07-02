@@ -1,16 +1,17 @@
 import os
 import getpass
 import datetime
+from spdm.utils import envs as sp_envs
 
 try:
-    from ..__version__ import version
-except Exception:
+    from fytok.__version__ import version
+except ModuleNotFoundError as error:
     FY_VERSION = "alpha"
 else:
     FY_VERSION = version
 
 try:
-    from ..extension import tags as extension_tags
+    from fytok.extension import tags as extension_tags
 except ImportError:
     FY_EXT_VERSION = "n/a"
 else:
@@ -25,12 +26,9 @@ FY_VERBOSE = os.environ.get("FY_VERBOSE", "info")
 FY_JOBID = f"fytok_{getpass.getuser().lower()}_{os.uname().nodename.lower()}_{os.getpid()}"
 
 
-
 for k, v in os.environ.items():
     if k.startswith("FY_"):
         os.environ[f"SP_{k[3:]}"] = v
-
-from spdm.utils import envs as sp_envs
 
 
 FY_LOGO = rf"""

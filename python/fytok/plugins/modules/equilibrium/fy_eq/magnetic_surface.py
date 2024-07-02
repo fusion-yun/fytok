@@ -20,7 +20,7 @@ from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.numlib.contours import find_critical_points, find_contours
 
 from spdm.utils.tags import _not_found_
-from spdm.core.generic_helper import ArrayLike, NumericType, array_type, scalar_type, as_array
+from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type, as_array
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import *

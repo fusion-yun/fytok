@@ -8,20 +8,21 @@ from dataclasses import dataclass
 
 
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.sp_tree import sp_property
 from spdm.core.time_sequence import TimeSequence
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
+from spdm.core.function import Function
 from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
 from spdm.geometry.curve import Curve
 from spdm.core.mesh import Mesh
 from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
-from spdm.core.generic_helper import ArrayLike, NumericType, array_type, scalar_type
+from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.utilities import *
+from fytok.modules.utilities import Code, CoreRadialGrid, VacuumToroidalField
 from fytok.utils.logger import logger
 
 from .contours import find_critical_points, find_contours
@@ -69,7 +70,6 @@ COCOS_TABLE = [
 # fmt:on
 
 
-@sp_tree
 class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
     r"""
     Flux surface coordinate system on a square grid of flux and poloidal angle
@@ -363,8 +363,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
         return self.surface_integral(func, *xargs) / self.dvolume_dpsi(*xargs)
 
 
-@sp_tree(mesh="grid")
-class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D):
+class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, mesh="grid"):
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
     _profiles_1d: Equilibrium.TimeSlice.Profiles1D = sp_property(alias="../profiles_1d")
     _global_quantities: Equilibrium.TimeSlice.GlobalQuantities = sp_property(alias="../global_quantities")
@@ -443,7 +442,6 @@ class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D):
         return np.sqrt(self.psi.pd(2, 0) * self.psi.pd(0, 2) + self.psi.pd(1, 1) ** 2)
 
 
-@sp_tree
 class FyEquilibriumProfiles1D(Equilibrium.TimeSlice.Profiles1D):
     _root: Equilibrium.TimeSlice = sp_property(alias="../")
 
@@ -834,7 +832,6 @@ class FyEquilibriumBoundary(Equilibrium.TimeSlice.Boundary):
         return NotImplemented
 
 
-@sp_tree
 class FyEquilibriumBoundarySeparatrix(FyEquilibriumBoundary):
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
 
@@ -846,7 +843,6 @@ class FyEquilibriumBoundarySeparatrix(FyEquilibriumBoundary):
     psi_norm: float = 1.0
 
 
-@sp_tree
 class FyEquilibriumTimeSlice(Equilibrium.TimeSlice):
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -863,8 +859,7 @@ class FyEquilibriumTimeSlice(Equilibrium.TimeSlice):
     coordinate_system: FyEquilibriumCoordinateSystem = sp_property(default_value={})
 
 
-@sp_tree
-class FyEqAnalyze(Equilibrium):
+class FyEqAnalyze(Equilibrium, plugin_name="fye_eq"):
     """
     Magnetic surface analyze 磁面分析工具
     =============================
@@ -885,6 +880,3 @@ class FyEqAnalyze(Equilibrium):
     TimeSlice = FyEquilibriumTimeSlice
 
     time_slice: TimeSequence[FyEquilibriumTimeSlice]
-
-
-Equilibrium.register("fy_eq", FyEqAnalyze)

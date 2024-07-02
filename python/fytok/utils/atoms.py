@@ -3,13 +3,14 @@ import typing
 import numpy as np
 import scipy.constants
 from spdm.core.path import Path
-from spdm.core.htree import Dict
+from spdm.core.htree import Dict, List
 from spdm.core.expression import Variable, Expression
 from spdm.core.function import Function
-from spdm.core.sp_tree import SpTree, sp_property, sp_tree, PropertyTree
+from spdm.core.sp_tree import SpTree, sp_property, sp_tree
+from spdm.core.property_tree import PropertyTree
 from spdm.core.aos import AoS
 from spdm.core.path import update_tree
-from spdm.core.generic_helper import get_args
+# from spdm.utils.type_hint import get_args
 from spdm.utils.tags import _not_found_
 
 #################################################
@@ -146,7 +147,7 @@ class NuclearReaction(Dict[Reaction]):
         return self._find_(key, default_value=default_value)
 
 
-def reactivities_DT(ti): 
+def reactivities_DT(ti):
     # H.-S. Bosch and G.M. Hale, Nucl. Fusion 32 (1992) 611.
 
     # Table VII:
@@ -166,7 +167,7 @@ def reactivities_DT(ti):
     xi = (bg**2 / (4.0 * theta)) ** (1.0 / 3.0)
 
     sigv = c1 * theta * np.sqrt(xi / (er * (ti) ** 3)) * np.exp(-3.0 * xi)
-    return sigv * 1.0e-6 # m^3/s
+    return sigv * 1.0e-6  # m^3/s
 
 
 nuclear_reaction = NuclearReaction(
@@ -174,7 +175,7 @@ nuclear_reaction = NuclearReaction(
         r"D(t,n)alpha": {
             "reactants": ["D", "T"],
             "products": ["n", "alpha"],
-            "reactivities": reactivities_DT
+            "reactivities": reactivities_DT,
             # (
             #     # eV
             #     np.array(

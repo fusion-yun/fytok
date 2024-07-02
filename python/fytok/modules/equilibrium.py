@@ -1,20 +1,22 @@
 from __future__ import annotations
 
 from spdm.core.aos import AoS
-from spdm.core.expression import Expression
+from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.geo_object import GeoObjectSet
 from spdm.core.mesh import Mesh
+from spdm.core.field import Field
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import Point
 from spdm.utils.tags import _not_found_
+from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
 
-from fytok.modules.utilities import *
+from fytok.modules.utilities import Code, IDS, FyActor, Identifier, CoreRadialGrid, VacuumToroidalField
 
 from fytok.ontology import equilibrium
 
@@ -257,7 +259,6 @@ class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid
     b_field_tor: Field = sp_property(units="T")
 
 
-
 class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
     type: int
 
@@ -296,7 +297,6 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
     strike_point: AoS[Point]
 
     active_limiter_point: Point
-
 
 
 class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatrix):
@@ -463,6 +463,8 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice]):
 
     - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS", Computer Physics Communications 184, 2 (2013), pp. 293--302.
     """
+
+    TimeSlice = EquilibriumTimeSlice
 
     code: Code = {"name": "fy_eq"}  # default plugin
 

@@ -8,7 +8,7 @@ import scipy.ndimage  # for maximum_filter,binary_erosion, generate_binary_struc
 from spdm.core.expression import Variable
 from spdm.core.field import Field
 from spdm.utils.logger import logger
-from spdm.core.generic_helper import ArrayType, NumericType, ScalarType
+from spdm.utils.type_hint import ArrayType, NumericType, ScalarType
 
 SP_EXPERIMENTAL = os.environ.get("SP_EXPERIMENTAL", False)
 
@@ -23,7 +23,7 @@ def minimize_filter(
     Y,
     width=None,
     tolerance: float = None,
-    method="L-BFGS-B"
+    method="L-BFGS-B",
     # xmin: float, ymin: float, xmax: float, ymax: float, tolerance: float = EPSILON
 ):
     # if isinstance(tolerance, float):

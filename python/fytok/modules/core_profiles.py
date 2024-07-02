@@ -6,18 +6,18 @@ import scipy.constants
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression, Variable, zero, derivative
-from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.sp_tree import sp_property, sp_tree, SpTree
 from spdm.core.time_sequence import TimeSequence
 from spdm.core.path import update_tree
 from spdm.core.entity import Entity
 from spdm.utils.tags import _not_found_
 
-from ..utils.atoms import atoms
-from ..utils.logger import logger
+from fytok.utils.atoms import atoms
+from fytok.utils.logger import logger
 
-from .equilibrium import Equilibrium
-from .utilities import *
-from ..ontology import core_profiles, utilities
+from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.utilities import IDS, FyModule
+from fytok.ontology import core_profiles, utilities
 
 PI = scipy.constants.pi
 TWOPI = 2.0 * PI
@@ -409,10 +409,7 @@ class CoreProfilesTimeSlice(TimeSlice):
         #     self["profiles_1d/grid"] = grid
 
 
-@sp_tree
-class CoreProfiles:
-
-    ids_properties: IDSProperties
+class CoreProfiles(IDS, FyModule):
 
     TimeSlice = CoreProfilesTimeSlice
 
