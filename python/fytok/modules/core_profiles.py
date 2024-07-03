@@ -1,15 +1,11 @@
-from __future__ import annotations
-
-
 import numpy as np
 import scipy.constants
 
-from spdm.core.aos import AoS
+from spdm.core.htree import List
+from spdm.core.sp_tree import sp_property, sp_tree, SpTree, annotation
 from spdm.core.expression import Expression, Variable, zero, derivative
-from spdm.core.sp_tree import sp_property, sp_tree, SpTree
-from spdm.core.time_sequence import TimeSequence,TimeSlice
-from spdm.core.path import update_tree
-from spdm.core.entity import Entity
+from spdm.core.field import Field
+from spdm.core.time_sequence import TimeSequence, TimeSlice
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
@@ -20,19 +16,20 @@ from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import (
     IDS,
     FyModule,
+    FyActor,
     CoreVectorComponents,
     PlasmaCompositionSpecies,
     CoreRadialGrid,
     VacuumToroidalField,
 )
-from fytok.ontology import core_profiles, utilities
+
+from fytok.ontology import core_profiles
 
 PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-@sp_tree
-class CoreProfilesSpecies:
+class CoreProfilesSpecies(SpTree):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
@@ -74,7 +71,6 @@ class CoreProfilesSpecies:
     velocity: CoreVectorComponents = sp_property(units="m.s^-1")
 
 
-@sp_tree
 class CoreProfilesState(CoreProfilesSpecies):
     label: str
     """ String identifying state"""
@@ -94,7 +90,6 @@ class CoreProfilesState(CoreProfilesSpecies):
         cold; 2: thermal; 3: fast; 4: NBI"""
 
 
-@sp_tree
 class CoreProfilesIon(CoreProfilesSpecies):
     z_ion_1d: Expression = sp_property(unit="C")
 
@@ -124,21 +119,19 @@ class CoreProfilesIon(CoreProfilesSpecies):
         )
 
 
-@sp_tree
 class CoreProfilesNeutral(CoreProfilesSpecies):
-    element: AoS[PlasmaCompositionSpecies]
+    element: List[PlasmaCompositionSpecies]
     """ List of elements forming the atom or molecule"""
 
     multiple_states_flag: int
     """ Multiple states calculation flag : 0-Only one state is considered; 1-Multiple
         states are considered and are described in the state structure"""
 
-    state: AoS[CoreProfilesState]
+    state: List[CoreProfilesState]
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-@sp_tree(name="electrons")
-class CoreProfilesElectrons(CoreProfilesSpecies):
+class CoreProfilesElectrons(CoreProfilesSpecies, name="electrons"):
     label: str = "e"
 
     @sp_property(units="-")
@@ -147,15 +140,69 @@ class CoreProfilesElectrons(CoreProfilesSpecies):
 
     @sp_property
     def tau(self):
-        return 1.09e16 * ((self.temperature / 1000) ** (3 / 2)) / self.density / self._parent.coulomb_logarithm
+        return (
+            1.09e16
+            * ((self.temperature / 1000) ** (3 / 2))
+            / self.density
+            / self._parent.coulomb_logarithm
+        )
 
     @sp_property
     def vT(self):
-        return np.sqrt(self.temperature * scipy.constants.electron_volt / scipy.constants.electron_mass)
+        return np.sqrt(
+            self.temperature
+            * scipy.constants.electron_volt
+            / scipy.constants.electron_mass
+        )
 
 
-@sp_tree(domain="grid")
-class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
+class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
+    vacuum_toroidal_field: VacuumToroidalField
+
+    ip: float = sp_property(units="A")
+
+    current_non_inductive: float = sp_property(units="A")
+
+    current_bootstrap: float = sp_property(units="A")
+
+    v_loop: float = sp_property(units="V")
+
+    li_3: float = sp_property(units="-")
+
+    beta_tor: float = sp_property(units="-")
+
+    beta_tor_norm: float = sp_property(units="-")
+
+    beta_pol: float = sp_property(units="-")
+
+    energy_diamagnetic: float = sp_property(units="J")
+
+    z_eff_resistive: float = sp_property(units="-")
+
+    t_e_peaking: float = sp_property(units="-")
+
+    t_i_average_peaking: float = sp_property(units="-")
+
+    resistive_psi_losses: float = sp_property(units="Wb")
+
+    ejima: float = sp_property(units="-")
+
+    t_e_volume_average: float = sp_property(units="eV")
+
+    n_e_volume_average: float = sp_property(units="m^-3")
+
+    class GlobalQuantitiesIon:
+        t_i_volume_average: float = sp_property(units="eV")
+        n_i_volume_average: float = sp_property(units="m^-3")
+
+    ion: List[GlobalQuantitiesIon]
+
+    ion_time_slice: float = sp_property(units="s")
+
+
+class CoreProfiles1D(
+    core_profiles._T_core_profiles_profiles_1d, domain="grid/psi_nrom"
+):
 
     grid: CoreRadialGrid = {"extrapolate": 0}
 
@@ -163,14 +210,18 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
     electrons: CoreProfilesElectrons
 
     Ion = CoreProfilesIon
-    ion: AoS[CoreProfilesIon]
+    ion: List[CoreProfilesIon]
 
     Neutral = CoreProfilesNeutral
-    neutral: AoS[CoreProfilesNeutral]
+    neutral: List[CoreProfilesNeutral]
 
-    rho_tor_norm: array_type | Expression = sp_property(label=r"\bar{\rho}_{tor}", units="-", alias="grid/rho_tor_norm")
+    rho_tor_norm: array_type | Expression = sp_property(
+        label=r"\bar{\rho}_{tor}", units="-", alias="grid/rho_tor_norm"
+    )
 
-    rho_tor: Expression = sp_property(label=r"\rho_{tor}", units="m", alias="grid/rho_tor")
+    rho_tor: Expression = sp_property(
+        label=r"\rho_{tor}", units="m", alias="grid/rho_tor"
+    )
 
     psi_norm: array_type | Expression = sp_property(label=r"\bar{\psi}", units="-")
 
@@ -178,7 +229,10 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
 
     @sp_property
     def zeff(self) -> Expression:
-        return sum([((ion.z_ion_1d**2) * ion.density) for ion in self.ion]) / self.n_i_total
+        return (
+            sum([((ion.z_ion_1d**2) * ion.density) for ion in self.ion])
+            / self.n_i_total
+        )
 
     @sp_property
     def pressure(self) -> Expression:
@@ -190,11 +244,16 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
 
     @sp_property
     def pressure_thermal(self) -> Expression:
-        return sum([ion.pressure_thermal for ion in self.ion], self.electrons.pressure_thermal)
+        return sum(
+            [ion.pressure_thermal for ion in self.ion], self.electrons.pressure_thermal
+        )
 
     @sp_property
     def t_i_average(self) -> Expression:
-        return sum([ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion]) / self.n_i_total
+        return (
+            sum([ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion])
+            / self.n_i_total
+        )
 
     @sp_property
     def n_i_total(self) -> Expression:
@@ -250,8 +309,7 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
     def conductivity_parallel(self) -> Expression:
         return self.j_ohmic / self.e_field.parallel
 
-    @sp_tree
-    class EFieldVectorComponents:
+    class EFieldVectorComponents(SpTree):
         radial: Expression = sp_property(default_value=0.0)
 
         diamagnetic: Expression
@@ -286,7 +344,15 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
 
     @sp_property
     def beta_pol(self) -> Expression:
-        return 4 * self.pressure.I / (self._parent.vacuum_toroidal_field.r0 * constants.mu_0 * (self.j_total**2))
+        return (
+            4
+            * self.pressure.I
+            / (
+                self._parent.vacuum_toroidal_field.r0
+                * constants.mu_0
+                * (self.j_total**2)
+            )
+        )
 
     # if isinstance(d, np.ndarray) or (hasattr(d.__class__, 'empty') and not d.empty):
     #     return d
@@ -340,64 +406,22 @@ class CoreProfiles1D(core_profiles._T_core_profiles_profiles_1d):
     pprime: Expression = sp_property(label="$p^{\prime}$")
 
 
-@sp_tree
-class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
-    vacuum_toroidal_field: VacuumToroidalField
-
-    ip: float = sp_property(units="A")
-
-    current_non_inductive: float = sp_property(units="A")
-
-    current_bootstrap: float = sp_property(units="A")
-
-    v_loop: float = sp_property(units="V")
-
-    li_3: float = sp_property(units="-")
-
-    beta_tor: float = sp_property(units="-")
-
-    beta_tor_norm: float = sp_property(units="-")
-
-    beta_pol: float = sp_property(units="-")
-
-    energy_diamagnetic: float = sp_property(units="J")
-
-    z_eff_resistive: float = sp_property(units="-")
-
-    t_e_peaking: float = sp_property(units="-")
-
-    t_i_average_peaking: float = sp_property(units="-")
-
-    resistive_psi_losses: float = sp_property(units="Wb")
-
-    ejima: float = sp_property(units="-")
-
-    t_e_volume_average: float = sp_property(units="eV")
-
-    n_e_volume_average: float = sp_property(units="m^-3")
-
-    @sp_tree
-    class GlobalQuantitiesIon:
-        t_i_volume_average: float = sp_property(units="eV")
-        n_i_volume_average: float = sp_property(units="m^-3")
-
-    ion: AoS[GlobalQuantitiesIon]
-
-    ion_time_slice: float = sp_property(units="s")
-
+class CoreProfiles2D(core_profiles._T_core_profiles_profiles_2d, domain="grid"):
+    t_i_average: Field = annotation(unit="eV")
 
 
 class CoreProfilesTimeSlice(TimeSlice):
 
-    Profiles1D = CoreProfiles1D
+    vacuum_toroidal_field: VacuumToroidalField
 
     GlobalQuantities = CoreGlobalQuantities
-
-    profiles_1d: CoreProfiles1D
-
     global_quantities: CoreGlobalQuantities
 
-    vacuum_toroidal_field: VacuumToroidalField
+    Profiles1D = CoreProfiles1D
+    profiles_1d: CoreProfiles1D
+
+    Profiles2D = CoreProfiles2D
+    profiles_2d: CoreProfiles2D
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -417,11 +441,10 @@ class CoreProfilesTimeSlice(TimeSlice):
         #     self["profiles_1d/grid"] = grid
 
 
-class CoreProfiles(IDS, FyModule):
-
-    TimeSlice = CoreProfilesTimeSlice
-
-    time_slice: TimeSequence[CoreProfilesTimeSlice]
+class CoreProfiles(IDS, FyActor[CoreProfilesTimeSlice]):
+    """
+    Core plasma profiles
+    """
 
     def preprocess(self, *args, **kwargs) -> CoreProfilesTimeSlice:
         current: CoreProfilesTimeSlice = super().preprocess(*args, **kwargs)
@@ -429,7 +452,9 @@ class CoreProfiles(IDS, FyModule):
         grid = current.get_cache("profiles_1d/grid", _not_found_)
 
         if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
+            eq_grid: CoreRadialGrid = self.inports[
+                "equilibrium/time_slice/0/profiles_1d/grid"
+            ].fetch()
 
             if isinstance(grid, dict):
                 new_grid = grid

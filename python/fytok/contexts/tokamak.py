@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 import typing
 from spdm.core.path import update_tree
 from spdm.core.entry import open_entry

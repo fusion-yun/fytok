@@ -1,6 +1,6 @@
-# from __future__ import annotations
+# 
 # @NOTE：
-#   在插件中 from __future__ import annotations 会导致插件无法加载，
+#   在插件中  会导致插件无法加载，
 #   故障点是：typing.get_type_hints() 找不到类型， i.e. Code,TimeSeriesAoS
 
 import typing

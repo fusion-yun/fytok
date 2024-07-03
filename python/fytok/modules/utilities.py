@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 import collections
 import functools
 import typing
@@ -10,6 +10,7 @@ from spdm.core.path import Path
 from spdm.core.service import Service
 from spdm.core.aos import AoS
 from spdm.core.field import Field
+from spdm.core.domain import Domain
 from spdm.core.expression import Expression, zero
 from spdm.core.function import Function
 from spdm.core.htree import Dict, HTree, List
@@ -58,7 +59,9 @@ class Code(SpTree):
             self._cache,
             {
                 "name": self._parent.__class__.__name__,
-                "module_path": self._parent.__module__ + "." + self._parent.__class__.__name__,
+                "module_path": self._parent.__module__
+                + "."
+                + self._parent.__class__.__name__,
             },
         )
 
@@ -79,7 +82,13 @@ class Code(SpTree):
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
-        return "-".join([s for s in [self.name, self.version.replace(".", "_")] if isinstance(s, str)])
+        return "-".join(
+            [
+                s
+                for s in [self.name, self.version.replace(".", "_")]
+                if isinstance(s, str)
+            ]
+        )
 
     def __repr__(self) -> str:
         desc = {
@@ -186,9 +195,10 @@ class VacuumToroidalField(SpTree):
     b0: float
 
 
-class CoreRadialGrid(SpTree):
+class CoreRadialGrid(Domain, plugin_name="core_radial"):
+
     def __init__(self, *args, **kwargs) -> None:
-        SpTree.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         # PPolyDomain.__init__(self, self._cache["psi_norm"])
         # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
         # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
@@ -207,19 +217,22 @@ class CoreRadialGrid(SpTree):
             }
         )
 
-    def __serialize__(self, dumper=None):
-        return HTree._do_serialize(
-            {
-                "psi_norm": self.psi_norm,
-                "rho_tor_norm": self.rho_tor_norm,
-                "psi_axis": self.psi_axis,
-                "psi_boundary": self.psi_boundary,
-                "rho_tor_boundary": self.rho_tor_boundary,
-            },
-            dumper,
+    def __get_state__(self):
+        return (
+            super()
+            .__get_state__()
+            .update(
+                {
+                    "psi_norm": self.psi_norm,
+                    "rho_tor_norm": self.rho_tor_norm,
+                    "psi_axis": self.psi_axis,
+                    "psi_boundary": self.psi_boundary,
+                    "rho_tor_boundary": self.rho_tor_boundary,
+                },
+            )
         )
 
-    def remesh(self, rho_tor_norm=None, *args, psi_norm=None, **kwargs) -> CoreRadialGrid:
+    def remesh(self, rho_tor_norm=None, *args, psi_norm=None, **kwargs) -> typing.Self:
         """Duplicate the grid with new rho_tor_norm or psi_norm"""
 
         if isinstance(rho_tor_norm, array_type):
@@ -269,11 +282,13 @@ class CoreRadialGrid(SpTree):
             }
         )
 
-    def fetch(self, first=None, *args, psi_norm=None, **kwargs) -> CoreRadialGrid:
+    def fetch(self, first=None, *args, psi_norm=None, **kwargs) -> typing.Self:
         if isinstance(first, array_type):
             rho_tor_norm = first
         else:
-            rho_tor_norm = getattr(first, "rho_tor_norm", kwargs.pop("rho_tor_norm", None))
+            rho_tor_norm = getattr(
+                first, "rho_tor_norm", kwargs.pop("rho_tor_norm", None)
+            )
 
         if psi_norm is None and isinstance(first, SpTree):
             psi_norm = getattr(first, "psi_norm", None)

@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 
 from spdm.core.geo_object import GeoObject
 

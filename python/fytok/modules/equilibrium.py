@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression, zero
