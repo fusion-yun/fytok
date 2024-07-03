@@ -1,6 +1,7 @@
 import unittest
 import pathlib
 from spdm.core.field import Field
+from spdm.mesh.mesh_rectilinear import RectilinearMesh
 from fytok.utils.logger import logger
 from fytok.modules.equilibrium import Equilibrium
 
@@ -25,6 +26,17 @@ class TestFileGEQdsk(unittest.TestCase):
         current = time_slice.current
         profiles_2d = current.profiles_2d
         self.assertIsInstance(profiles_2d.psi, Field)
+
+    def test_mesh(self):
+        equilibrium = Equilibrium(f"file+geqdsk://{pwd}/data/geqdsk.txt#equilibrium")
+        profiles_2d = equilibrium.time_slice.current.profiles_2d
+
+        logger.debug(type(profiles_2d.grid))
+
+
+        self.assertIsInstance(profiles_2d.grid, RectilinearMesh)
+        
+        self.assertIs(profiles_2d.grid, profiles_2d.psi.mesh)
 
 
 if __name__ == "__main__":

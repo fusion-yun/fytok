@@ -363,7 +363,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
         return self.surface_integral(func, *xargs) / self.dvolume_dpsi(*xargs)
 
 
-class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, mesh="grid"):
+class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, domain="grid"):
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
     _profiles_1d: Equilibrium.TimeSlice.Profiles1D = sp_property(alias="../profiles_1d")
     _global_quantities: Equilibrium.TimeSlice.GlobalQuantities = sp_property(alias="../global_quantities")
@@ -372,13 +372,14 @@ class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, mesh="grid"):
 
     j_parallel: Field
 
-    @sp_property
-    def grid(self) -> Mesh:
-        g = self.get_cache("grid")
-        dim1 = self.get_cache("grid/dim1")
-        dim2 = self.get_cache("grid/dim2")
-        mesh_type = self.get_cache("grid_type/name")
-        return Mesh(dim1, dim2, type=mesh_type)
+    grid: Mesh
+    # @sp_property
+    # def grid(self) -> Mesh:
+    #     # g = self.get_cache("grid")
+    #     # dim1 = self.get_cache("grid/dim1")
+    #     # dim2 = self.get_cache("grid/dim2")
+    #     # mesh_type = self.get_cache("grid_type/name")
+    #     return Mesh(dim1, dim2, _plugin_name=Path("grid_type/name").get(self._cache))
 
     @sp_property
     def r(self) -> Field:
