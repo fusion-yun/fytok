@@ -1,4 +1,3 @@
-
 import collections
 import functools
 import typing
@@ -180,11 +179,6 @@ class RZTuple(SpTree):
     z: typing.Any
 
 
-class PointRZ(SpTree):  # utilities._T_rz0d_dynamic_aos
-    r: float
-    z: float
-
-
 class CurveRZ(SpTree):  # utilities._T_rz1d_dynamic_aos
     r: array_type
     z: array_type
@@ -206,7 +200,7 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
         # assert self.rho_tor_norm[0] >= 0 and self.rho_tor_norm[-1] <= 1.0, f"illegal rho_tor_norm {self.rho_tor_norm}"
         # assert self.psi_norm[0] >= 0 and self.psi_norm[-1] <= 1.0, f"illegal psi_norm {self.psi_norm}"
 
-    def __copy__(self) -> CoreRadialGrid:
+    def __copy__(self) -> typing.Self:
         return CoreRadialGrid(
             {
                 "psi_norm": self.psi_norm,
@@ -217,10 +211,10 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
             }
         )
 
-    def __get_state__(self):
+    def __getstate__(self):
         return (
             super()
-            .__get_state__()
+            .__getstate__()
             .update(
                 {
                     "psi_norm": self.psi_norm,
@@ -397,7 +391,7 @@ class DistributionSpecies(SpTree):
 
 
 # __all__ = ["IDS", "Module", "Code", "Library",
-#            "DetectorAperture", "CoreRadialGrid", "PointRZ",   "CurveRZ",
+#            "DetectorAperture", "CoreRadialGrid",
 #            "array_type", "Function", "Field",
 #            "HTree", "List", "Dict", "SpTree", "sp_property",
 #            "AoS", "TimeSeriesAoS", "TimeSlice",

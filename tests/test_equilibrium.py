@@ -18,7 +18,7 @@ class TestFileGEQdsk(unittest.TestCase):
 
     def test_create(self):
         eq = Equilibrium()
-        self.assertEqual(eq.code.name, "fy_eq")
+        self.assertEqual(eq.__class__.code.default_value.get("name", None), "fy_eq")
 
     def test_field(self):
         equilibrium = Equilibrium(f"file+geqdsk://{pwd}/data/geqdsk.txt#equilibrium")
@@ -29,13 +29,11 @@ class TestFileGEQdsk(unittest.TestCase):
 
     def test_mesh(self):
         equilibrium = Equilibrium(f"file+geqdsk://{pwd}/data/geqdsk.txt#equilibrium")
+
         profiles_2d = equilibrium.time_slice.current.profiles_2d
 
-        logger.debug(type(profiles_2d.grid))
-
-
         self.assertIsInstance(profiles_2d.grid, RectilinearMesh)
-        
+
         self.assertIs(profiles_2d.grid, profiles_2d.psi.mesh)
 
 

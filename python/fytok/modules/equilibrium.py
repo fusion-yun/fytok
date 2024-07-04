@@ -1,13 +1,11 @@
-
-
-from spdm.core.aos import AoS
+from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.geo_object import GeoObjectSet
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.geometry.curve import Curve
-from spdm.geometry.point import Point
+from spdm.geometry.point import PointRZ
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
@@ -16,12 +14,21 @@ from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
 
-from fytok.modules.utilities import Code, IDS, FyActor, Identifier, CoreRadialGrid, VacuumToroidalField
+from fytok.modules.utilities import (
+    Code,
+    IDS,
+    FyActor,
+    Identifier,
+    CoreRadialGrid,
+    VacuumToroidalField,
+)
 
 from fytok.ontology import equilibrium
 
 
-class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system, domain="grid"):
+class EquilibriumCoordinateSystem(
+    equilibrium._T_equilibrium_coordinate_system, domain="grid"
+):
     grid_type: Identifier
 
     grid: Mesh
@@ -32,9 +39,13 @@ class EquilibriumCoordinateSystem(equilibrium._T_equilibrium_coordinate_system, 
 
     jacobian: Field = sp_property(units="mixed")
 
-    tensor_covariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_covariant: array_type = sp_property(
+        coordinate3="1...3", coordinate4="1...3", units="mixed"
+    )
 
-    tensor_contravariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_contravariant: array_type = sp_property(
+        coordinate3="1...3", coordinate4="1...3", units="mixed"
+    )
 
 
 class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
@@ -44,7 +55,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
 
     b_field_tor_axis: float = sp_property(units="T")
 
-    magnetic_axis: Point
+    magnetic_axis: PointRZ
     """ Magnetic axis position and toroidal field"""
 
     ip: float = sp_property(units="A")
@@ -144,11 +155,15 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
 
     pressure: Expression = sp_property(units="Pa", label="P")
 
-    dpressure_dpsi: Expression = sp_property(units="Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
+    dpressure_dpsi: Expression = sp_property(
+        units="Pa.Wb^-1", label=r"\frac{dP}{d\psi}"
+    )
 
     f: Expression = sp_property(units="T.m")
 
-    f_df_dpsi: Expression = sp_property(units="T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
+    f_df_dpsi: Expression = sp_property(
+        units="T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}"
+    )
 
     j_tor: Expression = sp_property(units="A \cdot m^{-2}")
 
@@ -164,10 +179,12 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
 
     rho_tor_norm: Expression = sp_property(units="m", label=r"\bar{\rho_{tor}}")
 
-    dpsi_drho_tor: Expression = sp_property(units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}")
+    dpsi_drho_tor: Expression = sp_property(
+        units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}"
+    )
 
     @sp_property
-    def geometric_axis(self) -> Point:
+    def geometric_axis(self) -> PointRZ:
         return (self.major_radius, self.magnetic_z)
 
     minor_radius: Expression = sp_property(units="m")
@@ -268,7 +285,7 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
 
     psi: float = sp_property(units="Wb")
 
-    geometric_axis: Point
+    geometric_axis: PointRZ
 
     minor_radius: float = sp_property(units="m")
 
@@ -292,11 +309,11 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
 
     squareness_lower_outer: float
 
-    x_point: AoS[Point]
+    x_point: List[PointRZ]
 
-    strike_point: AoS[Point]
+    strike_point: List[PointRZ]
 
-    active_limiter_point: Point
+    active_limiter_point: PointRZ
 
 
 class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatrix):
@@ -306,7 +323,7 @@ class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatr
 
     psi: float = sp_property(units="Wb")
 
-    geometric_axis: Point
+    geometric_axis: PointRZ
 
     minor_radius: float = sp_property(units="m")
 
@@ -330,11 +347,11 @@ class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatr
 
     squareness_lower_outer: float
 
-    x_point: AoS[Point]
+    x_point: List[PointRZ]
 
-    strike_point: AoS[Point]
+    strike_point: List[PointRZ]
 
-    active_limiter_point: Point
+    active_limiter_point: PointRZ
 
 
 class EequilibriumConstraints(equilibrium._T_equilibrium_constraints):
@@ -384,29 +401,45 @@ class EquilibriumTimeSlice(SpTree):
                 geo["psi"] = self.profiles_2d.psi.__view__()
 
                 try:
-                    geo["o_points"] = Point(
+                    geo["o_points"] = PointRZ(
                         self.global_quantities.magnetic_axis.r,
                         self.global_quantities.magnetic_axis.z,
-                        styles={"$matplotlib": {"color": "red", "marker": ".", "linewidths": 0.5}},
+                        styles={
+                            "$matplotlib": {
+                                "color": "red",
+                                "marker": ".",
+                                "linewidths": 0.5,
+                            }
+                        },
                     )
 
                     geo["x_points"] = [
-                        Point(
+                        PointRZ(
                             p.r,
                             p.z,
                             name=f"{idx}",
-                            styles={"$matplotlib": {"color": "blue", "marker": "x", "linewidths": 0.5}},
+                            styles={
+                                "$matplotlib": {
+                                    "color": "blue",
+                                    "marker": "x",
+                                    "linewidths": 0.5,
+                                }
+                            },
                         )
                         for idx, p in enumerate(self.boundary.x_point)
                     ]
 
                     # geo["strike_points"] = [
-                    #     Point(p.r, p.z, name=f"{idx}") for idx, p in enumerate(self.boundary.strike_point)
+                    #     PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(self.boundary.strike_point)
                     # ]
 
                     geo["boundary"] = self.boundary.outline
                     geo["boundary"]._metadata["styles"] = {
-                        "$matplotlib": {"color": "blue", "linestyle": "dotted", "linewidth": 0.5}
+                        "$matplotlib": {
+                            "color": "blue",
+                            "linestyle": "dotted",
+                            "linewidth": 0.5,
+                        }
                     }
                     # geo["boundary_separatrix"] = self.boundary_separatrix.outline
                     # if geo["boundary_separatrix"] is not _not_found_:
@@ -426,8 +459,8 @@ class EquilibriumTimeSlice(SpTree):
     #     if view_port == "RZ":
     #         o_points, x_points = self.coordinate_system.critical_points
 
-    #         geo["o_points"] = [Point(p.r, p.z, name=f"{idx}") for idx, p in enumerate(o_points)]
-    #         geo["x_points"] = [Point(p.r, p.z, name=f"{idx}") for idx, p in enumerate(x_points)]
+    #         geo["o_points"] = [PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(o_points)]
+    #         geo["x_points"] = [PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(x_points)]
 
     #         geo["boundary"] = Curve(self.boundary.outline.r.__array__(), self.boundary.outline.z.__array__())
 
@@ -468,7 +501,6 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice], default_plugin="fy_eq"):
     _plugin_prefix = f"{FyActor._plugin_prefix}equilibrium."
 
     TimeSlice = EquilibriumTimeSlice
-
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current

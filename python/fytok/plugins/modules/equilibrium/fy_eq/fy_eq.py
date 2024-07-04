@@ -14,7 +14,7 @@ from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.function import Function
 from spdm.core.geo_object import GeoObject, GeoObjectSet
-from spdm.geometry.point import Point
+from spdm.geometry.point import PointRZ,Point
 from spdm.geometry.curve import Curve
 from spdm.core.mesh import Mesh
 from spdm.mesh.mesh_curvilinear import CurvilinearMesh
@@ -111,7 +111,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
         self.x_point = x_points
 
-        self.magnetic_axis = Point(o_points[0].r, o_points[0].z)
+        self.magnetic_axis = PointRZ(o_points[0].r, o_points[0].z)
 
         self.psi_axis = o_points[0].value
 
@@ -138,7 +138,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
     r0: float = sp_property(alias="../vacuum_toroidal_field/r0")
     ip: float = sp_property(alias="../global_quantities/ip")
 
-    # magnetic_axis: Point = sp_property(alias="../global_quantities/magnetic_axis")
+    # magnetic_axis: PointRZ = sp_property(alias="../global_quantities/magnetic_axis")
     # psi_axis: float = sp_property(alias="../global_quantities/psi_axis")
     # psi_boundary: float = sp_property(alias="../global_quantities/psi_boundary")
     # psi_norm: array_type = sp_property(alias="../profiles_1d/psi_norm")
@@ -219,7 +219,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
         for psi_val, surfs in find_contours(self.psirz, values=psi):
 
             if np.isclose(psi_val, psi_axis):
-                yield psi_val, Point(R, Z)
+                yield psi_val, PointRZ(R, Z)
 
             # elif np.isclose(psi_val, psi_boundary):
             #     yield psi_val, next(surfs)
@@ -726,7 +726,7 @@ class FyEquilibriumGlobalQuantities(Equilibrium.TimeSlice.GlobalQuantities):
 
     psi_boundary: float
 
-    magnetic_axis: Point = sp_property(alias="../coordinate_system/magnetic_axis")
+    magnetic_axis: PointRZ = sp_property(alias="../coordinate_system/magnetic_axis")
 
     @sp_property
     def b_field_tor_axis(self) -> float:
@@ -768,7 +768,7 @@ class FyEquilibriumBoundary(Equilibrium.TimeSlice.Boundary):
         return self._coord.shape_property(self.psi_norm)
 
     @sp_property
-    def geometric_axis(self) -> Point:
+    def geometric_axis(self) -> PointRZ:
         return {
             "r": (self._shape_property.Rmin + self._shape_property.Rmax) * 0.5,
             "z": (self._shape_property.Zmin + self._shape_property.Zmax) * 0.5,
@@ -821,15 +821,15 @@ class FyEquilibriumBoundary(Equilibrium.TimeSlice.Boundary):
         )
 
     @sp_property
-    def x_point(self) -> List[Point]:
-        return [Point(p.r, p.z) for p in self._coord.x_point]
+    def x_point(self) -> List[PointRZ]:
+        return [PointRZ(p.r, p.z) for p in self._coord.x_point]
 
     @sp_property
-    def strike_point(self) -> List[Point]:
+    def strike_point(self) -> List[PointRZ]:
         return
 
     @sp_property
-    def active_limiter_point(self) -> List[Point]:
+    def active_limiter_point(self) -> List[PointRZ]:
         return NotImplemented
 
 
