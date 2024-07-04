@@ -432,14 +432,14 @@ class EquilibriumTimeSlice(SpTree):
                     #     PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(self.boundary.strike_point)
                     # ]
 
-                    geo["boundary"] = self.boundary.outline
-                    geo["boundary"]._metadata["styles"] = {
-                        "$matplotlib": {
-                            "color": "blue",
-                            "linestyle": "dotted",
-                            "linewidth": 0.5,
-                        }
-                    }
+                    # geo["boundary"] = self.boundary.outline
+                    # geo["boundary"]._metadata["styles"] = {
+                    #     "$matplotlib": {
+                    #         "color": "blue",
+                    #         "linestyle": "dotted",
+                    #         "linewidth": 0.5,
+                    #     }
+                    # }
                     # geo["boundary_separatrix"] = self.boundary_separatrix.outline
                     # if geo["boundary_separatrix"] is not _not_found_:
                     #     geo["boundary_separatrix"]._metadata["styles"] = {
