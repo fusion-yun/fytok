@@ -29,7 +29,6 @@ from fytok.ontology import equilibrium
 class EquilibriumCoordinateSystem(
     equilibrium._T_equilibrium_coordinate_system, domain="grid"
 ):
-    grid_type: Identifier
 
     grid: Mesh
 
