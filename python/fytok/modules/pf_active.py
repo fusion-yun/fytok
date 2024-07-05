@@ -1,7 +1,7 @@
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Rectangle
-from ..utils.logger import logger
-from ..ontology import pf_active
+from fytok.utils.logger import logger
+from fytok.ontology import pf_active
 
 
 class PFActive(pf_active._T_pf_active):
@@ -15,10 +15,8 @@ class PFActive(pf_active._T_pf_active):
                     rect = coil.element[0].geometry.rectangle
                     geo_coils.append(
                         Rectangle(
-                            rect.r - rect.width / 2.0,
-                            rect.z - rect.height / 2.0,
-                            rect.width,
-                            rect.height,
+                            (rect.r - rect.width / 2.0, rect.z - rect.height / 2.0),
+                            (rect.r + rect.width / 2.0, rect.z + rect.height / 2.0),
                             name=coil.name,
                             styles={"$matplotlib": {"color": "black"}, "text": True},
                         )
@@ -26,4 +24,4 @@ class PFActive(pf_active._T_pf_active):
 
                 geo["coil"] = geo_coils
 
-        return geo 
+        return geo

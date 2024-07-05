@@ -174,59 +174,24 @@ class FyProcessor(FyModule, Processor):
     pass
 
 
-class RZTuple(SpTree):
-    r: typing.Any
-    z: typing.Any
-
-
-class CurveRZ(SpTree):  # utilities._T_rz1d_dynamic_aos
-    r: array_type
-    z: array_type
-
-
 class VacuumToroidalField(SpTree):
     r0: float
     b0: float
 
 
 class CoreRadialGrid(Domain, plugin_name="core_radial"):
+    """芯部径向坐标"""
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        # PPolyDomain.__init__(self, self._cache["psi_norm"])
-        # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
-        # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
-        # assert isinstance(self.rho_tor_boundary, float), f"rho_tor_boundary must be specified {self.rho_tor_boundary}"
-        # assert self.rho_tor_norm[0] >= 0 and self.rho_tor_norm[-1] <= 1.0, f"illegal rho_tor_norm {self.rho_tor_norm}"
-        # assert self.psi_norm[0] >= 0 and self.psi_norm[-1] <= 1.0, f"illegal psi_norm {self.psi_norm}"
+    # def __init__(self, *args, **kwargs) -> None:
+    #     super().__init__(*args, **kwargs)
+    # PPolyDomain.__init__(self, self._cache["psi_norm"])
+    # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
+    # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
+    # assert isinstance(self.rho_tor_boundary, float), f"rho_tor_boundary must be specified {self.rho_tor_boundary}"
+    # assert self.rho_tor_norm[0] >= 0 and self.rho_tor_norm[-1] <= 1.0, f"illegal rho_tor_norm {self.rho_tor_norm}"
+    # assert self.psi_norm[0] >= 0 and self.psi_norm[-1] <= 1.0, f"illegal psi_norm {self.psi_norm}"
 
-    def __copy__(self) -> typing.Self:
-        return CoreRadialGrid(
-            {
-                "psi_norm": self.psi_norm,
-                "rho_tor_norm": self.rho_tor_norm,
-                "psi_axis": self.psi_axis,
-                "psi_boundary": self.psi_boundary,
-                "rho_tor_boundary": self.rho_tor_boundary,
-            }
-        )
-
-    def __getstate__(self):
-        return (
-            super()
-            .__getstate__()
-            .update(
-                {
-                    "psi_norm": self.psi_norm,
-                    "rho_tor_norm": self.rho_tor_norm,
-                    "psi_axis": self.psi_axis,
-                    "psi_boundary": self.psi_boundary,
-                    "rho_tor_boundary": self.rho_tor_boundary,
-                },
-            )
-        )
-
-    def remesh(self, rho_tor_norm=None, *args, psi_norm=None, **kwargs) -> typing.Self:
+    def remesh(self, rho_tor_norm=None, psi_norm=None, **kwargs) -> typing.Self:
         """Duplicate the grid with new rho_tor_norm or psi_norm"""
 
         if isinstance(rho_tor_norm, array_type):
@@ -276,7 +241,7 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
             }
         )
 
-    def fetch(self, first=None, *args, psi_norm=None, **kwargs) -> typing.Self:
+    def fetch(self, first=None, psi_norm=None, **kwargs) -> typing.Self:
         if isinstance(first, array_type):
             rho_tor_norm = first
         else:
@@ -287,7 +252,7 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
         if psi_norm is None and isinstance(first, SpTree):
             psi_norm = getattr(first, "psi_norm", None)
 
-        return self.remesh(rho_tor_norm, *args, psi_norm=psi_norm, **kwargs)
+        return self.remesh(rho_tor_norm, psi_norm=psi_norm, **kwargs)
 
     psi_axis: float
     psi_boundary: float

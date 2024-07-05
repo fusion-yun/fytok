@@ -1,45 +1,41 @@
-
-
-from copy import copy
-import math
-from spdm.core.aos import AoS
-from spdm.core.sp_tree import sp_property, sp_tree
-from spdm.core.time_sequence import TimeSequence
-from spdm.core.entity import Entity
+from spdm.core.htree import List
+from spdm.core.sp_tree import sp_property
+from spdm.core.time_sequence import TimeSequence, TimeSlice
 from spdm.core.expression import Expression
 from spdm.utils.tags import _not_found_
 
-from .utilities import *
-from .core_profiles import CoreProfiles
-from .equilibrium import Equilibrium
-from ..utils.atoms import atoms
-from ..utils.logger import logger
+from fytok.utils.atoms import atoms
+from fytok.modules.utilities import (
+    IDS,
+    FyModule,
+    FyActor,
+    CoreRadialGrid,
+    VacuumToroidalField,
+)
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.equilibrium import Equilibrium
 
-from ..ontology import core_transport
+from fytok.ontology import core_transport
 
 
-@sp_tree
 class CoreTransportModelParticles(core_transport._T_core_transport_model_2_density):
-    d: Expression = sp_property(coordinate1=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(coordinate1=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(coordinate1=".../grid_flux/rho_tor_norm")
+    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
+    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-@sp_tree
 class CoreTransportModelEnergy(core_transport._T_core_transport_model_2_energy):
-    d: Expression = sp_property(coordinate1=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(coordinate1=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(coordinate1=".../grid_flux/rho_tor_norm")
+    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
+    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-@sp_tree
 class CoreTransportModelMomentum(core_transport._T_core_transport_model_4_momentum):
-    d: Expression = sp_property(coordinate1=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(coordinate1=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(coordinate1=".../grid_flux/rho_tor_norm")
+    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
+    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-@sp_tree
 class CoreTransportElectrons(core_transport._T_core_transport_model_electrons):
     label: str = "electrons"
     """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
@@ -49,11 +45,9 @@ class CoreTransportElectrons(core_transport._T_core_transport_model_electrons):
     momentum: CoreTransportModelMomentum
 
 
-@sp_tree
 class CoreTransportIon(core_transport._T_core_transport_model_ions):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-
         ion = atoms[self.label]
         self.z = ion.z
         self.a = ion.a
@@ -72,13 +66,11 @@ class CoreTransportIon(core_transport._T_core_transport_model_ions):
     momentum: CoreTransportModelMomentum
 
 
-@sp_tree
 class CoreTransportNeutral(core_transport._T_core_transport_model_neutral):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
 
 
-@sp_tree
 class CoreTransportProfiles1D(core_transport._T_core_transport_model_profiles_1d):
     grid_d: CoreRadialGrid
 
@@ -95,13 +87,14 @@ class CoreTransportProfiles1D(core_transport._T_core_transport_model_profiles_1d
     electrons: CoreTransportElectrons
 
     Ion = CoreTransportIon
-    ion: AoS[CoreTransportIon] = sp_property(identifier="label", default_initial={})
+    ion: List[CoreTransportIon] = sp_property(identifier="label", default_initial={})
 
     Neutral = CoreTransportNeutral
-    neutral: AoS[CoreTransportNeutral] = sp_property(identifier="label", default_initial={})
+    neutral: List[CoreTransportNeutral] = sp_property(
+        identifier="label", default_initial={}
+    )
 
 
-@sp_tree
 class CoreTransportTimeSlice(TimeSlice):
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -111,25 +104,22 @@ class CoreTransportTimeSlice(TimeSlice):
     profiles_1d: CoreTransportProfiles1D
 
 
-@sp_tree
-class CoreTransportModel(FyActor):
+class CoreTransportModel(FyActor[CoreTransportTimeSlice]):
     _plugin_prefix = "fytok.modules.core_transport.model."
-
-    identifier: str
-
-    TimeSlice = CoreTransportTimeSlice
-
-    time_slice: TimeSequence[CoreTransportTimeSlice]
 
     def preprocess(self, *args, **kwargs) -> CoreTransportTimeSlice:
         current: CoreTransportTimeSlice = super().preprocess(*args, **kwargs)
 
-        current["vacuum_toroidal_field"] = self.inports["/equilibrium/time_slice/0/vacuum_toroidal_field"].fetch()
+        current["vacuum_toroidal_field"] = self.inports[
+            "/equilibrium/time_slice/0/vacuum_toroidal_field"
+        ].fetch()
 
         grid = current.get_cache("profiles_1d/grid_d", _not_found_)
 
         if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["/equilibrium/time_slice/0/profiles_1d/grid"].fetch()
+            eq_grid: CoreRadialGrid = self.inports[
+                "/equilibrium/time_slice/0/profiles_1d/grid"
+            ].fetch()
 
             if isinstance(grid, dict):
                 new_grid = grid
@@ -142,14 +132,18 @@ class CoreTransportModel(FyActor):
                 #     **{k: v for k, v in grid.items() if v is not _not_found_ and v is not None},
                 # }
             else:
-                rho_tor_norm = kwargs.get("rho_tor_norm", self.code.parameters.rho_tor_norm)
+                rho_tor_norm = kwargs.get(
+                    "rho_tor_norm", self.code.parameters.rho_tor_norm
+                )
                 new_grid = eq_grid.remesh(rho_tor_norm)
 
             current["profiles_1d/grid_d"] = new_grid
 
         return current
 
-    def execute(self, current: CoreTransportTimeSlice, *previous: CoreTransportTimeSlice) -> CoreTransportTimeSlice:
+    def execute(
+        self, current: CoreTransportTimeSlice, *previous: CoreTransportTimeSlice
+    ) -> CoreTransportTimeSlice:
         return super().execute(current, *previous)
 
     def postprocess(self, current: CoreTransportTimeSlice) -> CoreTransportTimeSlice:
@@ -166,20 +160,28 @@ class CoreTransportModel(FyActor):
 
         current = self.time_slice.current
 
-        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
+        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports[
+            "core_profiles/time_slice/0/profiles_1d"
+        ].fetch()
 
         current.update(self.fetch(profiles_1d)._cache)
 
         return current
 
     def refresh(
-        self, *args, core_profiles: CoreProfiles = None, equilibrium: Equilibrium = None, **kwargs
+        self,
+        *args,
+        core_profiles: CoreProfiles = None,
+        equilibrium: Equilibrium = None,
+        **kwargs,
     ) -> CoreTransportTimeSlice:
-        return super().refresh(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
+        return super().refresh(
+            *args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs
+        )
 
     @staticmethod
     def _flux2DV(
-        spec: CoreTransport.Model.TimeSlice.Profiles1D.Ion,
+        spec: CoreTransportTimeSlice.Profiles1D.Ion,
         ion: CoreProfiles.TimeSlice.Profiles1D.Ion,
         R0: float,
         rho_tor_boundary,
@@ -199,25 +201,34 @@ class CoreTransportModel(FyActor):
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
 
 
-@sp_tree
-class CoreTransport(Entity):
-
-    ids_properties: IDSProperties
+class CoreTransport(IDS, FyModule):
 
     Model = CoreTransportModel
 
-    model: AoS[CoreTransportModel]
+    model: List[CoreTransportModel]
 
     def initialize(self, *args, **kwargs) -> None:
         super().initialize(*args, **kwargs)
         for model in self.model:
             model.initialize()
 
-    def refresh(self, *args, equilibrium: Equilibrium = None, core_profiles: CoreProfiles = None, time=None, **kwargs):
+    def refresh(
+        self,
+        *args,
+        equilibrium: Equilibrium = None,
+        core_profiles: CoreProfiles = None,
+        time=None,
+        **kwargs,
+    ):
         super().refresh(*args, time=time, **kwargs)
 
         for model in self.model:
-            model.refresh(time=self.time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+            model.refresh(
+                time=self.time,
+                equilibrium=equilibrium,
+                core_profiles=core_profiles,
+                **kwargs,
+            )
 
     def flush(self):
         super().flush()

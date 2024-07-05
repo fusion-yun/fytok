@@ -15,7 +15,8 @@ from spdm.core.field import Field
 from spdm.core.function import Function
 from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import PointRZ, Point
-from spdm.geometry.curve import Curve
+from spdm.geometry.point_set import PointSetRZ
+from spdm.geometry.curve import Curve, CurveRZ
 from spdm.core.mesh import Mesh
 from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
@@ -32,13 +33,6 @@ PI = scipy.constants.pi
 
 _R = Variable(0, "R")
 _Z = Variable(1, "Z")
-
-
-@dataclass
-class OXPoint:
-    r: float
-    z: float
-    psi: float
 
 
 TOLERANCE = 1.0e-6
@@ -69,6 +63,8 @@ COCOS_TABLE = [
 ]
 # fmt:on
 
+OXPoint = typing.Tuple[Point, float]
+
 
 class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
     r"""
@@ -94,63 +90,41 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
         self._s_B0 = np.sign(self.b0)
         self._s_Ip = np.sign(self.ip)
-
         self._e_Bp, self._s_Bp, self._s_RpZ, self._s_rtp = COCOS_TABLE[5]
-
         self._s_eBp_2PI = 1.0 if self._e_Bp == 0 else (2.0 * scipy.constants.pi)
 
-        self.psirz = self._parent.profiles_2d.psi
-
-        o_points, x_points = find_critical_points(self.psirz)
-
-        if len(o_points) == 0:
-            raise RuntimeError(f"Can not find O-point!")
-
-        if len(x_points) == 0:
-            raise RuntimeError(f"Can not find X-point!")
-
-        self.x_points = x_points
-
-        self.magnetic_axis = PointRZ(o_points[0].r, o_points[0].z)
-
-        self.psi_axis = o_points[0].value
-
-        self.psi_boundary = x_points[0].value
-
-        # 磁面坐标
-        self.psi_norm = self._parent.profiles_1d.psi_norm
-
-        if self.psi_norm is _not_found_ or self.psi_norm is None:
-            self.psi_norm = np.linspace(0.001, 0.9995, 64)
-            # logger.warning(f"Can not get psi_norm, using default {psi_norm}")
-
-        elif not np.all(np.diff(self.psi_norm) > 0):
-            raise RuntimeError(f"psi_norm is not monotonically increasing!")
-
+        # if not np.all(np.diff(self.psi_norm) > 0):
+        #     raise RuntimeError("psi_norm is not monotonically increasing!")
         # if np.isclose(self.psi_norm[0], 0.0) and np.isclose(self.psi_norm[-1], 1.0):
         #     logger.warning(
         #         f"Singular values are caused when psi_norm takes values of 0.0 or 1.0.! {self.psi_norm[0]} {self.psi_norm[-1]}"
         #     )
 
-        # 磁面坐标的函数，ffprime，pprime
-
     b0: float = sp_property(alias="../vacuum_toroidal_field/b0")
     r0: float = sp_property(alias="../vacuum_toroidal_field/r0")
     ip: float = sp_property(alias="../global_quantities/ip")
 
-    # magnetic_axis: PointRZ = sp_property(alias="../global_quantities/magnetic_axis")
-    # psi_axis: float = sp_property(alias="../global_quantities/psi_axis")
-    # psi_boundary: float = sp_property(alias="../global_quantities/psi_boundary")
-    # psi_norm: array_type = sp_property(alias="../profiles_1d/psi_norm")
+    # 磁面坐标
+    psirz: Field = sp_property(alias="../profiles_2d/psi")
 
-    ffprime: Expression = sp_property(
-        alias="../profiles_1d/f_df_dpsi", label=r" \frac{f df}{d\psi}"
-    )
-    pprime: Expression = sp_property(
-        alias="../profiles_1d/dpressure_dpsi", label=r" \frac{dP}{d\psi}"
+    psi_norm: array_type = sp_property(
+        alias="../profiles_1d/grid/psi_norm",
+        default_value=np.linspace(0.001, 0.9995, 64),
     )
 
-    # psirz: Field = sp_property(alias="../profiles_2d/psi")
+    @sp_property
+    def critical_points(self) -> typing.Tuple[List[OXPoint], List[OXPoint]]:
+        return find_critical_points(self.psirz)
+
+    o_points: List[OXPoint] = sp_property(alias="critical_points/0")
+
+    x_points: List[OXPoint] = sp_property(alias="critical_points/1")
+
+    magnetic_axis: PointRZ = sp_property(alias="critical_points/0/0/0")
+
+    psi_axis: float = sp_property(alias="critical_points/0/0/1")
+
+    psi_boundary: float = sp_property(alias="critical_points/1/0/1")
 
     @sp_property
     def dvolume_dpsi(self) -> Expression:
@@ -169,6 +143,13 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
             * np.abs(self._s_RpZ * self._s_Bp / self._s_eBp_2PI)
         )
 
+    # 磁面坐标的函数，ffprime，pprime
+    ffprime: Expression = sp_property(
+        alias="../profiles_1d/f_df_dpsi", label=r" \frac{f df}{d\psi}"
+    )
+    pprime: Expression = sp_property(
+        alias="../profiles_1d/dpressure_dpsi", label=r" \frac{dP}{d\psi}"
+    )
     #################################
     # Profiles 2D
 
@@ -225,13 +206,13 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
     ###############################
     # surface integral
     def find_surfaces_by_psi(
-        self, psi
+        self, psi, enclose_axis=True
     ) -> typing.Generator[typing.Tuple[float, GeoObject], None, None]:
 
         psi_axis = self.psi_axis
         psi_boundary = self.psi_boundary
-        R = self.magnetic_axis.r
-        Z = self.magnetic_axis.z
+        R = self.magnetic_axis[0]
+        Z = self.magnetic_axis[1]
 
         for psi_val, surfs in find_contours(self.psirz, values=psi):
 
@@ -243,22 +224,23 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
             else:
                 for surf in surfs:
-                    if (
+                    if enclose_axis and not (
                         isinstance(surf, Curve)
                         and surf.is_closed
                         and surf.enclose(R, Z)
                     ):
-                        surf.set_coordinates("r", "z")
-                        yield psi_val, surf
-                        break
-                else:
-                    logger.warning(f"Can not find surf at {psi_val}  ")
+                        continue
+
+                    yield psi_val, surf
+
+                # else:
+                #     logger.warning(f"Can not find surf at {psi_val}  ")
 
     def find_surfaces(
-        self, psi_norm
+        self, psi_norm, **kwargs
     ) -> typing.Generator[typing.Tuple[float, GeoObject], None, None]:
         psi = psi_norm * (self.psi_boundary - self.psi_axis) + self.psi_axis
-        for p, surf in self.find_surfaces_by_psi(psi):
+        for p, surf in self.find_surfaces_by_psi(psi, **kwargs):
             yield (p - self.psi_axis) / (self.psi_boundary - self.psi_axis), surf
 
     @dataclass
@@ -408,21 +390,10 @@ class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, domain="grid"):
     j_parallel: Field
 
     grid: Mesh
-    # @sp_property
-    # def grid(self) -> Mesh:
-    #     # g = self.get_cache("grid")
-    #     # dim1 = self.get_cache("grid/dim1")
-    #     # dim2 = self.get_cache("grid/dim2")
-    #     # mesh_type = self.get_cache("grid_type/name")
-    #     return Mesh(dim1, dim2, _plugin_name=Path("grid_type/name").get(self._cache))
 
-    @sp_property
-    def r(self) -> Field:
-        return self.grid.points[0]
+    r: array_type = sp_property(alias=["grid/points", (..., 0)])
 
-    @sp_property
-    def z(self) -> Field:
-        return self.grid.points[1]
+    z: array_type = sp_property(alias=["grid/points", (..., 1)])
 
     @sp_property
     def psi_norm(self) -> Expression:
@@ -849,9 +820,12 @@ class FyEquilibriumBoundary(Equilibrium.TimeSlice.Boundary):
 
     rho_tor_norm: float
 
-    @sp_property(coordinates="r z")
-    def outline(self) -> Curve:
-        _, surf = next(self._coord.find_surfaces(self.psi_norm))
+    @sp_property
+    def outline(self) -> CurveRZ:
+        try:
+            _, surf = next(self._coord.find_surfaces(self.psi_norm))
+        except StopIteration:
+            raise RuntimeError(f"Can not find surface at psi_norm={self.psi_norm} ")
         return surf
 
     @functools.cached_property
@@ -920,29 +894,32 @@ class FyEquilibriumBoundary(Equilibrium.TimeSlice.Boundary):
         )
 
     @sp_property
-    def x_point(self) -> List[PointRZ]:
-        return [PointRZ(p.r, p.z) for p in self._coord.x_points]
+    def x_point(self) -> PointSetRZ:
+        return [pv[0] for pv in self._coord.x_points]
 
     @sp_property
-    def strike_point(self) -> List[PointRZ]:
+    def strike_point(self) -> PointSetRZ:
         return
 
     @sp_property
-    def active_limiter_point(self) -> List[PointRZ]:
+    def active_limiter_point(self) -> PointSetRZ:
         return NotImplemented
 
 
 class FyEquilibriumBoundarySeparatrix(FyEquilibriumBoundary):
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
 
-    @sp_property(coordinates="r z")
+    @sp_property
     def outline(self) -> GeoObjectSet:
         """RZ outline of the plasma boundary"""
         return GeoObjectSet(
-            [surf for _, surf in self._coord.find_surfaces(self.psi_norm)]
+            [
+                surf
+                for _, surf in self._coord.find_surfaces(
+                    self.psi_norm, enclose_axis=False
+                )
+            ]
         )
-
-    psi_norm: float = 1.0
 
 
 class FyEquilibriumTimeSlice(Equilibrium.TimeSlice):

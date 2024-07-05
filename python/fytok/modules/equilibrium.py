@@ -6,6 +6,7 @@ from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
+from spdm.geometry.point_set import PointSetRZ
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
@@ -133,13 +134,11 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
                 rho_tor_boundary = self.rho_tor[-1] / self.rho_tor_norm[-1]
 
         return CoreRadialGrid(
-            {
-                "psi_norm": psi_norm,
-                "rho_tor_norm": rho_tor_norm,
-                "psi_axis": psi_axis,
-                "psi_boundary": psi_boundary,
-                "rho_tor_boundary": rho_tor_boundary,
-            }
+            psi_norm=psi_norm,
+            rho_tor_norm=rho_tor_norm,
+            psi_axis=psi_axis,
+            psi_boundary=psi_boundary,
+            rho_tor_boundary=rho_tor_boundary,
         )
 
     psi_norm: array_type | Expression = sp_property(units="-", label=r"\bar{\psi}")
@@ -280,7 +279,7 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
 
     outline: Curve
 
-    psi_norm: float = sp_property(default_value=0.995)
+    psi_norm: float = 0.995
 
     psi: float = sp_property(units="Wb")
 
@@ -318,7 +317,9 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
 class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatrix):
     type: int
 
-    outline: GeoObjectSet
+    outline: Curve
+
+    psi_norm: float = 1.0
 
     psi: float = sp_property(units="Wb")
 
@@ -346,9 +347,9 @@ class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatr
 
     squareness_lower_outer: float
 
-    x_point: List[PointRZ]
+    x_point: PointSetRZ
 
-    strike_point: List[PointRZ]
+    strike_point: PointSetRZ
 
     active_limiter_point: PointRZ
 
@@ -401,8 +402,8 @@ class EquilibriumTimeSlice(SpTree):
 
                 try:
                     geo["o_points"] = PointRZ(
-                        self.global_quantities.magnetic_axis.r,
-                        self.global_quantities.magnetic_axis.z,
+                        self.global_quantities.magnetic_axis[0],
+                        self.global_quantities.magnetic_axis[1],
                         styles={
                             "$matplotlib": {
                                 "color": "red",
@@ -414,8 +415,8 @@ class EquilibriumTimeSlice(SpTree):
 
                     geo["x_points"] = [
                         PointRZ(
-                            p.r,
-                            p.z,
+                            p[0],
+                            p[1],
                             name=f"{idx}",
                             styles={
                                 "$matplotlib": {
@@ -431,20 +432,24 @@ class EquilibriumTimeSlice(SpTree):
                     # geo["strike_points"] = [
                     #     PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(self.boundary.strike_point)
                     # ]
-
-                    # geo["boundary"] = self.boundary.outline
-                    # geo["boundary"]._metadata["styles"] = {
-                    #     "$matplotlib": {
-                    #         "color": "blue",
-                    #         "linestyle": "dotted",
-                    #         "linewidth": 0.5,
-                    #     }
-                    # }
-                    # geo["boundary_separatrix"] = self.boundary_separatrix.outline
-                    # if geo["boundary_separatrix"] is not _not_found_:
-                    #     geo["boundary_separatrix"]._metadata["styles"] = {
-                    #         "$matplotlib": {"color": "red", "linestyle": "dashed", "linewidth": 0.25}
-                    #     }
+                    if self.boundary is not _not_found_:
+                        geo["boundary"] = self.boundary.outline
+                        geo["boundary"]._metadata["styles"] = {
+                            "$matplotlib": {
+                                "color": "blue",
+                                "linestyle": "dotted",
+                                "linewidth": 0.5,
+                            }
+                        }
+                    if self.boundary_separatrix is not _not_found_:
+                        geo["boundary_separatrix"] = self.boundary_separatrix.outline
+                        geo["boundary_separatrix"]._metadata["styles"] = {
+                            "$matplotlib": {
+                                "color": "red",
+                                "linestyle": "dashed",
+                                "linewidth": 0.25,
+                            }
+                        }
                 except Exception as error:
                     raise error
 

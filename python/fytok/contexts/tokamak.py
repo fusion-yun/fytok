@@ -1,4 +1,3 @@
-
 import typing
 from spdm.core.path import update_tree
 from spdm.core.entry import open_entry
@@ -130,6 +129,7 @@ Modules:
         device: str = _not_found_,
         shot: int = _not_found_,
         run: int = _not_found_,
+        _entry=None,
         **kwargs,
     ):
         """
@@ -147,7 +147,9 @@ Modules:
         super().__init__(
             *args,
             **kwargs,
-            dataset_fair={"description": {"device": device, "shot": shot or 0, "run": run or 0}},
+            dataset_fair={
+                "description": {"device": device, "shot": shot or 0, "run": run or 0}
+            },
         )
 
         self._shot = shot
@@ -158,9 +160,22 @@ Modules:
         super().initialize(*args, **kwargs)
 
         self.core_profiles.initialize(time=self.time)
-        self.equilibrium.initialize(time=self.time, pf_active=self.pf_active, wall=self.wall, magnetics=self.magnetics)
-        self.core_sources.initialize(time=self.time, equilibrium=self.equilibrium, core_profiles=self.core_profiles)
-        self.core_transport.initialize(time=self.time, equilibrium=self.equilibrium, core_profiles=self.core_profiles)
+        self.equilibrium.initialize(
+            time=self.time,
+            pf_active=self.pf_active,
+            wall=self.wall,
+            magnetics=self.magnetics,
+        )
+        self.core_sources.initialize(
+            time=self.time,
+            equilibrium=self.equilibrium,
+            core_profiles=self.core_profiles,
+        )
+        self.core_transport.initialize(
+            time=self.time,
+            equilibrium=self.equilibrium,
+            core_profiles=self.core_profiles,
+        )
         self.transport_solver.initialize(
             time=self.time,
             equilibrium=self.equilibrium,
@@ -223,7 +238,9 @@ Modules:
                 g = g.__view__(**kwargs)
 
             except Exception as error:
-                logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=error)
+                logger.error(
+                    "Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=error
+                )
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g
