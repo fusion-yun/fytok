@@ -15,8 +15,8 @@ class PFActive(pf_active._T_pf_active):
                     rect = coil.element[0].geometry.rectangle
                     geo_coils.append(
                         Rectangle(
-                            (rect.r - rect.width / 2.0, rect.z - rect.height / 2.0),
-                            (rect.r + rect.width / 2.0, rect.z + rect.height / 2.0),
+                            (rect.r - rect.width / 2.0, rect.r + rect.width / 2.0),
+                            (rect.z - rect.height / 2.0, rect.z + rect.height / 2.0),
                             name=coil.name,
                             styles={"$matplotlib": {"color": "black"}, "text": True},
                         )
