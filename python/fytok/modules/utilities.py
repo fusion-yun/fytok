@@ -121,16 +121,16 @@ class Identifier(SpTree):
 
 
 class IDS(SpTree):
-    def __init__(self, *args, _entry=None, **kwargs):
-        if len(args) > 0 and isinstance(args[0], str) and _entry is None:
-            _entry = args[0]
-            args = args[1:]
+    # def __init__(self, *args, _entry=None, **kwargs):
+    #     if len(args) > 0 and isinstance(args[0], str) and _entry is None:
+    #         _entry = args[0]
+    #         args = args[1:]
 
-        cache = {k: kwargs.pop(k) for k in list(kwargs.keys()) if not k.startswith("_")}
+    #     cache = {k: kwargs.pop(k) for k in list(kwargs.keys()) if not k.startswith("_")}
 
-        cache = Path().update(*args, cache)
+    #     cache = Path().update(*args, cache)
 
-        super().__init__(cache, _entry=_entry, **kwargs)
+    #     super().__init__(cache, _entry=_entry, **kwargs)
 
     ids_properties: IDSProperties
 

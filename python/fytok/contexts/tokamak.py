@@ -28,7 +28,7 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.modules.wall import Wall
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics
-from fytok.modules.utilities import Code, FyModule, IDS
+from fytok.modules.utilities import Code, IDS
 
 # from fytok.ontology import GLOBAL_ONTOLOGY
 
@@ -39,7 +39,7 @@ from fytok.modules.utilities import Code, FyModule, IDS
 # ---------------------------------
 
 
-class Tokamak(IDS, Context):
+class Tokamak(IDS, Context, plugin_name="fy_tok"):
     # fmt:off
 
     # device
@@ -64,8 +64,8 @@ class Tokamak(IDS, Context):
     equilibrium             : Equilibrium               
 
     core_profiles           : CoreProfiles              
-    core_transport          : List[CoreTransport.Model]  
-    core_sources            : List[CoreSources.Source]   
+    core_transport          : CoreTransport  
+    core_sources            : CoreSources   
 
     # edge_profiles         : EdgeProfiles              
     # edge_transport        : EdgeTransport             
@@ -76,8 +76,6 @@ class Tokamak(IDS, Context):
     transport_solver        : TransportSolverNumerics   
 
     summary                 : Summary
-
-    code                    : Code = {"name": "fy_tok"}
     
     dataset_fair            : DatasetFAIR
     # fmt:on
@@ -96,8 +94,8 @@ Modules:
     equilibrium             : {self.equilibrium.code }
 
     core_profiles           : {self.core_profiles.code }             
-    core_transport          : {', '.join([s.code.name for s in self.core_transport])}
-    core_sources            : {', '.join([s.code.name  for s in self.core_sources])}
+    core_transport          : {', '.join([s.code.name for s in self.core_transport.model])}
+    core_sources            : {', '.join([s.code.name  for s in self.core_sources.source])}
 ---------------------------------------------------------------------------------------------------
 """
 
@@ -126,10 +124,9 @@ Modules:
     def __init__(
         self,
         *args,
-        device: str = _not_found_,
-        shot: int = _not_found_,
-        run: int = _not_found_,
-        _entry=None,
+        device: str = None,
+        shot: int = None,
+        run: int = None,
         **kwargs,
     ):
         """
@@ -144,17 +141,15 @@ Modules:
         :param time:   指定当前时间
         :param kwargs: 指定子模块的初始化数据，，会与args中指定的数据源子节点合并。
         """
-        super().__init__(
-            *args,
-            **kwargs,
-            dataset_fair={
-                "description": {"device": device, "shot": shot or 0, "run": run or 0}
-            },
-        )
 
-        self._shot = shot
-        self._run = run
-        self._device = device
+        dataset_fair = {
+            "description": {"device": device, "shot": shot or 0, "run": run or 0}
+        }
+
+        if device is not None:
+            args = (f"{device}://", *args)
+
+        super().__init__(*args, **kwargs, dataset_fair=dataset_fair)
 
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
@@ -222,7 +217,7 @@ Modules:
             "magnetics",
             "interferometer",
             "tf",
-            # "equilibrium",
+            "equilibrium",
             # "ec_launchers",
             # "ic_antennas",
             # "lh_antennas",
