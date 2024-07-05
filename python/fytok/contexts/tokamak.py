@@ -218,11 +218,11 @@ Modules:
 
         o_list = [
             "wall",
-            "equilibrium",
             "pf_active",
             "magnetics",
             "interferometer",
             "tf",
+            # "equilibrium",
             # "ec_launchers",
             # "ic_antennas",
             # "lh_antennas",
@@ -233,13 +233,13 @@ Modules:
         for o_name in o_list:
             try:
                 g = getattr(self, o_name, None)
-                if g is None:
+                if g is None or g is _not_found_:
                     continue
                 g = g.__view__(**kwargs)
 
-            except Exception as error:
+            except RuntimeError as e:
                 logger.error(
-                    "Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=error
+                    "Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e
                 )
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
