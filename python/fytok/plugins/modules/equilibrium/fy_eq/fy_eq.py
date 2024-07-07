@@ -155,24 +155,34 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
 
     @sp_property
     def grid(self) -> Mesh:
-        theta = self.get_cache("grid/dim2", _not_found_)
+
+        theta = _not_found_
+        psi_norm = _not_found_
+
+        raw_grid = self.get_cache("grid", _not_found_)
+
+        if raw_grid is not _not_found_:
+            theta = raw_grid.get("dim1", _not_found_)
+            psi_norm = raw_grid.get("dim2", _not_found_)
 
         if theta is _not_found_:
-            ntheta = self.get_cache(".../code/parameters/num_of_theta", 64)
-            theta = np.linspace(0, 2.0 * scipy.constants.pi, ntheta, endpoint=False)
-
-        if not (isinstance(theta, np.ndarray) and theta.ndim == 1):
-            raise ValueError(f"Can not create grid! theta={theta}")
-
-        psi_norm = self.get_cache("grid/dim1", _not_found_)
+            theta = self.get(".../code/parameters/theta", _not_found_)
+            if theta is _not_found_:
+                ntheta = self.get(".../code/parameters/num_of_theta", 64)
+                theta = np.linspace(0, 2.0 * scipy.constants.pi, ntheta, endpoint=False)
 
         if psi_norm is _not_found_:
-            psi_norm = self.psi_norm
+            psi_norm = self.get(".../code/parameters/psi_norm", (0.0, 0.995, 128))
+            if isinstance(psi_norm, tuple):
+                psi_norm = np.linspace(*psi_norm)
 
-        if psi_norm is _not_found_:
-            psi_norm = self.get_cache(
-                ".../code/parameters/psi_norm", np.linspace(0.0, 0.995, 128)
+        if not isinstance(psi_norm, np.ndarray) or not isinstance(theta, np.ndarray):
+            raise RuntimeError(
+                f"Can not create grid! psi_norm={psi_norm} theta={theta}"
             )
+
+        # if not (isinstance(theta, np.ndarray) and theta.ndim == 1):
+        #     raise ValueError(f"Can not create grid! theta={theta}")
 
         surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
 
@@ -378,7 +388,7 @@ class FyEquilibriumCoordinateSystem(Equilibrium.TimeSlice.CoordinateSystem):
         return self.surface_integral(func, *xargs) / self.dvolume_dpsi(*xargs)
 
 
-class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D, domain="grid"):
+class FyEquilibriumProfiles2D(Equilibrium.TimeSlice.Profiles2D):
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
     _profiles_1d: Equilibrium.TimeSlice.Profiles1D = sp_property(alias="../profiles_1d")
     _global_quantities: Equilibrium.TimeSlice.GlobalQuantities = sp_property(

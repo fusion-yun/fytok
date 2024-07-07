@@ -1,8 +1,9 @@
 import functools
 
-from spdm.core.property_tree import PropertyTree
-from spdm.core.sp_tree import SpTree
 from spdm.utils.misc import camel_to_snake
+
+from spdm.core.sp_tree import AttributeTree 
+
 from fytok.ontology.catalogy import catalogy
 from fytok.modules.utilities import IDS
 
@@ -30,8 +31,8 @@ class DummyModule(object):
             else:
                 tp_bases = (IDS, *tp_bases)
 
-        if not any(issubclass(tp, PropertyTree) for tp in tp_bases):
-            tp_bases = tp_bases + (PropertyTree, SpTree)
+        if not any(issubclass(tp, AttributeTree) for tp in tp_bases):
+            tp_bases = tp_bases + (AttributeTree,)
 
         new_cls = type(
             name,

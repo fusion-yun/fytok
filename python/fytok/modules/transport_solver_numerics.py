@@ -79,7 +79,7 @@ class TransportSolverNumericsEquation(SpTree):
     
     u * profile + v* flux - w =0"""
 
-    convergence: PropertyTree
+    convergence: AttributeTree
     """ Convergence details"""
 
 
@@ -91,7 +91,7 @@ class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm
     equations: AoS[TransportSolverNumericsEquation]
     """ Set of transport equations"""
 
-    control_parameters: PropertyTree
+    control_parameters: AttributeTree
     """ Solver-specific input or output quantities"""
 
     drho_tor_dt: array_type | Expression = sp_property(units="m.s^-1")

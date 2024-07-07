@@ -7,7 +7,7 @@ from spdm.core.htree import Dict, List
 from spdm.core.expression import Variable, Expression
 from spdm.core.function import Function
 from spdm.core.sp_tree import SpTree, sp_property, sp_tree
-from spdm.core.property_tree import PropertyTree
+from spdm.core.sp_tree import AttributeTree
 from spdm.core.aos import AoS
 from spdm.core.path import update_tree
 # from spdm.utils.type_hint import get_args
@@ -79,7 +79,7 @@ class Atom:
     z: float
     a: float
     mass: float
-    elements: AoS[PropertyTree]
+    elements: AoS[AttributeTree]
 
 
 class Atoms(Dict[Atom]):

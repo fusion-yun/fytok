@@ -1,4 +1,4 @@
-from spdm.core.property_tree import PropertyTree
+from spdm.core.sp_tree import AttributeTree
 from fytok.modules.utilities import FyComponent, FyActor
 
 # fmt:off
@@ -20,8 +20,8 @@ catalogy = {
     "core_transport"                : FyActor          ,
     "transport_solver_numerics"     : FyActor          ,
     "waves"                         : FyActor          ,
-    "dataset_fair"                  : PropertyTree     ,
-    "summary"                       : PropertyTree     ,
-    "amns_data"                     : PropertyTree     ,
+    "dataset_fair"                  : AttributeTree     ,
+    "summary"                       : AttributeTree     ,
+    "amns_data"                     : AttributeTree     ,
 }
 # fmt:on

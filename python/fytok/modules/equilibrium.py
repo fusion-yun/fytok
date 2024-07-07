@@ -249,6 +249,7 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
 
 
 class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid"):
+
     type: Identifier
 
     grid: Mesh

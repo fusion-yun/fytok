@@ -16,7 +16,7 @@ from spdm.core.htree import Dict, HTree, List
 from spdm.core.signal import Signal, SignalND
 from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.sp_object import SpObject
-from spdm.core.property_tree import PropertyTree
+from spdm.core.sp_tree import AttributeTree
 from spdm.core.actor import Actor
 from spdm.core.component import Component
 from spdm.core.processor import Processor
@@ -38,8 +38,8 @@ class IDSProperties(SpTree):
     homogeneous_time: int
     provider: str
     creation_date: str
-    version_put: PropertyTree
-    provenance: PropertyTree
+    version_put: AttributeTree
+    provenance: AttributeTree
 
 
 class Library(SpTree):
@@ -47,7 +47,7 @@ class Library(SpTree):
     commit: str
     version: str = "0.0.0"
     repository: str = ""
-    parameters: PropertyTree
+    parameters: AttributeTree
 
 
 class Code(SpTree):
@@ -77,7 +77,7 @@ class Code(SpTree):
     output_flag: array_type
     library: List[Library]
 
-    parameters: PropertyTree = {}
+    parameters: AttributeTree = {}
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.constants
 
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property, sp_tree, SpTree, annotation
+from spdm.core.sp_tree import sp_property, sp_tree, SpTree, annotation, AttributeTree
 from spdm.core.expression import Expression, Variable, zero, derivative
 from spdm.core.field import Field
 from spdm.core.time_sequence import TimeSequence, TimeSlice
@@ -29,7 +29,7 @@ PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-class CoreProfilesSpecies(SpTree):
+class CoreProfilesSpecies(AttributeTree):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
