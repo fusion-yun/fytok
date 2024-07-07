@@ -94,8 +94,8 @@ Modules:
     equilibrium             : {self.equilibrium.code }
 
     core_profiles           : {self.core_profiles.code }             
-    core_transport          : {', '.join([*self.core_transport.model.search("code/name")])}
-    core_sources            : {', '.join([*self.core_sources.source.search("code/name")])}
+    core_transport          : {', '.join([*self.core_transport.model.search("*/code/name")])}
+    core_sources            : {', '.join([*self.core_sources.source.search("*/code/name")])}
 ---------------------------------------------------------------------------------------------------
 """
 

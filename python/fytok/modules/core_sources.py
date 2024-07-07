@@ -1,26 +1,21 @@
-
-from copy import copy, deepcopy
-import math
-
 from spdm.core.aos import AoS
-from spdm.core.sp_tree import sp_property, sp_tree
-from spdm.core.time_sequence import TimeSequence
-from spdm.core.expression import Expression, Variable, zero, one
+from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.htree import List
+from spdm.core.time_sequence import TimeSlice
+from spdm.core.expression import Expression
 from spdm.utils.tags import _not_found_
 
-from .core_profiles import CoreProfiles
-from .equilibrium import Equilibrium
-from .utilities import *
-from ..utils.atoms import atoms
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.utilities import IDS, FyActor, CoreVectorComponents, CoreRadialGrid,DistributionSpecies
+from fytok.utils.atoms import atoms
 
-from ..ontology import core_sources
+from fytok.ontology import core_sources
 
 
-@sp_tree
 class CoreSourcesSpecies(SpTree):
     """Source terms related to electrons"""
 
-    @sp_tree
     class _Decomposed(SpTree):
         """Source terms decomposed for the particle transport equation, assuming
         core_radial_grid 3 levels above"""
@@ -74,19 +69,16 @@ class CoreSourcesSpecies(SpTree):
     momentum: CoreVectorComponents = sp_property(units="kg.m^-1.s^-2")
 
 
-@sp_tree
 class CoreSourcesElectrons(CoreSourcesSpecies):
     label: str = "electron"
     """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
 
 
-@sp_tree
-class CoreSourcesNeutral(core_sources._T_core_sources_source_profiles_1d_neutral):
+class CoreSourcesNeutral(core_sources.core_sources_source_profiles_1d_neutral):
     pass
 
 
-@sp_tree(domain="grid/rho_tor_norm")
-class CoreSourcesProfiles1D(core_sources._T_core_sources_source_profiles_1d):
+class CoreSourcesProfiles1D(core_sources.core_sources_source_profiles_1d, domain="grid/rho_tor_norm"):
     grid: CoreRadialGrid
     """ Radial grid"""
 
@@ -119,12 +111,10 @@ class CoreSourcesProfiles1D(core_sources._T_core_sources_source_profiles_1d):
     neutral: AoS[CoreSourcesNeutral]
 
 
-@sp_tree
-class CoreSourcesGlobalQuantities(core_sources._T_core_sources_source_global):
+class CoreSourcesGlobalQuantities(core_sources.core_sources_source_global):
     pass
 
 
-@sp_tree
 class CoreSourcesTimeSlice(TimeSlice):
     Profiles1D = CoreSourcesProfiles1D
 
@@ -135,17 +125,9 @@ class CoreSourcesTimeSlice(TimeSlice):
     global_quantities: CoreSourcesGlobalQuantities
 
 
-@sp_tree
-class CoreSourcesSource(FyActor):
-    _plugin_prefix = "fytok.modules.core_sources.source."
-
-    identifier: str
+class CoreSourcesSource(FyActor[CoreSourcesTimeSlice], plugin_prefix="core_sources/source/"):
 
     species: DistributionSpecies
-
-    TimeSlice = CoreSourcesTimeSlice
-
-    time_slice: TimeSequence[CoreSourcesTimeSlice]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -188,7 +170,9 @@ class CoreSourcesSource(FyActor):
 
         current: CoreSourcesTimeSlice = self.time_slice.current
 
-        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
+        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports[
+            "core_profiles/time_slice/0/profiles_1d"
+        ].fetch()
         # eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
 
         current.update(self.fetch(profiles_1d)._cache)
@@ -205,14 +189,11 @@ class CoreSourcesSource(FyActor):
         return super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
 
-@sp_tree
-class CoreSources:
-
-    ids_properties: IDSProperties
+class CoreSources(IDS):
 
     Source = CoreSourcesSource
 
-    source: AoS[CoreSourcesSource]
+    source: List[CoreSourcesSource]
 
     def initialize(self, *args, **kwargs) -> None:
         super().initialize(*args, **kwargs)

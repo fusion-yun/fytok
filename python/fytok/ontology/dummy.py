@@ -2,10 +2,9 @@ import functools
 
 from spdm.utils.misc import camel_to_snake
 
-from spdm.core.sp_tree import AttributeTree 
+from spdm.core.sp_tree import AttributeTree
 
 from fytok.ontology.catalogy import catalogy
-from fytok.modules.utilities import IDS
 
 
 __version__ = "dummy"
@@ -21,22 +20,19 @@ class DummyModule(object):
 
         if cls is not None:
             return cls
-        tp_bases = catalogy.get(camel_to_snake(name).lower(), None)
 
-        if tp_bases is None:
-            tp_bases = ()
-        else:
-            if not isinstance(tp_bases, tuple):
-                tp_bases = (IDS, tp_bases)
-            else:
-                tp_bases = (IDS, *tp_bases)
-
-        if not any(issubclass(tp, AttributeTree) for tp in tp_bases):
-            tp_bases = tp_bases + (AttributeTree,)
+        # tp_bases = catalogy.get(camel_to_snake(name).lower(), None)
+        # if tp_bases is None:
+        #     tp_bases = ()
+        # else:
+        #     if not isinstance(tp_bases, tuple):
+        #         tp_bases = (tp_bases,)
+        # if not any(issubclass(tp, AttributeTree) for tp in tp_bases):
+        #     tp_bases = tp_bases + (AttributeTree,)
 
         new_cls = type(
             name,
-            tp_bases,
+            (AttributeTree,),
             {
                 "__module__": f"{__package__}.{self._module}",
                 "__package__": __package__,

@@ -58,9 +58,7 @@ class Code(SpTree):
             self._cache,
             {
                 "name": self._parent.__class__.__name__,
-                "module_path": self._parent.__module__
-                + "."
-                + self._parent.__class__.__name__,
+                "module_path": self._parent.__module__ + "." + self._parent.__class__.__name__,
             },
         )
 
@@ -81,13 +79,7 @@ class Code(SpTree):
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
-        return "-".join(
-            [
-                s
-                for s in [self.name, self.version.replace(".", "_")]
-                if isinstance(s, str)
-            ]
-        )
+        return "-".join([s for s in [self.name, self.version.replace(".", "_")] if isinstance(s, str)])
 
     def __repr__(self) -> str:
         desc = {
@@ -121,17 +113,6 @@ class Identifier(SpTree):
 
 
 class IDS(SpTree):
-    # def __init__(self, *args, _entry=None, **kwargs):
-    #     if len(args) > 0 and isinstance(args[0], str) and _entry is None:
-    #         _entry = args[0]
-    #         args = args[1:]
-
-    #     cache = {k: kwargs.pop(k) for k in list(kwargs.keys()) if not k.startswith("_")}
-
-    #     cache = Path().update(*args, cache)
-
-    #     super().__init__(cache, _entry=_entry, **kwargs)
-
     ids_properties: IDSProperties
 
 
@@ -245,9 +226,7 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
         if isinstance(first, array_type):
             rho_tor_norm = first
         else:
-            rho_tor_norm = getattr(
-                first, "rho_tor_norm", kwargs.pop("rho_tor_norm", None)
-            )
+            rho_tor_norm = getattr(first, "rho_tor_norm", kwargs.pop("rho_tor_norm", None))
 
         if psi_norm is None and isinstance(first, SpTree):
             psi_norm = getattr(first, "psi_norm", None)

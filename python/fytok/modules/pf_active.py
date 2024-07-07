@@ -1,10 +1,13 @@
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Rectangle
 from fytok.utils.logger import logger
+
+from fytok.modules.utilities import IDS
+
 from fytok.ontology import pf_active
 
 
-class PFActive(pf_active._T_pf_active):
+class PFActive(IDS, pf_active.pf_active):
     def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
         geo = {}
 

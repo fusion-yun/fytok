@@ -97,7 +97,7 @@ class CoreProfilesIon(CoreProfilesSpecies):
     def z_ion_square_1d(self) -> Expression:
         return self.z_ion_1d * self.z_ion_1d
 
-    # velocity: _T_core_profiles_vector_components_2 = sp_property(units="m.s^-1")
+    # velocity: core_profiles_vector_components_2 = sp_property(units="m.s^-1")
 
     @sp_property(unit="s^-1", default_value=0.1)
     def collision_frequency(self) -> Expression:
@@ -156,7 +156,7 @@ class CoreProfilesElectrons(CoreProfilesSpecies, name="electrons"):
         )
 
 
-class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
+class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     vacuum_toroidal_field: VacuumToroidalField
 
     ip: float = sp_property(units="A")
@@ -201,7 +201,7 @@ class CoreGlobalQuantities(core_profiles._T_core_profiles_global_quantities):
 
 
 class CoreProfiles1D(
-    core_profiles._T_core_profiles_profiles_1d, domain="grid/psi_nrom"
+    core_profiles.core_profiles_profiles_1d, domain="grid/psi_nrom"
 ):
 
     grid: CoreRadialGrid = {"extrapolate": 0}
@@ -269,7 +269,7 @@ class CoreProfiles1D(
 
     # t_i_average: Expression = sp_property(units="eV")
 
-    # t_i_average_fit: _T_core_profiles_1D_fit = sp_property(units="eV")
+    # t_i_average_fit: core_profiles_1D_fit = sp_property(units="eV")
 
     # n_i_total_over_n_e: Expression = sp_property(units="-")
 
@@ -279,7 +279,7 @@ class CoreProfiles1D(
 
     zeff: Expression = sp_property(units="-")
 
-    # zeff_fit: _T_core_profiles_1D_fit = sp_property(units="-")
+    # zeff_fit: core_profiles_1D_fit = sp_property(units="-")
 
     pressure_ion_total: Expression = sp_property(units="Pa")
 
@@ -406,7 +406,7 @@ class CoreProfiles1D(
     pprime: Expression = sp_property(label="$p^{\prime}$")
 
 
-class CoreProfiles2D(core_profiles._T_core_profiles_profiles_2d, domain="grid"):
+class CoreProfiles2D(core_profiles.core_profiles_profiles_2d, domain="grid"):
     t_i_average: Field = annotation(unit="eV")
 
 

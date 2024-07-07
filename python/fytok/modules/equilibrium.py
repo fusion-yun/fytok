@@ -1,14 +1,18 @@
+import typing
+
+from spdm.utils.tags import _not_found_
+from spdm.utils.type_hint import array_type
+
 from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
-from spdm.core.geo_object import GeoObjectSet
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
+from spdm.core.time_sequence import TimeSlice, TimeSequence
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
-from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
+
 
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
@@ -16,7 +20,6 @@ from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
 
 from fytok.modules.utilities import (
-    Code,
     IDS,
     FyActor,
     Identifier,
@@ -27,9 +30,7 @@ from fytok.modules.utilities import (
 from fytok.ontology import equilibrium
 
 
-class EquilibriumCoordinateSystem(
-    equilibrium._T_equilibrium_coordinate_system, domain="grid"
-):
+class EquilibriumCoordinateSystem(equilibrium.equilibrium_coordinate_system, domain="grid"):
 
     grid: Mesh
 
@@ -39,16 +40,12 @@ class EquilibriumCoordinateSystem(
 
     jacobian: Field = sp_property(units="mixed")
 
-    tensor_covariant: array_type = sp_property(
-        coordinate3="1...3", coordinate4="1...3", units="mixed"
-    )
+    tensor_covariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
-    tensor_contravariant: array_type = sp_property(
-        coordinate3="1...3", coordinate4="1...3", units="mixed"
-    )
+    tensor_contravariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
 
-class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
+class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
     psi_axis: float = sp_property(units="Wb")
 
     psi_boundary: float = sp_property(units="Wb")
@@ -104,7 +101,7 @@ class EquilibriumGlobalQuantities(equilibrium._T_equilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_norm"):
+class EquilibriumProfiles1D(equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -153,15 +150,11 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
 
     pressure: Expression = sp_property(units="Pa", label="P")
 
-    dpressure_dpsi: Expression = sp_property(
-        units="Pa.Wb^-1", label=r"\frac{dP}{d\psi}"
-    )
+    dpressure_dpsi: Expression = sp_property(units="Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
 
     f: Expression = sp_property(units="T.m")
 
-    f_df_dpsi: Expression = sp_property(
-        units="T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}"
-    )
+    f_df_dpsi: Expression = sp_property(units="T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
 
     j_tor: Expression = sp_property(units="A \cdot m^{-2}")
 
@@ -177,9 +170,7 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
 
     rho_tor_norm: Expression = sp_property(units="m", label=r"\bar{\rho_{tor}}")
 
-    dpsi_drho_tor: Expression = sp_property(
-        units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}"
-    )
+    dpsi_drho_tor: Expression = sp_property(units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}")
 
     @sp_property
     def geometric_axis(self) -> PointRZ:
@@ -248,7 +239,7 @@ class EquilibriumProfiles1D(equilibrium._T_equilibrium_profiles_1d, domain="psi_
     mass_density: Expression = sp_property(units="kg \cdot m^{-3}")
 
 
-class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid"):
+class EquilibriumProfiles2D(equilibrium.equilibrium_profiles_2d, domain="grid"):
 
     type: Identifier
 
@@ -275,7 +266,7 @@ class EquilibriumProfiles2D(equilibrium._T_equilibrium_profiles_2d, domain="grid
     b_field_tor: Field = sp_property(units="T")
 
 
-class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
+class EquilibriumBoundary(equilibrium.equilibrium_boundary):
     type: int
 
     outline: Curve
@@ -315,7 +306,7 @@ class EquilibriumBoundary(equilibrium._T_equilibrium_boundary):
     active_limiter_point: PointRZ
 
 
-class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatrix):
+class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix):
     type: int
 
     outline: Curve
@@ -355,15 +346,15 @@ class EquilibriumBoundarySeparatrix(equilibrium._T_equilibrium_boundary_separatr
     active_limiter_point: PointRZ
 
 
-class EequilibriumConstraints(equilibrium._T_equilibrium_constraints):
+class EequilibriumConstraints(equilibrium.equilibrium_constraints):
     pass
 
 
-class EquilibriumGGD(equilibrium._T_equilibrium_ggd):
+class EquilibriumGGD(equilibrium.equilibrium_ggd):
     pass
 
 
-class EquilibriumTimeSlice(SpTree):
+class EquilibriumTimeSlice(TimeSlice):
     vacuum_toroidal_field: VacuumToroidalField
 
     Boundary = EquilibriumBoundary
@@ -493,7 +484,15 @@ class EquilibriumTimeSlice(SpTree):
     #     return geo, styles
 
 
-class Equilibrium(IDS, FyActor[EquilibriumTimeSlice], default_plugin="fy_eq"):
+_TEquilibriumSlice = typing.TypeVar("_TEquilibriumSlice", bound=EquilibriumTimeSlice)
+
+
+class Equilibrium(
+    IDS,
+    FyActor[_TEquilibriumSlice],
+    plugin_default="fy_eq",
+    plugin_prefix="equilibrium/",
+):
     r"""
     Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
 
@@ -501,11 +500,45 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice], default_plugin="fy_eq"):
 
     - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS",
       Computer Physics Communications 184, 2 (2013), pp. 293--302.
+
+    COCOS  11
+        ```{text}
+            Top view
+                    ***************
+                    *               *
+                *   ***********   *
+                *   *           *   *
+                *   *             *   *
+                *   *             *   *
+            Ip  v   *             *   ^  \phi
+                *   *    Z o--->R *   *
+                *   *             *   *
+                *   *             *   *
+                *   *     Bpol    *   *
+                *   *     o     *   *
+                *   ***********   *
+                    *               *
+                    ***************
+                    Bpol x
+                    Poloidal view
+                ^Z
+                |
+                |       ************
+                |      *            *
+                |     *         ^    *
+                |     *   \rho /     *
+                |     *       /      *
+                +-----*------X-------*---->R
+                |     *  Ip, \phi   *
+                |     *              *
+                |      *            *
+                |       *****<******
+                |       Bpol,\theta
+                |
+                    Cylindrical coordinate      : $(R,\phi,Z)$
+            Poloidal plane coordinate   : $(\rho,\theta,\phi)$
+        ```
     """
-
-    _plugin_prefix = f"{FyActor._plugin_prefix}equilibrium."
-
-    TimeSlice = EquilibriumTimeSlice
 
     def __view__(self, *args, **kwargs):
         current = self.time_slice.current
@@ -530,44 +563,3 @@ class Equilibrium(IDS, FyActor[EquilibriumTimeSlice], default_plugin="fy_eq"):
             pf_active=pf_active,
             **kwargs,
         )
-
-
-r"""
-  COCOS  11
-    ```{text}
-        Top view
-                ***************
-                *               *
-            *   ***********   *
-            *   *           *   *
-            *   *             *   *
-            *   *             *   *
-        Ip  v   *             *   ^  \phi
-            *   *    Z o--->R *   *
-            *   *             *   *
-            *   *             *   *
-            *   *     Bpol    *   *
-            *   *     o     *   *
-            *   ***********   *
-                *               *
-                ***************
-                Bpol x
-                Poloidal view
-            ^Z
-            |
-            |       ************
-            |      *            *
-            |     *         ^    *
-            |     *   \rho /     *
-            |     *       /      *
-            +-----*------X-------*---->R
-            |     *  Ip, \phi   *
-            |     *              *
-            |      *            *
-            |       *****<******
-            |       Bpol,\theta
-            |
-                Cylindrical coordinate      : $(R,\phi,Z)$
-        Poloidal plane coordinate   : $(\rho,\theta,\phi)$
-    ```
-"""

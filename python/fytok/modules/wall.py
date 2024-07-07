@@ -1,19 +1,23 @@
 import typing
 
+
+from spdm.utils.tags import _not_found_
+
 from spdm.core.htree import List
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline
-from spdm.utils.tags import _not_found_
-from spdm.utils.logger import logger
+
+from fytok.utils.logger import logger
+from fytok.modules.utilities import IDS
 
 from fytok.ontology import wall
 
 
-class Wall(wall.Wall):
+class Wall(IDS, wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
-    Description2D = wall._T_wall_2d
+    Description2D = wall.wall_2d
 
     description_2d: List[Description2D]
 
