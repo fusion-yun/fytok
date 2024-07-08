@@ -9,11 +9,13 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.time_sequence import TimeSlice
+from spdm.core.actor import Actor
+
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
-from fytok.utils.base import IDS, FyActor, Identifier
+from fytok.utils.base import IDS, FyModule, Identifier
 
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
@@ -483,7 +485,8 @@ _TEquilibriumSlice = typing.TypeVar("_TEquilibriumSlice", bound=EquilibriumTimeS
 
 class Equilibrium(
     IDS,
-    FyActor[_TEquilibriumSlice],
+    FyModule,
+    Actor[_TEquilibriumSlice],
     plugin_default="fy_eq",
     plugin_prefix="equilibrium/",
 ):

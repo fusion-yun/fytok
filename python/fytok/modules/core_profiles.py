@@ -1,17 +1,21 @@
 import numpy as np
 import scipy.constants
 
+
+from spdm.utils.type_hint import array_type
+from spdm.utils.tags import _not_found_
+
 from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
 from spdm.core.time_sequence import TimeSlice
-from spdm.utils.type_hint import array_type
-from spdm.utils.tags import _not_found_
+from spdm.core.actor import Actor
+
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
-from fytok.utils.base import IDS, FyActor
+from fytok.utils.base import IDS, FyModule
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import (
@@ -410,7 +414,7 @@ class CoreProfilesTimeSlice(TimeSlice):
         #     self["profiles_1d/grid"] = grid
 
 
-class CoreProfiles(IDS, FyActor[CoreProfilesTimeSlice]):
+class CoreProfiles(IDS, FyModule, Actor[CoreProfilesTimeSlice], code={"name": "core_profiles"}):
     """
     Core plasma profiles
     """

@@ -3,10 +3,11 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.htree import List
 from spdm.core.time_sequence import TimeSlice
 from spdm.core.expression import Expression
+from spdm.core.actor import Actor
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyActor
+from fytok.utils.base import IDS, FyModule
 from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
 
 from fytok.modules.core_profiles import CoreProfiles
@@ -127,7 +128,7 @@ class CoreSourcesTimeSlice(TimeSlice):
     global_quantities: CoreSourcesGlobalQuantities
 
 
-class CoreSourcesSource(FyActor[CoreSourcesTimeSlice], plugin_prefix="core_sources/source/"):
+class CoreSourcesSource(FyModule, Actor[CoreSourcesTimeSlice], plugin_prefix="core_sources/source/"):
 
     species: DistributionSpecies
 

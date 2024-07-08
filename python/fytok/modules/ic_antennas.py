@@ -1,12 +1,12 @@
-from fytok.utils.base import IDS, FyComponent
+from spdm.core.component import Component
+from fytok.utils.base import IDS, FyModule
 
-from spdm.core.geo_object import GeoObject
 
 from fytok.ontology import ic_antennas
 
 
-class ICAntennas(IDS, FyComponent, ic_antennas.ic_antennas):
-    def __view__(self, view="RZ", **styles) -> GeoObject:
+class ICAntennas(IDS, FyModule, Component, ic_antennas.ic_antennas):
+    def __view__(self, view="RZ", **styles):
 
         geo = {}
         if view != "RZ":

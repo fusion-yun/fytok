@@ -1,13 +1,12 @@
 import os
 from spdm.utils import envs as sp_envs
-import spdm.core.mapper as mapper
 
 
 FY_ONTOLOGY = "imas/3"
 """ 本体版本 """
 
 
-FY_COPYRIGHT = "(C) 2021-2024 Zhi YU @ Institute of Plasma Physics Chinese Academy of Sciences. All rights reserved."
+FY_COPYRIGHT = "(C) 2021-2024 Zhi YU @ ASIPP. All rights reserved."
 """ 版权信息 """
 
 try:

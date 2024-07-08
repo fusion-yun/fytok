@@ -1,9 +1,10 @@
-from fytok.utils.base import IDS, FyComponent
+from spdm.core.component import Component
+from fytok.utils.base import IDS, FyModule
 from fytok.ontology import lh_antennas
 
 
-class LHAntennas(IDS, FyComponent, lh_antennas.lh_antennas):
-    def __view__(self, view_point="RZ", **styles) :
+class LHAntennas(IDS, FyModule, Component, lh_antennas.lh_antennas):
+    def __view__(self, view_point="RZ", **styles):
 
         geo = {}
         match view_point.lower():
@@ -11,4 +12,4 @@ class LHAntennas(IDS, FyComponent, lh_antennas.lh_antennas):
                 geo["antenna"] = [antenna.name for antenna in self.antenna]
                 styles["antenna"] = {"$matplotlib": {"color": "blue"}, "text": True}
 
-        return geo,styles
+        return geo, styles

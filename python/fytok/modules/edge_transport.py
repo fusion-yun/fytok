@@ -1,22 +1,24 @@
-from functools import cached_property
+import typing
+from spdm.core.htree import List
+from spdm.core.actor import Actor
 
-from spdm.utils.tags import _undefined_
-from  ..ontology import edge_transport import _T_edge_transport, _T_edge_transport_model
+from fytok.utils.base import IDS, FyModule
+from fytok.ontology import edge_transport
+
+_TSlice = typing.TypeVar("_TSlice")
 
 
-class EdgeTransport(_T_edge_transport):
+class EdgeTransportModel(FyModule, Actor[_TSlice], edge_transport.edge_transport_model):
+    pass
 
-    Model = _T_edge_transport_model
 
-    @cached_property
-    def model_combiner(self) -> Model:
-        return self.model.combine({
-            "identifier": {"name": "combined", "index": 1,
-                           "description": """Combination of data from all available transport models"""},
-            "code": {"name": _undefined_}
-        })
+class EdgeTransport(IDS, edge_transport.edge_transport):
+
+    Model = edge_transport.edge_transport_model
+
+    model = List[edge_transport.edge_transport_model]
 
     def update(self, *args, **kwargs) -> float:
         if "model_combiner" in self.__dict__:
             del self.__dict__["model_combiner"]
-        return sum([model.refresh(*args,   **kwargs) for model in self.model])
+        return sum([model.refresh(*args, **kwargs) for model in self.model])

@@ -57,7 +57,7 @@ class Code(SpTree):
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
-        return "-".join([s for s in [self.name, self.version.replace(".", "_")] if isinstance(s, str)])
+        return "-".join([s for s in [self.name, self.version] if isinstance(s, str)])
 
     def __repr__(self) -> str:
         desc = {
@@ -107,32 +107,4 @@ class FyModule(SpObject):
     identifier: str
 
     code: Code
-
-
-_TSlice = typing.TypeVar("_TSlice")
-
-
-class FyActor(FyModule, Actor[_TSlice]):
-
-    def refresh(self, *args, **kwargs) -> typing.Type[_TSlice]:
-        """更新当前 Actor 的状态。
-        更新当前状态树 （time_slice），并执行 self.iteration+=1
-
-        """
-        logger.verbose(f"Refresh module {self.code.module_path}")
-
-        current = super().refresh(*args, **kwargs)
-
-        return current
-
-
-class FyComponent(FyModule, Component):
-    pass
-
-
-class FyProcessor(FyModule, Processor):
-    pass
-
-
-class FyContext(FyModule, Context):
-    pass
+    """代码信息"""

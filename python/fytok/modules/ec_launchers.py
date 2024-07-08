@@ -1,8 +1,9 @@
-from fytok.utils.base import IDS, FyComponent
+from spdm.core.component import Component
+from fytok.utils.base import IDS, FyModule
 from fytok.ontology import ec_launchers
 
 
-class ECLaunchers(IDS, FyComponent, ec_launchers.ec_launchers):
+class ECLaunchers(IDS, FyModule, Component, ec_launchers.ec_launchers):
     def __view__(self, view_point="RZ", **styles):
         geo = {}
 

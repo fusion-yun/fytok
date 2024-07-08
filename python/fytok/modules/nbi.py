@@ -1,8 +1,9 @@
 import typing
 
+from spdm.core.component import Component
 from spdm.geometry.line import Line
 from spdm.geometry.polygon import Rectangle
-from fytok.utils.base import IDS, FyComponent
+from fytok.utils.base import IDS, FyModule
 
 from fytok.ontology import nbi
 
@@ -18,7 +19,7 @@ def draw_nbi_unit(unit: nbi._T_nbi_unit, name: str):
     return geo
 
 
-class NBI(IDS, FyComponent, nbi.nbi):
+class NBI(IDS, FyModule, Component, nbi.nbi):
     def __view__(self, view_point="RZ", **styles):
         geo = {}
 

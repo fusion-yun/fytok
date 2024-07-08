@@ -1,11 +1,12 @@
+from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property
 from spdm.core.time_sequence import TimeSlice
 from spdm.core.expression import Expression
-from spdm.utils.tags import _not_found_
+from spdm.core.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyActor
+from fytok.utils.base import IDS, FyModule
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
@@ -97,7 +98,7 @@ class CoreTransportTimeSlice(TimeSlice):
     profiles_1d: CoreTransportProfiles1D
 
 
-class CoreTransportModel(FyActor[CoreTransportTimeSlice], plugin_prefix="core_transport/model/"):
+class CoreTransportModel(FyModule, Actor[CoreTransportTimeSlice], plugin_prefix="core_transport/model/"):
 
     def preprocess(self, *args, **kwargs) -> CoreTransportTimeSlice:
         current: CoreTransportTimeSlice = super().preprocess(*args, **kwargs)

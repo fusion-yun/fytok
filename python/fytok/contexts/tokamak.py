@@ -1,12 +1,12 @@
 import typing
-
+from spdm.core.context import Context
 from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------
 from fytok.utils.envs import *
 from fytok.utils.logger import logger
-from fytok.utils.base import IDS, FyContext
+from fytok.utils.base import IDS, FyModule
 
 # ---------------------------------
 from fytok.modules.dataset_fair import DatasetFAIR
@@ -36,7 +36,7 @@ from fytok.modules.transport_solver_numerics import TransportSolverNumerics
 # ---------------------------------
 
 
-class Tokamak(IDS, FyContext, code={"name": "fy_tok", "version": FY_VERSION, "copyright": FY_COPYRIGHT}):
+class Tokamak(IDS, FyModule, Context, code={"name": "fy_tok"}):
     # fmt:off
 
     # device
@@ -86,9 +86,12 @@ class Tokamak(IDS, FyContext, code={"name": "fy_tok", "version": FY_VERSION, "co
 ---------------------------------------------------------------------------------------------------
 {self.dataset_fair}
 ---------------------------------------------------------------------------------------------------
+    code                    : {self.code}
+    copyright               : {self.code.copyright}
+---------------------------------------------------------------------------------------------------
 Modules:
-    transport_solver        : {self.transport_solver.code }
-    equilibrium             : {self.equilibrium.code }
+    transport_solver        : {self.transport_solver.code}
+    equilibrium             : {self.equilibrium.code}
 
     core_profiles           : {self.core_profiles.code }             
     core_transport          : {', '.join([*self.core_transport.model.search("*/code/name")])}
