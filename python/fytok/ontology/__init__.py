@@ -8,7 +8,7 @@ from spdm.core import mapper
 
 FY_MAPPING_PATH = os.environ.get("FY_MAPPING_PATH", "")
 
-mapper.default_namespace = ":".join(
+mapper.path = ":".join(
     map(
         lambda v: v + "/" + FY_ONTOLOGY,
         filter(
@@ -16,7 +16,7 @@ mapper.default_namespace = ":".join(
             [
                 "fytok/mappings/{schema}",
                 *FY_MAPPING_PATH.split(":"),
-                *mapper.default_namespace.split(":"),
+                *(mapper.path.split(":") if isinstance(mapper.path, str) else mapper.path),
             ],
         ),
     )
@@ -28,7 +28,7 @@ try:
 except ImportError as error:
     from . import dummy as latest
 
-logger.verbose(f"Using ontology: {FY_ONTOLOGY} ({latest.__implement__}) at {mapper.default_namespace}")
+logger.verbose(f"Using ontology: {FY_ONTOLOGY} ({latest.__implement__}) at {mapper.path}")
 
 __VERSION__ = FY_ONTOLOGY
 

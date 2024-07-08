@@ -1,17 +1,11 @@
-import typing
-
+from spdm.utils.type_hint import array_type
+from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
 from spdm.core.htree import List
 from spdm.core.sp_tree import SpTree
 from spdm.core.sp_object import SpObject
 from spdm.core.sp_tree import AttributeTree
-from spdm.core.actor import Actor
-from spdm.core.component import Component
-from spdm.core.processor import Processor
-from spdm.core.context import Context
 
-from spdm.utils.type_hint import array_type
-from spdm.utils.tags import _not_found_
 
 from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
@@ -53,26 +47,11 @@ class Code(SpTree):
     output_flag: array_type
     library: List[Library]
 
-    parameters: AttributeTree = {}
+    parameters: AttributeTree
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
         return "-".join([s for s in [self.name, self.version] if isinstance(s, str)])
-
-    def __repr__(self) -> str:
-        desc = {
-            "name": self.name,
-            "version": self.version,
-            "copyright": self.copyright,
-        }
-
-        return ", ".join(
-            [
-                f"{key}='{value}'"
-                for key, value in desc.items()
-                if value is not _not_found_ and value is not None and value != ""
-            ]
-        )
 
 
 class Identifier(SpTree):
