@@ -2,21 +2,19 @@ import numpy as np
 import scipy.constants
 
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property, sp_tree, SpTree, annotation, AttributeTree
-from spdm.core.expression import Expression, Variable, zero, derivative
+from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.expression import Expression
 from spdm.core.field import Field
-from spdm.core.time_sequence import TimeSequence, TimeSlice
+from spdm.core.time_sequence import TimeSlice
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
+from fytok.utils.base import IDS, FyActor
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import (
-    IDS,
-    FyModule,
-    FyActor,
     CoreVectorComponents,
     PlasmaCompositionSpecies,
     CoreRadialGrid,
@@ -29,11 +27,11 @@ PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-class CoreProfilesSpecies(AttributeTree):
+class CoreProfilesSpecies(SpTree):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
-            raise RuntimeError(f"Unknown ion ")
+            raise RuntimeError("Unknown ion ")
 
         atom_desc = atoms[self.label]
 
@@ -131,7 +129,7 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-class CoreProfilesElectrons(CoreProfilesSpecies, name="electrons"):
+class CoreProfilesElectrons(CoreProfilesSpecies):
     label: str = "e"
 
     @sp_property(units="-")
@@ -140,20 +138,11 @@ class CoreProfilesElectrons(CoreProfilesSpecies, name="electrons"):
 
     @sp_property
     def tau(self):
-        return (
-            1.09e16
-            * ((self.temperature / 1000) ** (3 / 2))
-            / self.density
-            / self._parent.coulomb_logarithm
-        )
+        return 1.09e16 * ((self.temperature / 1000) ** (3 / 2)) / self.density / self._parent.coulomb_logarithm
 
     @sp_property
     def vT(self):
-        return np.sqrt(
-            self.temperature
-            * scipy.constants.electron_volt
-            / scipy.constants.electron_mass
-        )
+        return np.sqrt(self.temperature * scipy.constants.electron_volt / scipy.constants.electron_mass)
 
 
 class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
@@ -200,9 +189,7 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-class CoreProfiles1D(
-    core_profiles.core_profiles_profiles_1d, domain="grid/psi_nrom"
-):
+class CoreProfiles1D(core_profiles.core_profiles_profiles_1d, domain="grid/psi_nrom"):
 
     grid: CoreRadialGrid = {"extrapolate": 0}
 
@@ -219,9 +206,7 @@ class CoreProfiles1D(
         label=r"\bar{\rho}_{tor}", units="-", alias="grid/rho_tor_norm"
     )
 
-    rho_tor: Expression = sp_property(
-        label=r"\rho_{tor}", units="m", alias="grid/rho_tor"
-    )
+    rho_tor: Expression = sp_property(label=r"\rho_{tor}", units="m", alias="grid/rho_tor")
 
     psi_norm: array_type | Expression = sp_property(label=r"\bar{\psi}", units="-")
 
@@ -229,10 +214,7 @@ class CoreProfiles1D(
 
     @sp_property
     def zeff(self) -> Expression:
-        return (
-            sum([((ion.z_ion_1d**2) * ion.density) for ion in self.ion])
-            / self.n_i_total
-        )
+        return sum([((ion.z_ion_1d**2) * ion.density) for ion in self.ion]) / self.n_i_total
 
     @sp_property
     def pressure(self) -> Expression:
@@ -244,16 +226,11 @@ class CoreProfiles1D(
 
     @sp_property
     def pressure_thermal(self) -> Expression:
-        return sum(
-            [ion.pressure_thermal for ion in self.ion], self.electrons.pressure_thermal
-        )
+        return sum([ion.pressure_thermal for ion in self.ion], self.electrons.pressure_thermal)
 
     @sp_property
     def t_i_average(self) -> Expression:
-        return (
-            sum([ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion])
-            / self.n_i_total
-        )
+        return sum([ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion]) / self.n_i_total
 
     @sp_property
     def n_i_total(self) -> Expression:
@@ -344,15 +321,7 @@ class CoreProfiles1D(
 
     @sp_property
     def beta_pol(self) -> Expression:
-        return (
-            4
-            * self.pressure.I
-            / (
-                self._parent.vacuum_toroidal_field.r0
-                * constants.mu_0
-                * (self.j_total**2)
-            )
-        )
+        return 4 * self.pressure.I / (self._parent.vacuum_toroidal_field.r0 * constants.mu_0 * (self.j_total**2))
 
     # if isinstance(d, np.ndarray) or (hasattr(d.__class__, 'empty') and not d.empty):
     #     return d
@@ -407,7 +376,7 @@ class CoreProfiles1D(
 
 
 class CoreProfiles2D(core_profiles.core_profiles_profiles_2d, domain="grid"):
-    t_i_average: Field = annotation(unit="eV")
+    t_i_average: Field = sp_property(unit="eV")
 
 
 class CoreProfilesTimeSlice(TimeSlice):
@@ -452,9 +421,7 @@ class CoreProfiles(IDS, FyActor[CoreProfilesTimeSlice]):
         grid = current.get_cache("profiles_1d/grid", _not_found_)
 
         if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports[
-                "equilibrium/time_slice/0/profiles_1d/grid"
-            ].fetch()
+            eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
 
             if isinstance(grid, dict):
                 new_grid = grid

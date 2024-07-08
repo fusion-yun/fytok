@@ -1,14 +1,12 @@
-from spdm.core.geo_object import GeoObject
 from spdm.geometry.polygon import Rectangle
-from fytok.utils.logger import logger
 
-from fytok.modules.utilities import IDS
 
+from fytok.utils.base import IDS, FyComponent
 from fytok.ontology import pf_active
 
 
-class PFActive(IDS, pf_active.pf_active):
-    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
+class PFActive(IDS, FyComponent, pf_active.pf_active):
+    def __view__(self, view_point="RZ", **styles):
         geo = {}
 
         match view_point.lower():
@@ -27,4 +25,4 @@ class PFActive(IDS, pf_active.pf_active):
 
                 geo["coil"] = geo_coils
 
-        return geo
+        return geo, styles

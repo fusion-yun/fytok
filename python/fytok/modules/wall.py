@@ -1,27 +1,23 @@
-import typing
-
-
 from spdm.utils.tags import _not_found_
 
 from spdm.core.htree import List
-from spdm.core.geo_object import GeoObject
 from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline
 
 from fytok.utils.logger import logger
-from fytok.modules.utilities import IDS
+from fytok.utils.base import IDS, FyComponent
 
 from fytok.ontology import wall
 
 
-class Wall(IDS, wall.Wall):
+class Wall(IDS, FyComponent, wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
     Description2D = wall.wall_2d
 
     description_2d: List[Description2D]
 
-    def __view__(self, view_point="RZ", **kwargs) -> GeoObject | typing.List[GeoObject]:
+    def __view__(self, view_point="RZ", **styles):
         geo = {}
 
         desc = self.description_2d[0]  # 0 for equilibrium codes

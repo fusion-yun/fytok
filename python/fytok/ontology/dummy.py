@@ -1,10 +1,8 @@
 import functools
 
-from spdm.utils.misc import camel_to_snake
+from spdm.core.htree import HTree
 
-from spdm.core.sp_tree import AttributeTree
-
-from fytok.ontology.catalogy import catalogy
+from spdm.core.sp_tree import WithAttribute, WithProperty, WithMetadata, HTree
 
 
 __version__ = "dummy"
@@ -32,7 +30,7 @@ class DummyModule(object):
 
         new_cls = type(
             name,
-            (AttributeTree,),
+            (WithAttribute, WithProperty, WithMetadata, HTree),
             {
                 "__module__": f"{__package__}.{self._module}",
                 "__package__": __package__,

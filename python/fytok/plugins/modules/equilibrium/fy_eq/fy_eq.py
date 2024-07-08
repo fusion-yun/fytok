@@ -9,7 +9,6 @@ from dataclasses import dataclass
 
 from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property
-from spdm.core.time_sequence import TimeSequence, TimeSlice
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.function import Function
@@ -22,9 +21,11 @@ from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
-from fytok.modules import equilibrium
-from fytok.modules.utilities import Code, CoreRadialGrid, VacuumToroidalField
 from fytok.utils.logger import logger
+
+from fytok.utils.base import Code
+from fytok.modules import equilibrium
+from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
 from .contours import find_critical_points, find_contours
 
@@ -716,7 +717,7 @@ class FyEquilibriumProfiles1D(equilibrium.EquilibriumProfiles1D):
 
 
 class FyEquilibriumGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
-    _root: equilibrium.EquilibriumTimeSlice  = sp_property(alias="../")
+    _root: equilibrium.EquilibriumTimeSlice = sp_property(alias="../")
 
     _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
 

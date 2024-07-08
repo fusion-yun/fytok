@@ -1,10 +1,10 @@
 from spdm.geometry.line import Line
 from spdm.utils.tags import _not_found_
+from fytok.utils.base import IDS, FyComponent
 from fytok.ontology import interferometer
-from fytok.utils.logger import logger
 
 
-class Interferometer(interferometer._T_interferometer):
+class Interferometer(IDS, FyComponent, interferometer.interferometer):
     def __view__(self, view_point="RZ", **kwargs) -> dict:
         geo = {**kwargs}
         match view_point.lower():

@@ -8,24 +8,18 @@ from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
-from spdm.core.time_sequence import TimeSlice, TimeSequence
+from spdm.core.time_sequence import TimeSlice
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
+from fytok.utils.base import IDS, FyActor, Identifier
 
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
-
-from fytok.modules.utilities import (
-    IDS,
-    FyActor,
-    Identifier,
-    CoreRadialGrid,
-    VacuumToroidalField,
-)
+from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
 from fytok.ontology import equilibrium
 

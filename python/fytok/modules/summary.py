@@ -1,7 +1,7 @@
-from spdm.core.sp_tree import sp_tree, sp_property
-from ..ontology import summary
+from fytok.utils.base import IDS
+
+from fytok.ontology import summary
 
 
-@sp_tree
-class Summary(summary._T_summary):
+class Summary(IDS, summary.summary):
     pass

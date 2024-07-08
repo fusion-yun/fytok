@@ -1,16 +1,15 @@
-from spdm.core.geo_object import GeoObject
-from spdm.geometry.point import Point
 from spdm.utils.tags import _not_found_
 
-from fytok.modules.utilities import IDS
+from spdm.geometry.point import Point
 
+from fytok.utils.base import IDS, FyComponent
 from fytok.ontology import magnetics
 
 
-class Magnetics(IDS, magnetics.magnetics):
+class Magnetics(IDS, FyComponent, magnetics.magnetics):
     """Magnetic diagnostics for equilibrium identification and plasma shape control."""
 
-    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
+    def __view__(self, view_point="RZ", **styles):
         geo = {}
         match view_point.lower():
             case "rz":

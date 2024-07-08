@@ -1,20 +1,21 @@
-
-
+import typing
 from scipy import constants
 
+from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import sp_property
+from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
 from spdm.core.time_sequence import TimeSlice, TimeSequence
-from spdm.core.aos import AoS
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
+from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.utilities import *
-from fytok.utils.logger import logger
+from fytok.utils.base import IDS, FyProcessor
+
+from fytok.modules.utilities import CoreRadialGrid
 
 # from ..ontology import transport_solver_numerics
 
@@ -88,7 +89,7 @@ class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm
 
     grid: CoreRadialGrid
 
-    equations: AoS[TransportSolverNumericsEquation]
+    equations: List[TransportSolverNumericsEquation]
     """ Set of transport equations"""
 
     control_parameters: AttributeTree
@@ -102,7 +103,7 @@ class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm
       respect to the toroidal flux coordinate"""
 
 
-class TransportSolverNumerics(FyProcessor, default_plugin="fy_trans"):
+class TransportSolverNumerics(IDS, FyProcessor, default_plugin="fy_trans"):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     solver: str = "ion_solver"
@@ -119,9 +120,9 @@ class TransportSolverNumerics(FyProcessor, default_plugin="fy_trans"):
     r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
       rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    equations: AoS[TransportSolverNumericsEquation] = []
+    equations: List[TransportSolverNumericsEquation] = []
 
-    variables: typing.Dict[str, Expression] = {}
+    variables: Dict[Expression] = {}
 
     profiles_1d: CoreProfiles.TimeSlice.Profiles1D = {}
 

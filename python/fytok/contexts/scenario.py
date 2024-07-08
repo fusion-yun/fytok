@@ -3,7 +3,7 @@ from functools import cached_property
 from spdm.core.context import Context
 from spdm.core.obsolete.sp_tree import sp_tree
 
-from ..modules.pulse_schedule import PulseSchedule
+from .pulse_schedule import PulseSchedule
 
 from ..utils.logger import logger
 

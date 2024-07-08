@@ -1,12 +1,10 @@
-
-
 import typing
 
-from spdm.core.geo_object import GeoObject
 from spdm.geometry.line import Line
 from spdm.geometry.polygon import Rectangle
+from fytok.utils.base import IDS, FyComponent
 
-from ..ontology import nbi
+from fytok.ontology import nbi
 
 
 def draw_nbi_unit(unit: nbi._T_nbi_unit, name: str):
@@ -20,13 +18,12 @@ def draw_nbi_unit(unit: nbi._T_nbi_unit, name: str):
     return geo
 
 
-class NBI(nbi._T_nbi):
-    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
+class NBI(IDS, FyComponent, nbi.nbi):
+    def __view__(self, view_point="RZ", **styles):
         geo = {}
-        styles = {}
 
         match view_point.lower():
             case "top":
                 geo["unit"] = [draw_nbi_unit(unit) for unit in self.unit]
 
-        return geo
+        return geo, styles

@@ -1,11 +1,8 @@
+from fytok.utils.base import IDS, FyComponent
+
+from fytok.ontology import pellets
 
 
-
-from spdm.core.geo_object import GeoObject
-
-from ..ontology import pellets
-
-
-class Pellets(pellets._T_pellets):
-    def __view__(self, view="RZ", **kwargs):
-        return {} 
+class Pellets(IDS, FyComponent, pellets.pellets):
+    def __view__(self, view="RZ", **styles):
+        return {}, styles

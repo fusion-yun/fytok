@@ -5,13 +5,8 @@ from spdm.core.expression import Expression
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
-
-from fytok.modules.utilities import (
-    IDS,
-    FyActor,
-    CoreRadialGrid,
-    VacuumToroidalField,
-)
+from fytok.utils.base import IDS, FyActor
+from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
 

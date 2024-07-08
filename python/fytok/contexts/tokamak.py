@@ -9,6 +9,7 @@ from spdm.utils.tags import _not_found_
 # ---------------------------------
 from fytok.utils.envs import *
 from fytok.utils.logger import logger
+from fytok.utils.base import Code, IDS
 
 # ---------------------------------
 from fytok.modules.dataset_fair import DatasetFAIR
@@ -28,7 +29,6 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.modules.wall import Wall
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics
-from fytok.modules.utilities import Code, IDS
 
 # from fytok.ontology import GLOBAL_ONTOLOGY
 
@@ -142,9 +142,7 @@ Modules:
         :param kwargs: 指定子模块的初始化数据，，会与args中指定的数据源子节点合并。
         """
 
-        dataset_fair = {
-            "description": {"device": device, "shot": shot or 0, "run": run or 0}
-        }
+        dataset_fair = {"description": {"device": device, "shot": shot or 0, "run": run or 0}}
 
         if device is not None:
             args = (f"{device}://", *args)
@@ -233,9 +231,7 @@ Modules:
                 g = g.__view__(**kwargs)
 
             except RuntimeError as e:
-                logger.error(
-                    "Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e
-                )
+                logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e)
                 # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
             else:
                 geo[o_name] = g

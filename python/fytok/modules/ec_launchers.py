@@ -1,14 +1,11 @@
+from fytok.utils.base import IDS, FyComponent
+from fytok.ontology import ec_launchers
 
 
-from spdm.core.geo_object import GeoObject
-
-from ..ontology import ec_launchers
-
-
-class ECLaunchers(ec_launchers._T_ec_launchers):
-    def __view__(self, view_point="RZ", **kwargs) -> GeoObject:
+class ECLaunchers(IDS, FyComponent, ec_launchers.ec_launchers):
+    def __view__(self, view_point="RZ", **styles):
         geo = {}
-        styles = {}
+
         match view_point.lower():
             case "top":
                 geo["beam"] = [beam.name for beam in self.beam]

@@ -5,10 +5,12 @@ from spdm.core.time_sequence import TimeSlice
 from spdm.core.expression import Expression
 from spdm.utils.tags import _not_found_
 
+from fytok.utils.atoms import atoms
+from fytok.utils.base import IDS, FyActor
+from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
+
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.utilities import IDS, FyActor, CoreVectorComponents, CoreRadialGrid,DistributionSpecies
-from fytok.utils.atoms import atoms
 
 from fytok.ontology import core_sources
 
