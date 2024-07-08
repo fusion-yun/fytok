@@ -1,7 +1,14 @@
 import os
-import getpass
-import datetime
 from spdm.utils import envs as sp_envs
+import spdm.core.mapper as mapper
+
+
+FY_ONTOLOGY = "imas/3"
+""" 本体版本 """
+
+
+FY_COPYRIGHT = "(C) 2021-2024 Zhi YU @ Institute of Plasma Physics Chinese Academy of Sciences. All rights reserved."
+""" 版权信息 """
 
 try:
     from fytok.__version__ import version
@@ -23,8 +30,6 @@ FY_DEBUG = os.environ.get("FY_DEBUG", False)
 
 FY_VERBOSE = os.environ.get("FY_VERBOSE", "info")
 
-FY_JOBID = f"fytok_{getpass.getuser().lower()}_{os.uname().nodename.lower()}_{os.getpid()}"
-
 
 for k, v in os.environ.items():
     if k.startswith("FY_"):
@@ -32,23 +37,18 @@ for k, v in os.environ.items():
 
 
 FY_LOGO = rf"""
-###################################################################################################
+########################################################################################################################
+                                            ______      _____     _
+                                           / ____/_  __|_   _|__ | | __
+                                          / /_  / / / /  | |/ _ \| |/ /
+                                         / __/ / /_/ /   | | (_) |   <
+                                        /_/    \__, /    |_|\___/|_|\_\
+                                              /____/
 
-    ______      _____     _
-   / ____/_  __|_   _|__ | | __
-  / /_  / / / /  | |/ _ \| |/ /
- / __/ / /_/ /   | | (_) |   <
-/_/    \__, /    |_|\___/|_|\_\
-      /____/
-
- Copyright (c) 2021-present Zhi YU @ Institute of Plasma Physics Chinese Academy of Sciences 
-            
- version = {FY_VERSION}  (spdm={sp_envs.SP_VERSION} {FY_EXT_VERSION})
-
- Run by {getpass.getuser()} at {datetime.datetime.now().isoformat()}.
- Job ID: {FY_JOBID}
-
-###################################################################################################
+{FY_COPYRIGHT}
+ version  = {FY_VERSION}  {FY_EXT_VERSION} spdm version = {sp_envs.SP_VERSION}  ontology = {FY_ONTOLOGY} 
+########################################################################################################################
 """
 
-__all__ = ["FY_DEBUG", "FY_JOBID", "FY_LOGO", "FY_VERBOSE", "FY_VERSION", "FY_EXT_VERSION"]
+
+__all__ = ["FY_LOGO", "FY_VERSION", "FY_EXT_VERSION", "FY_ONTOLOGY", "FY_COPYRIGHT", "FY_DEBUG", "FY_VERBOSE"]

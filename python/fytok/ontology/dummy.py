@@ -2,10 +2,9 @@ import functools
 
 from spdm.core.htree import HTree
 
-from spdm.core.sp_tree import WithAttribute, WithProperty, WithMetadata, HTree
+from spdm.core.sp_tree import WithAttribute, WithProperty, WithMetadata
 
-
-__version__ = "dummy"
+__implement__ = "dummy"
 
 
 class DummyModule(object):

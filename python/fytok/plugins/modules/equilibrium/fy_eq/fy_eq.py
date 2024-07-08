@@ -21,9 +21,8 @@ from spdm.mesh.mesh_curvilinear import CurvilinearMesh
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
+from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
-
-from fytok.utils.base import Code
 from fytok.modules import equilibrium
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
@@ -67,7 +66,7 @@ COCOS_TABLE = [
 OXPoint = typing.Tuple[Point, float]
 
 
-class FyEquilibriumCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
+class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     r"""
     Flux surface coordinate system on a square grid of flux and poloidal angle
     默认采用磁面坐标
@@ -290,11 +289,11 @@ class FyEquilibriumCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         else:
             psi_norm, rmin, zmin, rmax, zmax, rzmin, rzmax, r_inboard, r_outboard = sbox.T
         if np.isscalar(psi_norm):
-            return FyEquilibriumCoordinateSystem.ShapeProperty(
+            return FyEqCoordinateSystem.ShapeProperty(
                 psi_norm, rmin, zmin, rmax, zmax, rzmin, rzmax, r_inboard, r_outboard
             )
         else:
-            return FyEquilibriumCoordinateSystem.ShapeProperty(
+            return FyEqCoordinateSystem.ShapeProperty(
                 psi_norm,
                 Function(psi_norm, rmin, name="rmin"),
                 Function(psi_norm, zmin, name="zmin"),
@@ -367,8 +366,8 @@ class FyEquilibriumCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         return self.surface_integral(func, *xargs) / self.dvolume_dpsi(*xargs)
 
 
-class FyEquilibriumProfiles2D(equilibrium.EquilibriumProfiles2D):
-    _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
+class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
+    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
     _profiles_1d: equilibrium.EquilibriumProfiles1D = sp_property(alias="../profiles_1d")
     _global_quantities: equilibrium.EquilibriumGlobalQuantities = sp_property(alias="../global_quantities")
 
@@ -436,12 +435,12 @@ class FyEquilibriumProfiles2D(equilibrium.EquilibriumProfiles2D):
         return np.sqrt(self.psi.pd(2, 0) * self.psi.pd(0, 2) + self.psi.pd(1, 1) ** 2)
 
 
-class FyEquilibriumProfiles1D(equilibrium.EquilibriumProfiles1D):
+class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
     _root: equilibrium.EquilibriumTimeSlice = sp_property(alias="../")
 
-    _profiles_2d: FyEquilibriumProfiles2D = sp_property(alias="../profiles_2d")
+    _profiles_2d: FyEqProfiles2D = sp_property(alias="../profiles_2d")
 
-    _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
+    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
     psi_norm: array_type
 
@@ -619,7 +618,7 @@ class FyEquilibriumProfiles1D(equilibrium.EquilibriumProfiles1D):
 
     # 描述磁面形状
     @functools.cached_property
-    def _shape_property(self) -> FyEquilibriumCoordinateSystem.ShapeProperty:
+    def _shape_property(self) -> FyEqCoordinateSystem.ShapeProperty:
         return self._coord.shape_property(self.psi_norm)
 
     @sp_property
@@ -716,10 +715,10 @@ class FyEquilibriumProfiles1D(equilibrium.EquilibriumProfiles1D):
         # return self._coord._R0*(self.f / fvac)**2 * d
 
 
-class FyEquilibriumGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
+class FyEqGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
     _root: equilibrium.EquilibriumTimeSlice = sp_property(alias="../")
 
-    _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
+    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
     psi_axis: float
 
@@ -746,8 +745,8 @@ class FyEquilibriumGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
         return q[idx], self._root.profiles_1d.rho_tor_norm[idx]
 
 
-class FyEquilibriumBoundary(equilibrium.EquilibriumBoundary):
-    _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
+class FyEqBoundary(equilibrium.EquilibriumBoundary):
+    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
     # psi_norm: float
 
@@ -766,7 +765,7 @@ class FyEquilibriumBoundary(equilibrium.EquilibriumBoundary):
         return surf
 
     @functools.cached_property
-    def _shape_property(self) -> FyEquilibriumCoordinateSystem.ShapeProperty:
+    def _shape_property(self) -> FyEqCoordinateSystem.ShapeProperty:
         return self._coord.shape_property(self.psi_norm)
 
     @sp_property
@@ -835,8 +834,8 @@ class FyEquilibriumBoundary(equilibrium.EquilibriumBoundary):
         return NotImplemented
 
 
-class FyEquilibriumBoundarySeparatrix(FyEquilibriumBoundary):
-    _coord: FyEquilibriumCoordinateSystem = sp_property(alias="../coordinate_system")
+class FyEqBoundarySeparatrix(FyEqBoundary):
+    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
     @sp_property
     def outline(self) -> GeoObjectSet:
@@ -844,23 +843,30 @@ class FyEquilibriumBoundarySeparatrix(FyEquilibriumBoundary):
         return GeoObjectSet([surf for _, surf in self._coord.find_surfaces(self.psi_norm, enclose_axis=False)])
 
 
-class FyEquilibriumTimeSlice(equilibrium.EquilibriumTimeSlice):
+class FyEqTimeSlice(equilibrium.EquilibriumTimeSlice):
     vacuum_toroidal_field: VacuumToroidalField
 
-    global_quantities: FyEquilibriumGlobalQuantities
+    global_quantities: FyEqGlobalQuantities
 
-    profiles_1d: FyEquilibriumProfiles1D
+    profiles_1d: FyEqProfiles1D
 
-    profiles_2d: FyEquilibriumProfiles2D
+    profiles_2d: FyEqProfiles2D
 
-    boundary: FyEquilibriumBoundary
+    boundary: FyEqBoundary
 
-    boundary_separatrix: FyEquilibriumBoundarySeparatrix
+    boundary_separatrix: FyEqBoundarySeparatrix
 
-    coordinate_system: FyEquilibriumCoordinateSystem = sp_property(default_value={})
+    coordinate_system: FyEqCoordinateSystem = sp_property(default_value={})
 
 
-class FyEqAnalyze(equilibrium.Equilibrium[FyEquilibriumTimeSlice], plugin_name="fy_eq"):
+class FyEq(
+    equilibrium.Equilibrium[FyEqTimeSlice],
+    code={
+        "name": "fy_eq",
+        "version": FY_VERSION,
+        "copyright": FY_COPYRIGHT,
+    },
+):
     """
     Magnetic surface analyze 磁面分析工具
     =============================
@@ -875,5 +881,3 @@ class FyEqAnalyze(equilibrium.Equilibrium[FyEquilibriumTimeSlice], plugin_name="
         - Surface average
 
     """
-
-    code: Code = {"name": "fy_eq", "copyright": "FUYUN"}

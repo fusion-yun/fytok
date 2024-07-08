@@ -1,4 +1,4 @@
-# 
+#
 # @NOTE：
 #   在插件中  会导致插件无法加载，
 #   故障点是：typing.get_type_hints() 找不到类型， i.e. Code,TimeSeriesAoS
@@ -14,6 +14,9 @@ from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
 
+from fytok.utils.atoms import atoms
+from fytok.utils.logger import logger
+from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_transport import CoreTransport
@@ -21,8 +24,6 @@ from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics, TransportSolverNumericsTimeSlice
 from fytok.modules.utilities import *
 
-from fytok.utils.atoms import atoms
-from fytok.utils.logger import logger
 
 from .bvp import solve_bvp
 
@@ -44,8 +45,7 @@ def derivative_(y: array_type, x: array_type, dc_index=None):
     return res
 
 
-@sp_tree
-class FyTrans(TransportSolverNumerics):
+class FyTrans(TransportSolverNumerics, code={"name": "fy_trans", "version": FY_VERSION, "copyright": FY_COPYRIGHT}):
     r"""
     Solve transport equations $\rho=\sqrt{ \Phi/\pi B_{0}}$
     See  :cite:`hinton_theory_1976,coster_european_2010,pereverzev_astraautomated_1991`
@@ -463,7 +463,9 @@ class FyTrans(TransportSolverNumerics):
                         #  generic boundary condition y expressed as a1y'+a2y=a3.
                         case _:
                             if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(f"5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                                raise NotImplementedError(
+                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
+                                )
                             u, v, w = bc_value
 
                     bc += [[u, v, w]]
@@ -539,7 +541,9 @@ class FyTrans(TransportSolverNumerics):
                         #  generic boundary condition y expressed as a1y'+a2y=a3.
                         case _:
                             if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(f"5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                                raise NotImplementedError(
+                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
+                                )
                             u, v, w = bc_value
 
                     bc += [[u, v, w]]
@@ -599,7 +603,9 @@ class FyTrans(TransportSolverNumerics):
                         # 5: generic boundary condition y expressed as a1y'+a2y=a3.
                         case _:
                             if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(f"5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                                raise NotImplementedError(
+                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
+                                )
                             u, v, w = bc_value
 
                     bc += [[u, v, w]]
@@ -675,7 +681,9 @@ class FyTrans(TransportSolverNumerics):
 
                         case _:  # 5: generic boundary condition y expressed as a1y'+a2y=a3.
                             if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(f"5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                                raise NotImplementedError(
+                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
+                                )
                             u, v, w = bc_value
 
                     bc += [[u, v, w]]
@@ -743,7 +751,9 @@ class FyTrans(TransportSolverNumerics):
                         # 5: generic boundary condition y expressed as u y + v y'=w.
                         case _:
                             if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(f"5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                                raise NotImplementedError(
+                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
+                                )
                             u, v, w = bc_value
 
                     bc += [[u, v, w]]

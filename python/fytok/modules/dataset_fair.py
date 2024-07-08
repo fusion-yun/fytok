@@ -3,7 +3,8 @@ import os
 import datetime
 from spdm.core.sp_tree import sp_tree, sp_property
 
-from ..ontology import dataset_fair, GLOBAL_ONTOLOGY
+
+from fytok import ontology
 
 
 @sp_tree
@@ -12,9 +13,9 @@ class DataDescription:
 
     shot: int
 
-    run: int = sp_property(default_value=0)
+    run: int = 0
 
-    summary: str = sp_property(default_value="")
+    summary: str = ""
 
     def __str__(self) -> str:
         return f"{self.device.upper()} #{self.shot}/{self.run}"
@@ -24,9 +25,8 @@ class DataDescription:
         return f"{self.device.lower()}_{self.shot}_{self.run}"
 
 
-@sp_tree
-class DatasetFAIR(dataset_fair._T_dataset_fair):
-    ontology: str = GLOBAL_ONTOLOGY
+class DatasetFAIR(ontology.dataset_fair.dataset_fair):
+    ontology: str = ontology.__VERSION__
 
     description: DataDescription
 

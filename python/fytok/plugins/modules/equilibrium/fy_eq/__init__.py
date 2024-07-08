@@ -1,3 +1,3 @@
-from .fy_eq import FyEqAnalyze
+from .fy_eq import FyEq
 
-__all__ = ["FyEqAnalyze"]
+__all__ = ["FyEq"]

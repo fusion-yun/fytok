@@ -14,7 +14,6 @@ from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.logger import logger
-from fytok.utils.envs import FY_JOBID
 
 
 class IDSProperties(SpTree):
@@ -38,13 +37,7 @@ class Code(SpTree):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._cache = Path().update(
-            self._cache,
-            {
-                "name": self._parent.__class__.__name__,
-                "module_path": self._parent.__module__ + "." + self._parent.__class__.__name__,
-            },
-        )
+        self._cache = Path().update(self._cache, Path("_metadata/code").get(self._parent, _not_found_))
 
     name: str
     """代码名称，也是调用 plugin 的 identifier"""
@@ -105,13 +98,14 @@ class FyModule(SpObject):
     _plugin_prefix = "fytok.modules."
     _plugin_registry = {}
 
+    def __init_subclass__(cls, plugin_name=None, **kwargs) -> None:
+        if plugin_name is None:
+            plugin_name = Path("code/name").get(kwargs, None)
+        return super().__init_subclass__(plugin_name=plugin_name, **kwargs)
+
     identifier: str
 
     code: Code
-
-    @property
-    def tag(self) -> str:
-        return f"{FY_JOBID}/{self.code.module_path}"
 
 
 _TSlice = typing.TypeVar("_TSlice")

@@ -1,15 +1,12 @@
 import typing
-from spdm.core.path import update_tree
-from spdm.core.entry import open_entry
-from spdm.core.htree import HTree, List
-from spdm.core.context import Context
+
 from spdm.core.geo_object import GeoObject
 from spdm.utils.tags import _not_found_
 
 # ---------------------------------
 from fytok.utils.envs import *
 from fytok.utils.logger import logger
-from fytok.utils.base import Code, IDS
+from fytok.utils.base import IDS, FyContext
 
 # ---------------------------------
 from fytok.modules.dataset_fair import DatasetFAIR
@@ -39,7 +36,7 @@ from fytok.modules.transport_solver_numerics import TransportSolverNumerics
 # ---------------------------------
 
 
-class Tokamak(IDS, Context, plugin_name="fy_tok"):
+class Tokamak(IDS, FyContext, code={"name": "fy_tok", "version": FY_VERSION, "copyright": FY_COPYRIGHT}):
     # fmt:off
 
     # device
@@ -107,19 +104,7 @@ Modules:
     @property
     def tag(self) -> str:
         """当前状态标签，由程序版本、用户名、时间戳等信息确定"""
-        return f"{self.dataset_fair.description.tag}_{int(self.time*100):06d}"
-
-    @property
-    def shot(self) -> int:
-        return self._shot
-
-    @property
-    def run(self) -> int:
-        return self._run
-
-    @property
-    def device(self) -> str:
-        return self._device
+        return f"{self.dataset_fair.tag}_{int(self.time*100):06d}"
 
     def __init__(
         self,
