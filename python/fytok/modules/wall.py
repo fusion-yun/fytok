@@ -18,7 +18,7 @@ class Wall(IDS, FyComponent, wall.Wall):
     description_2d: List[Description2D]
 
     def __view__(self, view_point="RZ", **styles):
-        geo = {}
+        geo = {"$styles": styles}
 
         desc = self.description_2d[0]  # 0 for equilibrium codes
 

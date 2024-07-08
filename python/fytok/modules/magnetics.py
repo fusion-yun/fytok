@@ -10,7 +10,7 @@ class Magnetics(IDS, FyComponent, magnetics.magnetics):
     """Magnetic diagnostics for equilibrium identification and plasma shape control."""
 
     def __view__(self, view_point="RZ", **styles):
-        geo = {}
+        geo = {"$styles": styles}
         match view_point.lower():
             case "rz":
                 if self.b_field_tor_probe is not _not_found_:
