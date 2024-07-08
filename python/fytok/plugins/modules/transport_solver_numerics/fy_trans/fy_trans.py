@@ -1,14 +1,7 @@
-#
-# @NOTE：
-#   在插件中  会导致插件无法加载，
-#   故障点是：typing.get_type_hints() 找不到类型， i.e. Code,TimeSeriesAoS
-
-import typing
 import numpy as np
 import scipy.constants
 
 from spdm.core.expression import Variable, Expression, Scalar, one, zero, derivative
-from spdm.core.sp_tree import sp_tree
 from spdm.core.path import as_path
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
@@ -16,13 +9,12 @@ from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
-from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics, TransportSolverNumericsTimeSlice
-from fytok.modules.utilities import *
+from fytok.modules.utilities import CoreRadialGrid
 
 
 from .bvp import solve_bvp
@@ -45,7 +37,7 @@ def derivative_(y: array_type, x: array_type, dc_index=None):
     return res
 
 
-class FyTrans(TransportSolverNumerics, code={"name": "fy_trans", "version": FY_VERSION, "copyright": FY_COPYRIGHT}):
+class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
     r"""
     Solve transport equations $\rho=\sqrt{ \Phi/\pi B_{0}}$
     See  :cite:`hinton_theory_1976,coster_european_2010,pereverzev_astraautomated_1991`
@@ -106,8 +98,6 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans", "version": FY_V
                             V^{\prime\frac{5}{3}}\left[Q_{e,exp}-Q_{e,imp}\cdot T_{e}+Q_{ei}-Q_{\gamma i}\right]
                     :label: transport_electron_temperature
         """
-
-    code: Code = {"name": "fy_trans", "copyright": "FyTok"}
 
     solver: str = "fy_trans_bvp_solver"
 

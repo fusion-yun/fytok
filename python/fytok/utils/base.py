@@ -13,6 +13,7 @@ from spdm.core.context import Context
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 
+from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
 
 
@@ -37,7 +38,7 @@ class Code(SpTree):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._cache = Path().update(self._cache, Path("_metadata/code").get(self._parent, _not_found_))
+        self._cache = Path().update(self._cache, self._parent._metadata.get("code", _not_found_))
 
     name: str
     """代码名称，也是调用 plugin 的 identifier"""
@@ -46,8 +47,8 @@ class Code(SpTree):
     """模块路径， 可用于 import 模块"""
 
     commit: str
-    version: str = "0.0.0"
-    copyright: str = "NO_COPYRIGHT_STATEMENT"
+    version: str = FY_VERSION
+    copyright: str = FY_COPYRIGHT
     repository: str = ""
     output_flag: array_type
     library: List[Library]

@@ -103,7 +103,12 @@ class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm
       respect to the toroidal flux coordinate"""
 
 
-class TransportSolverNumerics(IDS, FyProcessor, default_plugin="fy_trans"):
+class TransportSolverNumerics(
+    IDS,
+    FyProcessor,
+    plugin_prefix="transport_solver_numerics/",
+    plugin_default="fy_trans",
+):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     solver: str = "ion_solver"
