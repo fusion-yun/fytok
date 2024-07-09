@@ -126,13 +126,9 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
 
     psi_boundary: float = sp_property(alias="critical_points/1/0/1")
 
-    @sp_property
+    @sp_property(label=r"\frac{d V}{d\psi}")
     def dvolume_dpsi(self) -> Expression:
-        return Function(
-            *self._surface_integral(1.0),
-            name="dvolume_dpsi",
-            label=r"\frac{d V}{d\psi}",
-        )
+        return Function(*self._surface_integral(1.0))
 
     @sp_property
     def Bpol(self) -> Expression:
@@ -460,8 +456,8 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
             rho_tor_norm[0] = 0.0
         return CoreRadialGrid(
             {
-                "psi_norm": psi_norm,
-                "psi_axis": self._coord.psi_axis,
+                "psi_norm":     psi_norm,
+                "psi_axis":     self._coord.psi_axis,
                 "psi_boundary": self._coord.psi_boundary,
                 "rho_tor_norm": rho_tor_norm,
                 "rho_tor_boundary": np.sqrt(
@@ -502,13 +498,9 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
             r_[0] = 0.0
         return r_
 
-    @sp_property
+    @sp_property(label=r"\frac{d V}{d\psi}")
     def dvolume_dpsi(self) -> Expression:
-        return Function(
-            *self._coord._surface_integral(1.0),
-            name="dvolume_dpsi",
-            label=r"\frac{d V}{d\psi}",
-        )
+        return self._coord.dvolume_dpsi
 
     @sp_property(label=r"q")
     def q(self) -> Expression:
@@ -544,10 +536,6 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
     @sp_property
     def dpsi_norm_drho_tor_norm(self) -> Expression:
         return self.dpsi_drho_tor * self._coord.rho_tor_boundary / (self._coord.psi_boundary - self._coord.psi_axis)
-
-    @sp_property
-    def dvolume_dpsi(self) -> Expression:
-        return self._coord.dvolume_dpsi
 
     @sp_property(label=r"\frac{dV}{d\rho_{tor}}")
     def dvolume_drho_tor(self) -> Expression:

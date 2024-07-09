@@ -192,8 +192,8 @@ Modules:
 
         super().flush()
 
-    def __view__(self, **kwargs) -> GeoObject | typing.Dict:
-        geo = {}
+    def __view__(self, **styles) -> GeoObject | typing.Dict:
+        geo = {"$styles": styles}
 
         o_list = [
             "wall",
@@ -214,7 +214,7 @@ Modules:
                 g = getattr(self, o_name, None)
                 if g is None or g is _not_found_:
                     continue
-                g = g.__view__(**kwargs)
+                g = g.__view__(**styles)
 
             except RuntimeError as e:
                 logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e)
@@ -222,16 +222,12 @@ Modules:
             else:
                 geo[o_name] = g
 
-        view_point = (kwargs.get("view_point", None) or "rz").lower()
-
-        styles = {}
+        view_point = (styles.get("view_point", None) or "rz").lower()
 
         if view_point == "rz":
             styles["xlabel"] = r"Major radius $R [m] $"
             styles["ylabel"] = r"Height $Z [m]$"
 
-        styles["title"] = kwargs.pop("title", None) or self.title
-
-        geo["$styles"] = styles
+        styles.setdefault("title", self.title)
 
         return geo

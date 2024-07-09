@@ -1,10 +1,10 @@
 import typing
 import numpy as np
 
-from spdm.utils.type_hint import array_type
+from spdm.utils.type_hint import array_type, ArrayType
 
 from spdm.core.aos import AoS
-from spdm.core.domain import Domain
+from spdm.core.domain import Domain, DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
 from spdm.core.sp_tree import SpTree, sp_property
@@ -15,11 +15,12 @@ class VacuumToroidalField(SpTree):
     b0: float
 
 
-class CoreRadialGrid(Domain, plugin_name="core_radial"):
+class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
     """芯部径向坐标"""
 
-    # def __init__(self, *args, **kwargs) -> None:
-    #     super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
     # PPolyDomain.__init__(self, self._cache["psi_norm"])
     # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
     # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
@@ -113,6 +114,10 @@ class CoreRadialGrid(Domain, plugin_name="core_radial"):
     @sp_property
     def rho_pol_norm(self) -> array_type:
         return np.sqrt(self.psi_norm)
+
+    @property
+    def coordinates(self) -> typing.Tuple[ArrayType, ...]:
+        return (self.psi_norm,)
 
 
 class CoreVectorComponents(SpTree):

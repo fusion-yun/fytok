@@ -1,11 +1,11 @@
 import numpy as np
 import scipy.constants
 
-from spdm.core.expression import Variable, Expression, Scalar, one, zero, derivative
-from spdm.core.path import as_path
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
-
+from spdm.core.expression import Variable, Expression, Scalar, one, zero
+from spdm.core.path import as_path
+from spdm.numlib.calculus import derivative
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
@@ -939,6 +939,3 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
             )
 
         return current
-
-
-TransportSolverNumerics.register(["fy_trans"], FyTrans)
