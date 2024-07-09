@@ -443,15 +443,12 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
         if rho_tor_norm[0] < 0:
             rho_tor_norm[0] = 0.0
         return CoreRadialGrid(
-            {
-                "psi_norm": psi_norm,
-                "psi_axis": self._coord.psi_axis,
-                "psi_boundary": self._coord.psi_boundary,
-                "rho_tor_norm": rho_tor_norm,
-                "rho_tor_boundary": np.sqrt(
-                    np.abs(self.phi(self.psi_norm[-1]) / (scipy.constants.pi * self._coord.b0))
-                ),
-            }
+            psi_norm,
+            psi_norm=psi_norm,
+            psi_axis=self._coord.psi_axis,
+            psi_boundary=self._coord.psi_boundary,
+            rho_tor_norm=rho_tor_norm,
+            rho_tor_boundary=np.sqrt(np.abs(self.phi(self.psi_norm[-1]) / (scipy.constants.pi * self._coord.b0))),
         )
 
     @sp_property(label=r"\psi")
