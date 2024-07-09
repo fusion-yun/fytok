@@ -107,10 +107,7 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     # 磁面坐标
     psirz: Field = sp_property(alias="../profiles_2d/psi")
 
-    psi_norm: array_type = sp_property(
-        alias="../profiles_1d/grid/psi_norm",
-        default_value=np.linspace(0.001, 0.9995, 64),
-    )
+    psi_norm: array_type = sp_property(alias="../profiles_1d/psi_norm")
 
     @sp_property
     def critical_points(self) -> typing.Tuple[List[OXPoint], List[OXPoint]]:
@@ -145,43 +142,28 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     #################################
     # Profiles 2D
 
-    @sp_property
-    def grid(self) -> Mesh:
-
-        theta = _not_found_
-        psi_norm = _not_found_
-
-        raw_grid = self.get_cache("grid", _not_found_)
-
-        if raw_grid is not _not_found_:
-            theta = raw_grid.get("dim1", _not_found_)
-            psi_norm = raw_grid.get("dim2", _not_found_)
-
-        if theta is _not_found_:
-            theta = self.get(".../code/parameters/theta", _not_found_)
-            if theta is _not_found_:
-                ntheta = self.get(".../code/parameters/num_of_theta", 64)
-                theta = np.linspace(0, 2.0 * scipy.constants.pi, ntheta, endpoint=False)
-
-        if psi_norm is _not_found_:
-            psi_norm = self.get(".../code/parameters/psi_norm", (0.0, 0.995, 128))
-            if isinstance(psi_norm, tuple):
-                psi_norm = np.linspace(*psi_norm)
-
-        if not isinstance(psi_norm, np.ndarray) or not isinstance(theta, np.ndarray):
-            raise RuntimeError(f"Can not create grid! psi_norm={psi_norm} theta={theta}")
-
-        # if not (isinstance(theta, np.ndarray) and theta.ndim == 1):
-        #     raise ValueError(f"Can not create grid! theta={theta}")
-
-        surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
-
-        return CurvilinearMesh(
-            psi_norm,
-            theta,
-            geometry=surfs,
-            mesh={"periods": [False, 2.0 * scipy.constants.pi]},
-        )
+    # def grid(self) -> Mesh:
+    #     theta = _not_found_
+    #     psi_norm = _not_found_
+    #     raw_grid = self.get_cache("grid", _not_found_)
+    #     if raw_grid is not _not_found_:
+    #         theta = raw_grid.get("dim1", _not_found_)
+    #         psi_norm = raw_grid.get("dim2", _not_found_)
+    #     if theta is _not_found_:
+    #         theta = self.get(".../code/parameters/theta", _not_found_)
+    #         if theta is _not_found_:
+    #             ntheta = self.get(".../code/parameters/num_of_theta", 64)
+    #             theta = np.linspace(0, 2.0 * scipy.constants.pi, ntheta, endpoint=False)
+    #     if psi_norm is _not_found_:
+    #         psi_norm = self.get(".../code/parameters/psi_norm", (0.0, 0.995, 128))
+    #         if isinstance(psi_norm, tuple):
+    #             psi_norm = np.linspace(*psi_norm)
+    #     if not isinstance(psi_norm, np.ndarray) or not isinstance(theta, np.ndarray):
+    #         raise RuntimeError(f"Can not create grid! psi_norm={psi_norm} theta={theta}")
+    #     # if not (isinstance(theta, np.ndarray) and theta.ndim == 1):
+    #     #     raise ValueError(f"Can not create grid! theta={theta}")
+    #     surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
+    #     return CurvilinearMesh(psi_norm, theta, geometry=surfs, periods=[False, 2.0 * scipy.constants.pi])
 
     @sp_property(mesh="grid")
     def r(self) -> Field:
@@ -301,25 +283,26 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
                 Function(psi_norm, r_outboard, name="r_outboard"),
             )
 
-    def _surface_integral(
-        self, func: Expression, psi_norm: array_type | float = None
-    ) -> typing.Tuple[ArrayLike, ArrayLike]:
+    _surf_list = None
+
+    def _surface_integral(self, func: Expression, psi_norm: array_type = None) -> typing.Tuple[ArrayLike, ArrayLike]:
         r"""
         $ V^{\prime} =  2 \pi  \int{ R / \left|\nabla \psi \right| * dl }$
         $ V^{\prime}(psi)= 2 \pi  \int{ dl * R / \left|\nabla \psi \right|}$
         """
 
-        # r0, z0 = self.magnetic_axis
-
         if psi_norm is None:
-            surfs_list = zip(self.grid.dims[0], self.grid.geometry)
+            psi_norm = self.psi_norm
+            if self._surf_list is None:
+                self._surf_list = [*self.find_surfaces(psi_norm)]
+            surfs_list = self._surf_list
         else:
             if isinstance(psi_norm, scalar_type):
                 psi_norm = [psi_norm]
             surfs_list = self.find_surfaces(psi_norm)
 
-        psi_norm: list = []
-        res = []
+        x: list = []
+        y = []
         for p, surf in surfs_list:
             if isinstance(surf, Curve):
                 v = surf.integral(func / self.Bpol)
@@ -333,13 +316,18 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
             else:
                 continue
                 logger.warning(f"Found an island at psi={p} pos={surf}")
-            res.append(v)
-            psi_norm.append(p)
+            y.append(v)
+            x.append(p)
 
-        if len(psi_norm) > 1:
-            return np.asarray(psi_norm, dtype=float), np.asarray(res, dtype=float)
-        else:
-            return psi_norm[0], res[0]
+        match len(psi_norm):
+            case 0:
+                y = None, None
+            case 1:
+                y = x[0], y[0]
+            case _:
+                y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
+        return y
 
     def surface_integral(self, func: Expression, psi_norm: NumericType = None) -> Expression | float:
         psi_norm, value = self._surface_integral(func, psi_norm)
@@ -456,8 +444,8 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
             rho_tor_norm[0] = 0.0
         return CoreRadialGrid(
             {
-                "psi_norm":     psi_norm,
-                "psi_axis":     self._coord.psi_axis,
+                "psi_norm": psi_norm,
+                "psi_axis": self._coord.psi_axis,
                 "psi_boundary": self._coord.psi_boundary,
                 "rho_tor_norm": rho_tor_norm,
                 "rho_tor_boundary": np.sqrt(
