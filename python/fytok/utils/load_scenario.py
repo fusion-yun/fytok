@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy import constants
 from spdm.core.expression import Piecewise, Variable
-from spdm.core.File import File
+from spdm.core.file import File
 from spdm.core.path import update_tree
 from spdm.numlib.smooth import smooth_1d
 from fytok.utils.logger import logger
@@ -239,7 +239,7 @@ def load_scenario_ITER(path):
 
     logger.info(f"Load scenario/equilibrium from {eq_file}")
 
-    update_tree(scenario, None, File(eq_file, format="GEQdsk").read().dump())
+    update_tree(scenario, None, File(eq_file, kind="GEQdsk").read().dump())
 
     return scenario
 

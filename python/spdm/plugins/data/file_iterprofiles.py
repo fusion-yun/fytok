@@ -3,11 +3,10 @@ import re
 import scipy.constants
 import numpy as np
 import pandas as pd
-
-from spdm.core.expression import  Variable
+from spdm.utils.tags import _not_found_
+from spdm.core.expression import Variable
 from spdm.core.file import File
 from spdm.core.entry import Entry
-from spdm.core.generic_helper import _not_found_
 from spdm.numlib.smooth import smooth_1d
 
 PI = scipy.constants.pi
@@ -18,19 +17,10 @@ def step_function(x, scale=1.0e-2):
     return 1 / (1 + np.exp(-x / scale))
 
 
-def read_iter_profiles(path):
+def read_iter_profiles(path, entry: Entry):
     path = pathlib.Path(path)
 
     excel_file = pd.read_excel(path, sheet_name=1)
-
-    entry = Entry(
-        {
-            "dataset_fair": {
-                "identifier": "15MA Inductive at burn-ASTRA",
-                "provenance": {"node": [{"path": "core_profiles", "sources": f"{path.as_posix()}"}]},
-            }
-        }
-    )
 
     profiles_0D = {}
 
@@ -38,14 +28,13 @@ def read_iter_profiles(path):
         res = re.match(r"(\w+)=(\d+\.?\d*)(\D+)", s)
         profiles_0D[res.group(1)] = (float(res.group(2)), str(res.group(3)))
 
-    profiles_1D = pd.read_excel(path, sheet_name=1, header=10, usecols="B:BN")
-
-    time = 0.0
-
     R0 = profiles_0D["R"][0]
     B0 = profiles_0D["B"][0]
 
     vacuum_toroidal_field = {"r0": R0, "b0": B0}
+    profiles_1D = pd.read_excel(path, sheet_name=1, header=10, usecols="B:BN")
+    # profiles_1D = pd.read_excel(path, header=1, usecols="A:BM")
+    time = 0.0
 
     rho_tor_norm = profiles_1D["x"].values
     rho_tor = profiles_1D["rho"].values
@@ -174,7 +163,10 @@ def read_iter_profiles(path):
 
     entry["core_sources"] = {
         "source": [
-            {"code": {"name": "dummy"}, "time_slice": [{"time": time, "vacuum_toroidal_field": vacuum_toroidal_field}]}
+            {
+                "code": {"name": "dummy"},
+                "time_slice": [{"time": time, "vacuum_toroidal_field": vacuum_toroidal_field}],
+            }
         ]
     }
 
@@ -222,18 +214,22 @@ def read_iter_profiles(path):
     return entry
 
 
-@File.register(["iterprofiles"])
-class ITERProfiles(File):
+class ITERProfiles(File, plugin_name="iterprofiles"):
     """Read iter_profiles.xslx file"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def read(self) -> Entry:
-        if self.url.authority:
-            raise NotImplementedError(f"{self.url}")
+        self._cache = {
+            "dataset_fair": {
+                "identifier": "15MA Inductive at burn-ASTRA",
+                "provenance": {"node": [{"path": "core_profiles", "sources": self.uri}]},
+            }
+        }
 
-        return read_iter_profiles(pathlib.Path(self.url.path))
+    def open(self) -> Entry:
+        entry = Entry(self._cache)
+        return read_iter_profiles(pathlib.Path(self.uri.path), entry)
 
-    def write(self, d, *args, **kwargs):
-        raise NotImplementedError(f"TODO: write ITERProfiles {self.url}")
+    def flush(self):
+        raise NotImplementedError()
