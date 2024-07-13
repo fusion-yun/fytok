@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.constants import pi
 
-from spdm.core.component import Component
+from spdm.model.component import Component
 from spdm.geometry.polygon import Polygon
 from fytok.utils.base import IDS, FyModule
 from fytok.ontology import tf

@@ -11,6 +11,6 @@
   "black-formatter.args": ["--line-length", "118", "--target-version", "py311"],
   "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "test_*.py"],
   "python.testing.unittestEnabled": true,
-  "python.envFile": "${workspaceFolder}/.env",
-  "pylint.args": ["--rcfile=${workspaceFolder}/.pylintrc"]
+  "python.envFile": "${workspaceFolder}/python/.env",
+  "pylint.args": ["--rcfile=${workspaceFolder}/python/.pylintrc"]
 }

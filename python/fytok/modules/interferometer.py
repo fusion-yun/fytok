@@ -1,6 +1,6 @@
 from spdm.geometry.line import Line
 from spdm.utils.tags import _not_found_
-from spdm.core.component import Component
+from spdm.model.component import Component
 
 from fytok.utils.base import IDS, FyModule
 from fytok.ontology import interferometer

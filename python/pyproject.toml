@@ -43,4 +43,4 @@ namespaces = true
 
 
 [tool.setuptools_scm]
-version_file = "python/fytok/__version__.py"
+version_file = "__version__.py"

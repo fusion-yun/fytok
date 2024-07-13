@@ -1,5 +1,5 @@
 import typing
-from spdm.core.actor import Actor
+from spdm.model.actor import Actor
 from fytok.utils.base import IDS, FyModule
 
 from fytok.ontology import gyrokinetics

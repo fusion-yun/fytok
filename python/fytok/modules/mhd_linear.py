@@ -1,6 +1,6 @@
 import typing
-from spdm.core.time_sequence import TimeSlice
-from spdm.core.actor import Actor
+from spdm.model.time_sequence import TimeSlice
+from spdm.model.actor import Actor
 from fytok.utils.base import IDS, FyModule
 
 from fytok.ontology import mhd_linear

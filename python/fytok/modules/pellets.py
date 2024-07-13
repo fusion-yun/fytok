@@ -1,4 +1,4 @@
-from spdm.core.component import Component
+from spdm.model.component import Component
 from fytok.utils.base import IDS, FyModule
 
 from fytok.ontology import pellets

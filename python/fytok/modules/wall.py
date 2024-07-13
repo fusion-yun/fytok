@@ -1,7 +1,7 @@
 from spdm.utils.tags import _not_found_
 
 from spdm.core.htree import List
-from spdm.core.component import Component
+from spdm.model.component import Component
 
 from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline

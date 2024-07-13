@@ -11,12 +11,12 @@ from spdm.core.field import Field
 from spdm.core.expression import Expression
 from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property, sp_tree
-from spdm.core.time_sequence import TimeSequence
+from spdm.model.time_sequence import TimeSequence
 from spdm.geometry.curve import Curve
 from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
 from spdm.core.mesh import Mesh
-from spdm.mesh.mesh_curvilinear import CurvilinearMesh
+from spdm.domain.mesh_curvilinear import CurvilinearMesh
 from spdm.numlib.contours import find_critical_points, find_contours
 
 from spdm.utils.tags import _not_found_

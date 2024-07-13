@@ -9,8 +9,9 @@ from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
-from spdm.core.time_sequence import TimeSlice
-from spdm.core.actor import Actor
+
+from spdm.model.time_sequence import TimeSlice
+from spdm.model.actor import Actor
 
 
 from fytok.utils.atoms import atoms

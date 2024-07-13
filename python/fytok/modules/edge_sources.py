@@ -1,29 +1,22 @@
-
 from copy import copy, deepcopy
 import math
+from spdm.utils.tags import _not_found_
+from spdm.core.htree import List, Dict
+from spdm.core.sp_tree import sp_property, SpTree
 
 from spdm.core.aos import AoS
-from spdm.core.obsolete.sp_tree import sp_property, sp_tree
-from spdm.core.stateful_entity import StateTreeSequence
 from spdm.core.expression import Expression, Variable, zero, one
-from spdm.utils.tags import _not_found_
 
-from .core_profiles import CoreProfiles
-from .equilibrium import Equilibrium
-from .utilities import *
-from ..utils.atoms import atoms
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.utilities import FyActor
+from fytok.utils.atoms import atoms
 
-from ..ontology import core_sources
+from fytok.ontology import edge_sources
 
 from functools import cached_property
 
-from ..ontology import _T_edge_sources, _T_edge_sources_source
-from spdm.utils.tags import _undefined_
-from spdm.core.htree import List, Dict
-from spdm.core.obsolete.sp_tree import sp_property, SpTree
 
-
-@sp_tree
 class CoreSourcesSource(FyActor):
     _plugin_prefix = "fytok.modules.core_sources.source."
 
@@ -76,7 +69,9 @@ class CoreSourcesSource(FyActor):
 
         current: CoreSourcesTimeSlice = self.time_slice.current
 
-        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
+        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports[
+            "core_profiles/time_slice/0/profiles_1d"
+        ].fetch()
         # eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
 
         current.update(self.fetch(profiles_1d)._cache)

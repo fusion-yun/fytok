@@ -1,7 +1,8 @@
 import typing
-from spdm.core.context import Context
-from spdm.core.geo_object import GeoObject
+
 from spdm.utils.tags import _not_found_
+from spdm.core.geo_object import GeoObject
+from spdm.model.context import Context
 
 # ---------------------------------
 from fytok.utils.envs import *

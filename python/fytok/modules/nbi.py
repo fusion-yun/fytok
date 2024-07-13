@@ -1,6 +1,6 @@
 import typing
 
-from spdm.core.component import Component
+from spdm.model.component import Component
 from spdm.geometry.line import Line
 from spdm.geometry.polygon import Rectangle
 from fytok.utils.base import IDS, FyModule

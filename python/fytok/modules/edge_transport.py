@@ -1,6 +1,6 @@
 import typing
 from spdm.core.htree import List
-from spdm.core.actor import Actor
+from spdm.model.actor import Actor
 
 from fytok.utils.base import IDS, FyModule
 from fytok.ontology import edge_transport

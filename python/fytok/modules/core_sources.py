@@ -1,9 +1,9 @@
 from spdm.core.aos import AoS
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.htree import List
-from spdm.core.time_sequence import TimeSlice
+from spdm.model.time_sequence import TimeSlice
 from spdm.core.expression import Expression
-from spdm.core.actor import Actor
+from spdm.model.actor import Actor
 from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
