@@ -8,17 +8,17 @@ from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
-
+from spdm.core.domain import WithDomain
+from spdm.core.time import WithTime
 
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
-from spdm.model.time_sequence import TimeSlice
+from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
 from fytok.utils.base import IDS, FyModule, Identifier
-
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics
@@ -28,7 +28,7 @@ from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 from fytok.ontology import equilibrium
 
 
-class EquilibriumCoordinateSystem(equilibrium.equilibrium_coordinate_system, domain="grid"):
+class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate_system, domain="grid"):
 
     grid: Mesh
 
@@ -99,7 +99,7 @@ class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-class EquilibriumProfiles1D(equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
+class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -110,10 +110,6 @@ class EquilibriumProfiles1D(equilibrium.equilibrium_profiles_1d, domain="psi_nor
           profiles_1d 中涉及对磁面坐标的求导和积分时需注意修正 ！！！！
 
     """
-
-    @property
-    def _root(self):  # -> EquilibriumTimeSlice:
-        return self._parent
 
     @sp_property
     def grid(self) -> CoreRadialGrid:
@@ -237,7 +233,7 @@ class EquilibriumProfiles1D(equilibrium.equilibrium_profiles_1d, domain="psi_nor
     mass_density: Expression = sp_property(units="kg \cdot m^{-3}")
 
 
-class EquilibriumProfiles2D(equilibrium.equilibrium_profiles_2d, domain="grid"):
+class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, domain="grid"):
 
     type: Identifier
 
@@ -348,11 +344,74 @@ class EequilibriumConstraints(equilibrium.equilibrium_constraints):
     pass
 
 
-class EquilibriumGGD(equilibrium.equilibrium_ggd):
+class EquilibriumGGD(WithDomain, equilibrium.equilibrium_ggd, domain=".../ggd"):
     pass
 
 
-class EquilibriumTimeSlice(TimeSlice):
+class Equilibrium(
+    IDS,
+    FyModule,
+    Actor,
+    WithTime,
+    plugin_default="fy_eq",
+    plugin_prefix="equilibrium/",
+    code={"name": "equilibrium"},
+):
+    r"""
+    Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
+
+    Reference:
+
+    - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS",
+      Computer Physics Communications 184, 2 (2013), pp. 293--302.
+
+    COCOS  11
+        ```{text}
+            Top view
+                    ***************
+                    *               *
+                *   ***********   *
+                *   *           *   *
+                *   *             *   *
+                *   *             *   *
+            Ip  v   *             *   ^  \phi
+                *   *    Z o--->R *   *
+                *   *             *   *
+                *   *             *   *
+                *   *     Bpol    *   *
+                *   *     o     *   *
+                *   ***********   *
+                    *               *
+                    ***************
+                    Bpol x
+                    Poloidal view
+                ^Z
+                |
+                |       ************
+                |      *            *
+                |     *         ^    *
+                |     *   \rho /     *
+                |     *       /      *
+                +-----*------X-------*---->R
+                |     *  Ip, \phi   *
+                |     *              *
+                |      *            *
+                |       *****<******
+                |       Bpol,\theta
+                |
+                    Cylindrical coordinate      : $(R,\phi,Z)$
+            Poloidal plane coordinate   : $(\rho,\theta,\phi)$
+        ```
+    """
+
+    class InPorts(Ports):
+        wall: Wall
+        magenetics: Magnetics
+        pf_active: PFActive
+        tf: TF
+
+    in_ports: InPorts
+
     vacuum_toroidal_field: VacuumToroidalField
 
     Boundary = EquilibriumBoundary
@@ -480,85 +539,3 @@ class EquilibriumTimeSlice(TimeSlice):
     #     styles = update_tree(styles, kwargs)
 
     #     return geo, styles
-
-
-_TEquilibriumSlice = typing.TypeVar("_TEquilibriumSlice", bound=EquilibriumTimeSlice)
-
-
-class Equilibrium(
-    IDS,
-    FyModule,
-    Actor[_TEquilibriumSlice],
-    plugin_default="fy_eq",
-    plugin_prefix="equilibrium/",
-):
-    r"""
-    Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
-
-    Reference:
-
-    - O. Sauter and S. Yu Medvedev, "Tokamak coordinate conventions: COCOS",
-      Computer Physics Communications 184, 2 (2013), pp. 293--302.
-
-    COCOS  11
-        ```{text}
-            Top view
-                    ***************
-                    *               *
-                *   ***********   *
-                *   *           *   *
-                *   *             *   *
-                *   *             *   *
-            Ip  v   *             *   ^  \phi
-                *   *    Z o--->R *   *
-                *   *             *   *
-                *   *             *   *
-                *   *     Bpol    *   *
-                *   *     o     *   *
-                *   ***********   *
-                    *               *
-                    ***************
-                    Bpol x
-                    Poloidal view
-                ^Z
-                |
-                |       ************
-                |      *            *
-                |     *         ^    *
-                |     *   \rho /     *
-                |     *       /      *
-                +-----*------X-------*---->R
-                |     *  Ip, \phi   *
-                |     *              *
-                |      *            *
-                |       *****<******
-                |       Bpol,\theta
-                |
-                    Cylindrical coordinate      : $(R,\phi,Z)$
-            Poloidal plane coordinate   : $(\rho,\theta,\phi)$
-        ```
-    """
-
-    def __view__(self, *args, **kwargs):
-        current = self.time_slice.current
-        return current.__view__(*args, **kwargs) if current is not _not_found_ else {}
-
-    def refresh(
-        self,
-        *args,
-        time=None,
-        wall: Wall = None,
-        tf: TF = None,
-        magnetics: Magnetics = None,
-        pf_active: PFActive = None,
-        **kwargs,
-    ) -> None:
-        return super().refresh(
-            *args,
-            time=time,
-            tf=tf,
-            wall=wall,
-            magnetics=magnetics,
-            pf_active=pf_active,
-            **kwargs,
-        )

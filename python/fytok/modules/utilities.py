@@ -3,11 +3,11 @@ import numpy as np
 
 from spdm.utils.type_hint import array_type, ArrayType
 
-from spdm.core.aos import AoS
-from spdm.core.domain import Domain, DomainPPoly
+from spdm.core.htree import List
+from spdm.core.sp_tree import SpTree, sp_property
+from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
-from spdm.core.sp_tree import SpTree, sp_property
 
 
 class VacuumToroidalField(SpTree):
@@ -17,9 +17,6 @@ class VacuumToroidalField(SpTree):
 
 class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
     """芯部径向坐标"""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
 
     # PPolyDomain.__init__(self, self._cache["psi_norm"])
     # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
@@ -168,7 +165,7 @@ class PlasmaCompositionNeutralElement(SpTree):
 
 class PlasmaCompositionIons(SpTree):
     label: str
-    element: AoS[PlasmaCompositionNeutralElement]
+    element: List[PlasmaCompositionNeutralElement]
     z_ion: float  # = sp_property( units="Elementary Charge Unit")
     state: PlasmaCompositionIonState
 
@@ -183,7 +180,7 @@ class PlasmaCompositionNeutralState(SpTree):
 
 class PlasmaCompositionNeutral(SpTree):
     label: str
-    element: AoS[PlasmaCompositionNeutralElement]
+    element: List[PlasmaCompositionNeutralElement]
     state: PlasmaCompositionNeutralState
 
 
@@ -197,6 +194,6 @@ class DistributionSpecies(SpTree):
 #            "DetectorAperture", "CoreRadialGrid",
 #            "array_type", "Function", "Field",
 #            "HTree", "List", "Dict", "SpTree", "sp_property",
-#            "AoS", "TimeSeriesAoS", "TimeSlice",
+#            "List", "TimeSeriesList", "TimeSlice",
 #            "Signal", "SignalND", "Identifier"
 #            "IntFlag"]

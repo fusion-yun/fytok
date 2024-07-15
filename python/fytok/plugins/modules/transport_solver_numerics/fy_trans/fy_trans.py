@@ -4,7 +4,8 @@ import scipy.constants
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.expression import Variable, Expression, Scalar, one, zero
-from spdm.core.path import as_path
+from spdm.core.path import as_path, Path
+from spdm.core.htree import List
 from spdm.numlib.calculus import derivative
 
 from fytok.utils.atoms import atoms
@@ -13,7 +14,7 @@ from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.transport_solver_numerics import TransportSolverNumerics, TransportSolverNumericsTimeSlice
+from fytok.modules.transport_solver_numerics import TransportSolverNumerics
 from fytok.modules.utilities import CoreRadialGrid
 
 
@@ -113,7 +114,10 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
         ######################################################################################
         # 确定待求未知量
 
-        unknowns = self.code.parameters.unknowns or list()
+        unknowns = self.code.parameters.unknowns
+
+        if unknowns is _not_found_:
+            unknowns = []
 
         # 极向磁通
         unknowns.append("psi_norm")
@@ -185,7 +189,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
         profiles_1d[self.primary_coordinate] = x
 
         for s in unknowns:
-            pth = Path(s)
+            pth = as_path(s)
 
             if pth[0] == "psi":
                 label_p = r"\psi"
@@ -249,13 +253,13 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         # logger.debug([equ.identifier for equ in self.equations])
 
-    def preprocess(self, *args, boundary_value=None, **kwargs) -> TransportSolverNumericsTimeSlice:
+    def preprocess(self, *args, boundary_value=None, **kwargs):
         """准备迭代求解
         - 方程 from self.equations
         - 初值 from initial_value
         - 边界值 from boundary_value
         """
-        current: TransportSolverNumericsTimeSlice = super().preprocess(*args, **kwargs)
+        current = super().preprocess(*args, **kwargs)
 
         profiles = self.profiles_1d
 
@@ -288,9 +292,9 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         profiles.electrons["density_flux"] = ni_flux / (1.0 - impurity_fraction)
 
-        tranport: AoS[CoreTransport.Model.TimeSlice] = self.inports["core_transport/model/*"].fetch(profiles)
+        tranport: List[CoreTransport.Model.TimeSlice] = self.inports["core_transport/model/*"].fetch(profiles)
 
-        sources: AoS[CoreSources.Source.TimeSlice] = self.inports["core_sources/source/*"].fetch(profiles)
+        sources: List[CoreSources.Source.TimeSlice] = self.inports["core_sources/source/*"].fetch(profiles)
 
         eq0_1d = eq0.profiles_1d
 
@@ -855,9 +859,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
         bc = np.array(bc)
         return bc
 
-    def execute(
-        self, current: TransportSolverNumericsTimeSlice, *previous: TransportSolverNumericsTimeSlice
-    ) -> TransportSolverNumericsTimeSlice:
+    def execute(self, current, *previous):
         current = super().execute(current, *previous)
 
         X = current.X
@@ -903,7 +905,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         return current
 
-    def postprocess(self, current: TransportSolverNumericsTimeSlice) -> TransportSolverNumericsTimeSlice:
+    def postprocess(self, current):
         current = super().postprocess(current)
 
         X = current.X

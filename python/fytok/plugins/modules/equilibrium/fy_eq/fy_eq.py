@@ -6,6 +6,8 @@ import numpy as np
 import scipy.constants
 from dataclasses import dataclass
 
+from spdm.utils.tags import _not_found_
+from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
 from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property
@@ -17,9 +19,6 @@ from spdm.geometry.point import PointRZ, Point
 from spdm.geometry.point_set import PointSetRZ
 from spdm.geometry.curve import Curve, CurveRZ
 from spdm.core.mesh import Mesh
-from spdm.domain.mesh_curvilinear import CurvilinearMesh
-from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
 from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
@@ -88,10 +87,10 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._s_B0 = np.sign(self.b0)
-        self._s_Ip = np.sign(self.ip)
-        self._e_Bp, self._s_Bp, self._s_RpZ, self._s_rtp = COCOS_TABLE[5]
-        self._s_eBp_2PI = 1.0 if self._e_Bp == 0 else (2.0 * scipy.constants.pi)
+        self._sB0 = np.sign(self.b0)
+        self._sIp = np.sign(self.ip)
+        self._eBp, self._sBp, self._sRpZ, self._srtp = COCOS_TABLE[5]
+        self._seBp2PI = 1.0 if self._eBp == 0 else (2.0 * scipy.constants.pi)
 
         # if not np.all(np.diff(self.psi_norm) > 0):
         #     raise RuntimeError("psi_norm is not monotonically increasing!")
@@ -133,7 +132,7 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         return (
             np.sqrt(self.psirz.pd(1, 0) ** 2 + self.psirz.pd(0, 1) ** 2)
             / _R
-            * np.abs(self._s_RpZ * self._s_Bp / self._s_eBp_2PI)
+            * np.abs(self._sRpZ * self._sBp / self._seBp2PI)
         )
 
     # 磁面坐标的函数，ffprime，pprime
@@ -420,7 +419,6 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
 
 
 class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
-    _root: equilibrium.EquilibriumTimeSlice = sp_property(alias="../")
 
     _profiles_2d: FyEqProfiles2D = sp_property(alias="../profiles_2d")
 
@@ -689,7 +687,6 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
 
 
 class FyEqGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
-    _root: equilibrium.EquilibriumTimeSlice = sp_property(alias="../")
 
     _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
@@ -701,24 +698,25 @@ class FyEqGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
 
     @sp_property
     def b_field_tor_axis(self) -> float:
-        return (self._root.profiles_2d.b_field_tor(self.magnetic_axis.r, self.magnetic_axis.z),)
+        return (self._parent.profiles_2d.b_field_tor(self.magnetic_axis.r, self.magnetic_axis.z),)
 
     @sp_property
     def q_axis(self) -> float:
-        return self._root.profiles_1d.q(0.0)
+        return self._parent.profiles_1d.q(0.0)
 
     @sp_property
     def q_95(self) -> float:
-        return self._root.profiles_1d.q(0.95)
+        return self._parent.profiles_1d.q(0.95)
 
     @sp_property
     def q_min(self) -> typing.Tuple[float, float]:
-        q = np.asarray(self._root.profiles_1d.q)
+        q = np.asarray(self._parent.profiles_1d.q)
         idx = np.argmin(q)
-        return q[idx], self._root.profiles_1d.rho_tor_norm[idx]
+        return q[idx], self._parent.profiles_1d.rho_tor_norm[idx]
 
 
 class FyEqBoundary(equilibrium.EquilibriumBoundary):
+
     _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
     # psi_norm: float
@@ -733,8 +731,8 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
     def outline(self) -> CurveRZ:
         try:
             _, surf = next(self._coord.find_surfaces(self.psi_norm))
-        except StopIteration:
-            raise RuntimeError(f"Can not find surface at psi_norm={self.psi_norm} ")
+        except StopIteration as error:
+            raise RuntimeError(f"Can not find surface at psi_norm={self.psi_norm} ") from error
         return surf
 
     @functools.cached_property
@@ -816,24 +814,8 @@ class FyEqBoundarySeparatrix(FyEqBoundary):
         return GeoObjectSet([surf for _, surf in self._coord.find_surfaces(self.psi_norm, enclose_axis=False)])
 
 
-class FyEqTimeSlice(equilibrium.EquilibriumTimeSlice):
-    vacuum_toroidal_field: VacuumToroidalField
-
-    global_quantities: FyEqGlobalQuantities
-
-    profiles_1d: FyEqProfiles1D
-
-    profiles_2d: FyEqProfiles2D
-
-    boundary: FyEqBoundary
-
-    boundary_separatrix: FyEqBoundarySeparatrix
-
-    coordinate_system: FyEqCoordinateSystem = sp_property(default_value={})
-
-
 class FyEq(
-    equilibrium.Equilibrium[FyEqTimeSlice],
+    equilibrium.Equilibrium,
     code={
         "name": "fy_eq",
         "version": FY_VERSION,
@@ -854,3 +836,17 @@ class FyEq(
         - Surface average
 
     """
+
+    vacuum_toroidal_field: VacuumToroidalField
+
+    global_quantities: FyEqGlobalQuantities
+
+    profiles_1d: FyEqProfiles1D
+
+    profiles_2d: FyEqProfiles2D
+
+    boundary: FyEqBoundary
+
+    boundary_separatrix: FyEqBoundarySeparatrix
+
+    coordinate_system: FyEqCoordinateSystem = sp_property(default_value={})

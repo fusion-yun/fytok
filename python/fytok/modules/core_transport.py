@@ -1,8 +1,13 @@
+import numpy as np
+
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property
-from spdm.model.time_sequence import TimeSlice
+from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
+from spdm.core.domain import WithDomain
+from spdm.core.time import WithTime
+from spdm.core.mesh import Mesh
+
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
@@ -67,29 +72,36 @@ class CoreTransportNeutral(core_transport.core_transport_model_neutral):
     energy: CoreTransportModelEnergy
 
 
-class CoreTransportProfiles1D(core_transport.core_transport_model_profiles_1d):
-    grid_d: CoreRadialGrid
+class CoreTransportProfiles1D(WithDomain, core_transport.core_transport_model_profiles_1d, domain="grid"):
 
-    @sp_property
-    def grid_v(self) -> CoreRadialGrid:
-        return self.grid_d.remesh(self.grid_d.rho_tor_norm)
+    grid: CoreRadialGrid
+    """ Radial grid"""
+
+    grid_d: CoreRadialGrid = sp_property(alias="grid")
+
+    grid_v: CoreRadialGrid = sp_property(alias="grid")
 
     @sp_property
     def grid_flux(self) -> CoreRadialGrid:
-        rho_tor_norm = self.grid_d.rho_tor_norm
-        return self.grid_d.remesh(0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
+        rho_tor_norm = self.grid.rho_tor_norm
+        return self.grid.fetch(0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
 
     Electrons = CoreTransportElectrons
     electrons: CoreTransportElectrons
 
     Ion = CoreTransportIon
-    ion: List[CoreTransportIon] = sp_property(identifier="label", default_initial={})
+    ion: List[CoreTransportIon]
 
     Neutral = CoreTransportNeutral
-    neutral: List[CoreTransportNeutral] = sp_property(identifier="label", default_initial={})
+    neutral: List[CoreTransportNeutral]
 
 
-class CoreTransportTimeSlice(TimeSlice):
+class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_profiles_2d, domain="grid"):
+    grid: Mesh
+
+
+class CoreTransportModel(FyModule, Actor, plugin_prefix="core_transport/model/"):
+
     vacuum_toroidal_field: VacuumToroidalField
 
     flux_multiplier: float = 0.0
@@ -97,11 +109,11 @@ class CoreTransportTimeSlice(TimeSlice):
     Profiles1D = CoreTransportProfiles1D
     profiles_1d: CoreTransportProfiles1D
 
+    Profiles2D = CoreTransportProfiles2D
+    profiles_2d: CoreTransportProfiles2D
 
-class CoreTransportModel(FyModule, Actor[CoreTransportTimeSlice], plugin_prefix="core_transport/model/"):
-
-    def preprocess(self, *args, **kwargs) -> CoreTransportTimeSlice:
-        current: CoreTransportTimeSlice = super().preprocess(*args, **kwargs)
+    def preprocess(self, *args, **kwargs):
+        current = super().preprocess(*args, **kwargs)
 
         current["vacuum_toroidal_field"] = self.inports["/equilibrium/time_slice/0/vacuum_toroidal_field"].fetch()
 
@@ -128,26 +140,22 @@ class CoreTransportModel(FyModule, Actor[CoreTransportTimeSlice], plugin_prefix=
 
         return current
 
-    def execute(self, current: CoreTransportTimeSlice, *previous: CoreTransportTimeSlice) -> CoreTransportTimeSlice:
+    def execute(self, current, *previous):
         return super().execute(current, *previous)
 
-    def postprocess(self, current: CoreTransportTimeSlice) -> CoreTransportTimeSlice:
+    def postprocess(self, current):
         return super().postprocess(current)
 
-    def fetch(self, *args, **kwargs) -> CoreTransportTimeSlice:
-        if len(args) > 0 and isinstance(args[0], CoreProfiles.TimeSlice.Profiles1D):
+    def fetch(self, *args, **kwargs):
+        if len(args) > 0 and isinstance(args[0], CoreProfiles.Profiles1D):
             args = (args[0].rho_tor_norm, *args[1:])
 
         return super().fetch(*args, **kwargs)
 
-    def flush(self) -> CoreTransportTimeSlice:
+    def flush(self):
         super().flush()
 
-        current = self.time_slice.current
-
-        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports[
-            "core_profiles/time_slice/0/profiles_1d"
-        ].fetch()
+        profiles_1d: CoreProfiles.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
 
         current.update(self.fetch(profiles_1d)._cache)
 
@@ -159,13 +167,13 @@ class CoreTransportModel(FyModule, Actor[CoreTransportTimeSlice], plugin_prefix=
         core_profiles: CoreProfiles = None,
         equilibrium: Equilibrium = None,
         **kwargs,
-    ) -> CoreTransportTimeSlice:
+    ):
         return super().refresh(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
     @staticmethod
     def _flux2DV(
-        spec: CoreTransportTimeSlice.Profiles1D.Ion,
-        ion: CoreProfiles.TimeSlice.Profiles1D.Ion,
+        spec: CoreProfiles.Profiles1D.Ion,
+        ion: CoreProfiles.Profiles1D.Ion,
         R0: float,
         rho_tor_boundary,
     ):
@@ -189,31 +197,4 @@ class CoreTransport(IDS):
     Model = CoreTransportModel
 
     model: List[CoreTransportModel]
-
-    def initialize(self, *args, **kwargs) -> None:
-        super().initialize(*args, **kwargs)
-        for model in self.model:
-            model.initialize()
-
-    def refresh(
-        self,
-        *args,
-        equilibrium: Equilibrium = None,
-        core_profiles: CoreProfiles = None,
-        time=None,
-        **kwargs,
-    ):
-        super().refresh(*args, time=time, **kwargs)
-
-        for model in self.model:
-            model.refresh(
-                time=self.time,
-                equilibrium=equilibrium,
-                core_profiles=core_profiles,
-                **kwargs,
-            )
-
-    def flush(self):
-        super().flush()
-        for model in self.model:
-            model.flush()
+    """ Core transport model"""

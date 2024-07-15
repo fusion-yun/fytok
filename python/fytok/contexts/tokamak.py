@@ -136,34 +136,6 @@ Modules:
 
         super().__init__(*args, **kwargs, dataset_fair=dataset_fair)
 
-    def initialize(self, *args, **kwargs):
-        super().initialize(*args, **kwargs)
-
-        self.core_profiles.initialize(time=self.time)
-        self.equilibrium.initialize(
-            time=self.time,
-            pf_active=self.pf_active,
-            wall=self.wall,
-            magnetics=self.magnetics,
-        )
-        self.core_sources.initialize(
-            time=self.time,
-            equilibrium=self.equilibrium,
-            core_profiles=self.core_profiles,
-        )
-        self.core_transport.initialize(
-            time=self.time,
-            equilibrium=self.equilibrium,
-            core_profiles=self.core_profiles,
-        )
-        self.transport_solver.initialize(
-            time=self.time,
-            equilibrium=self.equilibrium,
-            core_profiles=self.core_profiles,
-            core_sources=self.core_sources,
-            core_transport=self.core_transport,
-        )
-
     def refresh(self, *args, **kwargs) -> None:
         super().refresh(*args, **kwargs)
 

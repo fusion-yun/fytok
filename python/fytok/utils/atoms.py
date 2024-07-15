@@ -2,14 +2,12 @@ import collections.abc
 import typing
 import numpy as np
 import scipy.constants
-from spdm.core.path import Path
 from spdm.core.htree import Dict, List
-from spdm.core.expression import Variable, Expression
-from spdm.core.function import Function
-from spdm.core.sp_tree import SpTree, sp_property, sp_tree
+from spdm.core.expression import Expression
+from spdm.core.sp_tree import sp_property, sp_tree
 from spdm.core.sp_tree import AttributeTree
-from spdm.core.aos import AoS
 from spdm.core.path import update_tree
+
 # from spdm.utils.type_hint import get_args
 from spdm.utils.tags import _not_found_
 
@@ -79,7 +77,7 @@ class Atom:
     z: float
     a: float
     mass: float
-    elements: AoS[AttributeTree]
+    elements: List[AttributeTree]
 
 
 class Atoms(Dict[Atom]):

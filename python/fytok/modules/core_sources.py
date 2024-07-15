@@ -1,15 +1,18 @@
-from spdm.core.aos import AoS
+import typing
+
+from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.htree import List
-from spdm.model.time_sequence import TimeSlice
 from spdm.core.expression import Expression
+from spdm.core.domain import WithDomain
+
+from spdm.model.port import Ports
 from spdm.model.actor import Actor
-from spdm.utils.tags import _not_found_
 
 from fytok.utils.atoms import atoms
 from fytok.utils.base import IDS, FyModule
-from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
 
+from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
 
@@ -81,7 +84,11 @@ class CoreSourcesNeutral(core_sources.core_sources_source_profiles_1d_neutral):
     pass
 
 
-class CoreSourcesProfiles1D(core_sources.core_sources_source_profiles_1d, domain="grid/rho_tor_norm"):
+class CoreSourcesGlobalQuantities(core_sources.core_sources_source_global):
+    pass
+
+
+class CoreSourcesProfiles1D(WithDomain, core_sources.core_sources_source_profiles_1d, domain="rho_tor_norm"):
     grid: CoreRadialGrid
     """ Radial grid"""
 
@@ -108,88 +115,43 @@ class CoreSourcesProfiles1D(core_sources.core_sources_source_profiles_1d, domain
     electrons: CoreSourcesElectrons
 
     Ion = CoreSourcesSpecies
-    ion: AoS[CoreSourcesSpecies]
+    ion: List[CoreSourcesSpecies]
 
     Neutral = CoreSourcesNeutral
-    neutral: AoS[CoreSourcesNeutral]
+    neutral: List[CoreSourcesNeutral]
 
 
-class CoreSourcesGlobalQuantities(core_sources.core_sources_source_global):
+class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profiles_2d, domain="grid"):
     pass
 
 
-class CoreSourcesTimeSlice(TimeSlice):
-    Profiles1D = CoreSourcesProfiles1D
+class CoreSourcesSource(FyModule, Actor, plugin_prefix="core_sources/source/"):
 
-    GlobalQuantities = CoreSourcesGlobalQuantities
+    class InPorts(Ports):
+        equilibrium: Equilibrium
+        core_profiles: CoreProfiles
 
-    profiles_1d: CoreSourcesProfiles1D
-
-    global_quantities: CoreSourcesGlobalQuantities
-
-
-class CoreSourcesSource(FyModule, Actor[CoreSourcesTimeSlice], plugin_prefix="core_sources/source/"):
+    in_ports: InPorts
 
     species: DistributionSpecies
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    GlobalQuantities = CoreSourcesGlobalQuantities
+    global_quantities: CoreSourcesGlobalQuantities
 
-    def preprocess(self, *args, **kwargs) -> CoreSourcesTimeSlice:
-        current: CoreSourcesTimeSlice = super().preprocess(*args, **kwargs)
+    Profiles1D = CoreSourcesProfiles1D
+    profiles_1d: CoreSourcesProfiles1D
 
-        grid = current.get_cache("profiles_1d/grid", _not_found_)
+    Profiles2D = CoreSourcesProfiles2D
+    profiles_2d: CoreSourcesProfiles2D
 
-        if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["/equilibrium/time_slice/0/profiles_1d/grid"].fetch()
+    def refresh(self, *args, psi_norm=None, radial_grid=None, **kwargs) -> typing.Self:
 
-            if isinstance(grid, dict):
-                new_grid = grid
-                if not isinstance(grid.get("psi_axis", _not_found_), float):
-                    new_grid["psi_axis"] = eq_grid.psi_axis
-                    new_grid["psi_boundary"] = eq_grid.psi_boundary
-                    new_grid["rho_tor_boundary"] = eq_grid.rho_tor_boundary
-                # new_grid = {
-                #     **eq_grid._cache,
-                #     **{k: v for k, v in grid.items() if v is not _not_found_ and v is not None},
-                # }
-            else:
-                rho_tor_norm = kwargs.get("rho_tor_norm", _not_found_)
+        if psi_norm is None:
+            psi_norm = self.in_ports.core_profiles.fetch("profiles_1d/psi_norm")
+        if radial_grid is None:
+            radial_grid = self.in_ports.equilibrium.fetch("profiles_1d/grid", psi_norm)
 
-                if rho_tor_norm is _not_found_:
-                    rho_tor_norm = self.code.parameters.rho_tor_norm
-
-                new_grid = eq_grid.remesh(rho_tor_norm)
-
-            current["profiles_1d/grid"] = new_grid
-
-        return current
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D, *args, **kwargs) -> CoreSourcesTimeSlice:
-        return super().fetch(profiles_1d.rho_tor_norm, *args, **kwargs)
-
-    def flush(self) -> CoreSourcesTimeSlice:
-        super().flush()
-
-        current: CoreSourcesTimeSlice = self.time_slice.current
-
-        profiles_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports[
-            "core_profiles/time_slice/0/profiles_1d"
-        ].fetch()
-        # eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
-
-        current.update(self.fetch(profiles_1d)._cache)
-
-        return current
-
-    def refresh(
-        self,
-        *args,
-        equilibrium: Equilibrium = None,
-        core_profiles: CoreProfiles = None,
-        **kwargs,
-    ) -> CoreSourcesTimeSlice:
-        return super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+        return super().refresh({"profiles_1d": {"psi_norm": psi_norm, "grid": radial_grid}}, *args, **kwargs)
 
 
 class CoreSources(IDS):
@@ -197,28 +159,3 @@ class CoreSources(IDS):
     Source = CoreSourcesSource
 
     source: List[CoreSourcesSource]
-
-    def initialize(self, *args, **kwargs) -> None:
-        super().initialize(*args, **kwargs)
-        for source in self.source:
-            source.initialize()
-
-    def refresh(self, *args, equilibrium: Equilibrium = None, core_profiles: CoreProfiles = None, **kwargs):
-        super().refresh(*args, **kwargs)
-
-        kwargs.pop("time", None)
-
-        for source in self.source:
-            source.refresh(time=self.time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
-
-    def advance(self, *args, equilibrium: Equilibrium = None, core_profiles: CoreProfiles = None, **kwargs):
-        super().advance(*args, **kwargs)
-
-        for source in self.source:
-            source.advance(time=self.time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
-
-    def flush(self):
-        super().flush()
-
-        for source in self.source:
-            source.flush()

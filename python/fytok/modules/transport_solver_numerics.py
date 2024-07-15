@@ -7,8 +7,10 @@ from spdm.utils.type_hint import array_type
 from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
-from spdm.model.time_sequence import TimeSlice, TimeSequence
+from spdm.core.time import WithTime, TimeSequence
+from spdm.core.domain import WithDomain
 from spdm.model.processor import Processor
+from spdm.model.actor import Actor
 
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
@@ -86,8 +88,16 @@ class TransportSolverNumericsEquation(SpTree):
     """ Convergence details"""
 
 
-class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm"):
-    """Numerics related to 1D radial solver for a given time slice"""
+class TransportSolverNumerics(
+    IDS,
+    FyModule,
+    Actor,
+    WithDomain,
+    plugin_prefix="transport_solver_numerics/",
+    plugin_default="fy_trans",
+    domain="grid/rho_tor_norm",
+):
+    r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     grid: CoreRadialGrid
 
@@ -103,16 +113,6 @@ class TransportSolverNumericsTimeSlice(TimeSlice, coordinate1="grid/rho_tor_norm
     d_dvolume_drho_tor_dt: array_type | Expression = sp_property(units="m^2.s^-1")
     """ Partial derivative with respect to time of the derivative of the volume with
       respect to the toroidal flux coordinate"""
-
-
-class TransportSolverNumerics(
-    IDS,
-    FyModule,
-    Processor,
-    plugin_prefix="transport_solver_numerics/",
-    plugin_default="fy_trans",
-):
-    r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     solver: str = "ion_solver"
 
@@ -132,16 +132,12 @@ class TransportSolverNumerics(
 
     variables: Dict[Expression] = {}
 
-    profiles_1d: CoreProfiles.TimeSlice.Profiles1D = {}
-
-    TimeSlice = TransportSolverNumericsTimeSlice
-
-    time_slice: TimeSequence[TransportSolverNumericsTimeSlice] = []
+    profiles_1d: CoreProfiles.Profiles1D = {}
 
     def initialize(self, *args, **kwargs):
         return super().initialize(*args, **kwargs)
 
-    def preprocess(self, *args, **kwargs) -> TransportSolverNumericsTimeSlice:
+    def preprocess(self, *args, **kwargs):
         eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
 
         rho_tor_norm = kwargs.get("rho_tor_norm", _not_found_)
@@ -159,15 +155,11 @@ class TransportSolverNumerics(
 
         return current
 
-    def execute(
-        self,
-        current: TransportSolverNumericsTimeSlice,
-        *previous: TransportSolverNumericsTimeSlice,
-    ) -> TransportSolverNumericsTimeSlice:
+    def execute(self, current, *previous):
         logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
         return super().execute(current, *previous)
 
-    def postprocess(self, current: TransportSolverNumericsTimeSlice) -> TransportSolverNumericsTimeSlice:
+    def postprocess(self, current):
         return super().postprocess(current)
 
     def refresh(
@@ -178,7 +170,7 @@ class TransportSolverNumerics(
         core_sources: CoreSources = None,
         core_profiles: CoreProfiles = None,
         **kwargs,
-    ) -> TransportSolverNumericsTimeSlice:
+    ):
         return super().refresh(
             *args,
             equilibrium=equilibrium,
@@ -188,10 +180,10 @@ class TransportSolverNumerics(
             **kwargs,
         )
 
-    def fetch(self, *args, **kwargs) -> CoreProfiles.TimeSlice.Profiles1D:
-        """获得 CoreProfiles.TimeSlice.Profiles1D 形式状态树。"""
+    def fetch(self, *args, **kwargs) -> CoreProfiles.Profiles1D:
+        """获得 CoreProfiles.Profiles1D 形式状态树。"""
 
-        current: TransportSolverNumericsTimeSlice = self.time_slice.current
+        current = self.time_slice.current
 
         X = current.grid.rho_tor_norm
 

@@ -9,10 +9,11 @@ from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
+from spdm.core.domain import WithDomain
+from spdm.core.time import WithTime
 
-from spdm.model.time_sequence import TimeSlice
+from spdm.model.port import Ports
 from spdm.model.actor import Actor
-
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
@@ -36,14 +37,14 @@ class CoreProfilesSpecies(SpTree):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
-            raise RuntimeError("Unknown ion ")
+            raise RuntimeError(f"Unknown ion {self._metadata}")
 
         atom_desc = atoms[self.label]
 
         self._cache["z"] = atom_desc.z
         self._cache["a"] = atom_desc.a
 
-    label: str = sp_property(alias="@name")
+    label: str = sp_property(alias="_metadata/name")
 
     z: float
 
@@ -194,7 +195,7 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-class CoreProfiles1D(core_profiles.core_profiles_profiles_1d, domain="grid/psi_nrom"):
+class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="psi_nrom"):
 
     grid: CoreRadialGrid = {"extrapolate": 0}
 
@@ -380,11 +381,19 @@ class CoreProfiles1D(core_profiles.core_profiles_profiles_1d, domain="grid/psi_n
     pprime: Expression = sp_property(label="$p^{\prime}$")
 
 
-class CoreProfiles2D(core_profiles.core_profiles_profiles_2d, domain="grid"):
+class CoreProfiles2D(WithDomain, core_profiles.core_profiles_profiles_2d, domain="grid"):
     t_i_average: Field = sp_property(unit="eV")
 
 
-class CoreProfilesTimeSlice(TimeSlice):
+class CoreProfiles(IDS, FyModule, Actor, code={"name": "core_profiles"}):
+    """
+    Core plasma profiles
+    """
+
+    class InPorts(Ports):
+        equilibrium: Equilibrium
+
+    in_ports: InPorts
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -396,59 +405,3 @@ class CoreProfilesTimeSlice(TimeSlice):
 
     Profiles2D = CoreProfiles2D
     profiles_2d: CoreProfiles2D
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # grid: CoreRadialGrid = self.get_cache("profiles_1d/grid", _not_found_)
-
-        # if grid is _not_found_ or Path("psi_axis").get(grid, ...) is ...:
-        #     eq_grid: CoreRadialGrid = self._parent.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
-
-        #     if grid is _not_found_:
-        #         grid = eq_grid
-        #     else:
-        #         grid["psi_axis"] = eq_grid.psi_axis
-        #         grid["psi_boundary"] = eq_grid.psi_boundary
-        #         grid["rho_tor_boundary"] = eq_grid.rho_tor_boundary
-
-        #     self["profiles_1d/grid"] = grid
-
-
-class CoreProfiles(IDS, FyModule, Actor[CoreProfilesTimeSlice], code={"name": "core_profiles"}):
-    """
-    Core plasma profiles
-    """
-
-    def preprocess(self, *args, **kwargs) -> CoreProfilesTimeSlice:
-        current: CoreProfilesTimeSlice = super().preprocess(*args, **kwargs)
-
-        grid = current.get_cache("profiles_1d/grid", _not_found_)
-
-        if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
-
-            if isinstance(grid, dict):
-                new_grid = grid
-
-                if not isinstance(grid.get("psi_axis", _not_found_), float):
-                    new_grid["psi_axis"] = eq_grid.psi_axis
-                    new_grid["psi_boundary"] = eq_grid.psi_boundary
-                    new_grid["rho_tor_boundary"] = eq_grid.rho_tor_boundary
-            else:
-                rho_tor_norm = kwargs.get("rho_tor_norm", _not_found_)
-
-                if rho_tor_norm is _not_found_:
-                    rho_tor_norm = self.code.parameters.rho_tor_norm
-
-                new_grid = eq_grid.remesh(rho_tor_norm)
-
-            current["profiles_1d/grid"] = new_grid
-
-        return current
-
-    def refresh(self, *args, equilibrium: Equilibrium = None, **kwargs):
-        return super().refresh(*args, equilibrium=equilibrium, **kwargs)
-
-    def fetch(self, *args, **kwargs) -> CoreProfilesTimeSlice:
-        return super().fetch(*args, **kwargs)
