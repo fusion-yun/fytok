@@ -11,7 +11,7 @@ from spdm.core.mesh import Mesh
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyModule, FyActor
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
@@ -100,7 +100,7 @@ class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_pr
     grid: Mesh
 
 
-class CoreTransportModel(FyModule, Actor, plugin_prefix="core_transport/model/"):
+class CoreTransportModel(FyActor, plugin_prefix="core_transport/model/"):
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -198,3 +198,7 @@ class CoreTransport(IDS):
 
     model: List[CoreTransportModel]
     """ Core transport model"""
+
+    def initialize(self, *args, **kwargs):
+        for m in self.model:
+            m.initialize(*args, **kwargs)

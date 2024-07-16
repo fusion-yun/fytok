@@ -3,6 +3,7 @@ import typing
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
+from spdm.core.entry import Entry
 from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
@@ -403,6 +404,15 @@ class Equilibrium(
             Poloidal plane coordinate   : $(\rho,\theta,\phi)$
         ```
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self._entry is not None:
+            time = self._cache.get("time", _not_found_)
+            if time is _not_found_:
+                self._entry = self._entry.child(["time_slice", -1])
+            else:
+                self._entry = self._entry.child(["time_slice", {"time": time}])
 
     class InPorts(Ports):
         wall: Wall

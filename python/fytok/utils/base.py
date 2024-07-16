@@ -5,7 +5,9 @@ from spdm.core.htree import List
 from spdm.core.sp_tree import SpTree
 from spdm.core.sp_object import SpObject
 from spdm.core.sp_tree import AttributeTree
-
+from spdm.core.time import WithTime
+from spdm.core.domain import WithDomain
+from spdm.model.actor import Actor
 
 from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
@@ -87,3 +89,7 @@ class FyModule(SpObject):
 
     code: Code
     """代码信息"""
+
+
+class FyActor(FyModule, WithTime, Actor):
+    pass

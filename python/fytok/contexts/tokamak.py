@@ -165,42 +165,42 @@ Modules:
 
         super().flush()
 
-    def __view__(self, **styles) -> GeoObject | typing.Dict:
-        geo = {"$styles": styles}
+    # def __view__(self, **styles) -> GeoObject | typing.Dict:
+    #     geo = {"$styles": styles}
 
-        o_list = [
-            "wall",
-            "pf_active",
-            "magnetics",
-            "interferometer",
-            "tf",
-            "equilibrium",
-            # "ec_launchers",
-            # "ic_antennas",
-            # "lh_antennas",
-            # "nbi",
-            # "pellets",
-        ]
+    #     o_list = [
+    #         "wall",
+    #         "pf_active",
+    #         "magnetics",
+    #         "interferometer",
+    #         "tf",
+    #         "equilibrium",
+    #         # "ec_launchers",
+    #         # "ic_antennas",
+    #         # "lh_antennas",
+    #         # "nbi",
+    #         # "pellets",
+    #     ]
 
-        for o_name in o_list:
-            try:
-                g = getattr(self, o_name, None)
-                if g is None or g is _not_found_:
-                    continue
-                g = g.__view__(**styles)
+    #     for o_name in o_list:
+    #         try:
+    #             g = getattr(self, o_name, None)
+    #             if g is None or g is _not_found_:
+    #                 continue
+    #             g = g.__view__(**styles)
 
-            except RuntimeError as e:
-                logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e)
-                # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
-            else:
-                geo[o_name] = g
+    #         except RuntimeError as e:
+    #             logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e)
+    #             # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
+    #         else:
+    #             geo[o_name] = g
 
-        view_point = (styles.get("view_point", None) or "rz").lower()
+    #     view_point = (styles.get("view_point", None) or "rz").lower()
 
-        if view_point == "rz":
-            styles["xlabel"] = r"Major radius $R [m] $"
-            styles["ylabel"] = r"Height $Z [m]$"
+    #     if view_point == "rz":
+    #         styles["xlabel"] = r"Major radius $R [m] $"
+    #         styles["ylabel"] = r"Height $Z [m]$"
 
-        styles.setdefault("title", self.title)
+    #     styles.setdefault("title", self.title)
 
-        return geo
+    #     return geo

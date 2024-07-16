@@ -173,7 +173,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         # 在 x=0 处边界条件唯一， flux=0 (n,T,u) or \farc{d \psi}{dx}=0 ( for psi )
         # 在 \rho_{bdry} 处边界条件类型可由参数指定
-        bc_type = self.get_cache("boundary_condition_type", {})
+        bc_type = self.get("boundary_condition_type", {})
 
         # 归一化/无量纲化单位
         # 在放入标准求解器前，系数矩阵需要无量纲、归一化

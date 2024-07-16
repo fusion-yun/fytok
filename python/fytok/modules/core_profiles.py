@@ -10,14 +10,12 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
 from spdm.core.domain import WithDomain
-from spdm.core.time import WithTime
 
 from spdm.model.port import Ports
-from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyActor
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import (
@@ -385,7 +383,7 @@ class CoreProfiles2D(WithDomain, core_profiles.core_profiles_profiles_2d, domain
     t_i_average: Field = sp_property(unit="eV")
 
 
-class CoreProfiles(IDS, FyModule, Actor, code={"name": "core_profiles"}):
+class CoreProfiles(IDS, FyActor, code={"name": "core_profiles"}):
     """
     Core plasma profiles
     """

@@ -339,7 +339,7 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
                 psi_norm,
                 value,
                 name=f"surface_integral({label})",
-                label=rf"<{func.__repr__()}>",
+                label=rf"\left\langle{func.__repr__()}\right\rangle",
             )
 
     def surface_average(self, func: Expression, *xargs) -> Expression | ArrayLike:
@@ -386,11 +386,11 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
     @sp_property(label="B_{r}")
     def b_field_r(self) -> Expression:
         """COCOS Eq.19 [O. Sauter and S.Yu. Medvedev, Computer Physics Communications 184 (2013) 293]"""
-        return self.psi.pd(0, 1) / _R * (self._coord._s_RpZ * self._coord._s_Bp / self._coord._s_eBp_2PI)
+        return self.psi.pd(0, 1) / _R * (self._coord._sRpZ * self._coord._sBp / self._coord._seBp2PI)
 
     @sp_property(label="B_{z}")
     def b_field_z(self) -> Expression:
-        return -self.psi.pd(1, 0) / _R * (self._coord._s_RpZ * self._coord._s_Bp / self._coord._s_eBp_2PI)
+        return -self.psi.pd(1, 0) / _R * (self._coord._sRpZ * self._coord._sBp / self._coord._seBp2PI)
 
     @sp_property(label="B_{tor}")
     def b_field_tor(self) -> Expression:
@@ -487,7 +487,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
 
     @sp_property(label=r"q")
     def q(self) -> Expression:
-        return self.dphi_dpsi * (self._coord._s_eBp_2PI / (2.0 * scipy.constants.pi))
+        return self.dphi_dpsi * (self._coord._seBp2PI / (2.0 * scipy.constants.pi))
 
     @sp_property
     def magnetic_shear(self) -> Expression:
@@ -522,7 +522,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
 
     @sp_property(label=r"\frac{dV}{d\rho_{tor}}")
     def dvolume_drho_tor(self) -> Expression:
-        return self._coord._s_eBp_2PI * np.abs(self._coord.b0) * self.dvolume_dpsi * self.dpsi_drho_tor
+        return self._coord._seBp2PI * np.abs(self._coord.b0) * self.dvolume_dpsi * self.dpsi_drho_tor
 
     @sp_property
     def volume(self) -> Expression:

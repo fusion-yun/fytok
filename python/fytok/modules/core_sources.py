@@ -10,7 +10,7 @@ from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyActor
 
 from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
 from fytok.modules.core_profiles import CoreProfiles
@@ -125,7 +125,7 @@ class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profile
     pass
 
 
-class CoreSourcesSource(FyModule, Actor, plugin_prefix="core_sources/source/"):
+class CoreSourcesSource(FyActor, plugin_prefix="core_sources/source/"):
 
     class InPorts(Ports):
         equilibrium: Equilibrium
@@ -159,3 +159,7 @@ class CoreSources(IDS):
     Source = CoreSourcesSource
 
     source: List[CoreSourcesSource]
+
+    def initialize(self, *args, **kwargs):
+        for m in self.model:
+            m.initialize(*args, **kwargs)
