@@ -11,8 +11,8 @@ from spdm.numlib.calculus import derivative
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSources
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_sources import CoreSourcesSource
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.transport_solver_numerics import TransportSolverNumerics
 from fytok.modules.utilities import CoreRadialGrid

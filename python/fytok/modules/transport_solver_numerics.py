@@ -7,15 +7,14 @@ from spdm.utils.type_hint import array_type
 from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
-from spdm.core.time import WithTime, TimeSequence
-from spdm.core.domain import WithDomain
-from spdm.model.processor import Processor
-from spdm.model.actor import Actor
+
+from spdm.model.process import Process
+from spdm.model.port import Ports
 
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSources
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_sources import CoreSourcesSource
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 from fytok.utils.base import IDS, FyModule
 
@@ -91,15 +90,24 @@ class TransportSolverNumericsEquation(SpTree):
 class TransportSolverNumerics(
     IDS,
     FyModule,
-    Actor,
-    WithDomain,
+    Process,
     plugin_prefix="transport_solver_numerics/",
     plugin_default="fy_trans",
-    domain="grid/rho_tor_norm",
 ):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
-    grid: CoreRadialGrid
+    class InPorts(Ports):
+        equilibrium: Equilibrium
+        core_profiles: CoreProfiles
+        core_transport: List[CoreTransportModel]
+        core_sources: List[CoreSourcesSource]
+
+    class OutPorts(Ports):
+        core_profiles: CoreProfiles
+
+    in_ports: InPorts
+
+    out_ports: OutPorts
 
     equations: List[TransportSolverNumericsEquation]
     """ Set of transport equations"""
@@ -116,83 +124,41 @@ class TransportSolverNumerics(
 
     solver: str = "ion_solver"
 
-    ion_thermal: set = set()
+    ion_thermal: set
 
-    ion_non_thermal: set = set()
+    ion_non_thermal: set
 
-    impurities: set = set()
+    impurities: set
 
-    neutral: set = set()
+    neutral: set
 
     primary_coordinate: str = "rho_tor_norm"
     r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
       rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    equations: List[TransportSolverNumericsEquation] = []
+    equations: List[TransportSolverNumericsEquation]
 
-    variables: Dict[Expression] = {}
+    variables: Dict[Expression]
 
-    profiles_1d: CoreProfiles.Profiles1D = {}
+    def execute(self):
 
-    def initialize(self, *args, **kwargs):
-        return super().initialize(*args, **kwargs)
+        logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
 
-    def preprocess(self, *args, **kwargs):
-        eq_grid: CoreRadialGrid = self.inports["equilibrium/time_slice/0/profiles_1d/grid"].fetch()
-
-        rho_tor_norm = kwargs.get("rho_tor_norm", _not_found_)
+        eq_grid: CoreRadialGrid = self.in_ports.equilibrium.fetch("profiles_1d/grid")
 
         if rho_tor_norm is _not_found_:
             rho_tor_norm = self.code.parameters.rho_tor_norm
 
         new_grid = eq_grid.remesh(rho_tor_norm)
 
-        self.profiles_1d["grid"] = new_grid
+        self.out_ports.core_profiles.put("profiles_1d/grid", new_grid)
 
-        current = super().preprocess(*args, **kwargs)
+        X = self.grid.rho_tor_norm
 
-        current["grid"] = new_grid
-
-        return current
-
-    def execute(self, current, *previous):
-        logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
-        return super().execute(current, *previous)
-
-    def postprocess(self, current):
-        return super().postprocess(current)
-
-    def refresh(
-        self,
-        *args,
-        equilibrium: Equilibrium = None,
-        core_transport: CoreTransport = None,
-        core_sources: CoreSources = None,
-        core_profiles: CoreProfiles = None,
-        **kwargs,
-    ):
-        return super().refresh(
-            *args,
-            equilibrium=equilibrium,
-            core_transport=core_transport,
-            core_sources=core_sources,
-            core_profiles=core_profiles,
-            **kwargs,
-        )
-
-    def fetch(self, *args, **kwargs) -> CoreProfiles.Profiles1D:
-        """获得 CoreProfiles.Profiles1D 形式状态树。"""
-
-        current = self.time_slice.current
-
-        X = current.grid.rho_tor_norm
-
-        Y = sum([[equ.profile, equ.flux] for equ in current.equations], [])
-
-        self.profiles_1d["grid"] = current.grid
+        Y = sum([[equ.profile, equ.flux] for equ in self.equations], [])
 
         profiles_1d = self.profiles_1d.fetch(X, *Y)
 
-        profiles_1d[self.primary_coordinate] = current.grid.get(self.primary_coordinate)
+        profiles_1d[self.primary_coordinate] = self.grid.get(self.primary_coordinate)
 
         return profiles_1d

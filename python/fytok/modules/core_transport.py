@@ -5,13 +5,12 @@ from spdm.core.htree import List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.domain import WithDomain
-from spdm.core.time import WithTime
 from spdm.core.mesh import Mesh
-
+from spdm.model.entity import Entity
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyModule, FyActor
+from fytok.utils.base import IDS, FyModule, FySpacetimeVolume
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
@@ -100,7 +99,7 @@ class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_pr
     grid: Mesh
 
 
-class CoreTransportModel(FyActor, plugin_prefix="core_transport/model/"):
+class CoreTransportModel(FyModule, FySpacetimeVolume, Actor, plugin_prefix="core_transport/model/"):
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -190,15 +189,3 @@ class CoreTransportModel(FyActor, plugin_prefix="core_transport/model/"):
         spec.particles.v = spec.particles.flux + D * ion.density.dln / rho_tor_boundary
         spec.energy.d = Chi
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
-
-
-class CoreTransport(IDS):
-
-    Model = CoreTransportModel
-
-    model: List[CoreTransportModel]
-    """ Core transport model"""
-
-    def initialize(self, *args, **kwargs):
-        for m in self.model:
-            m.initialize(*args, **kwargs)

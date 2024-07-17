@@ -814,14 +814,7 @@ class FyEqBoundarySeparatrix(FyEqBoundary):
         return GeoObjectSet([surf for _, surf in self._coord.find_surfaces(self.psi_norm, enclose_axis=False)])
 
 
-class FyEq(
-    equilibrium.Equilibrium,
-    code={
-        "name": "fy_eq",
-        "version": FY_VERSION,
-        "copyright": FY_COPYRIGHT,
-    },
-):
+class FyEq(equilibrium.Equilibrium, code={"name": "fy_eq"}):
     """
     Magnetic surface analyze 磁面分析工具
     =============================
@@ -837,8 +830,6 @@ class FyEq(
 
     """
 
-    vacuum_toroidal_field: VacuumToroidalField
-
     global_quantities: FyEqGlobalQuantities
 
     profiles_1d: FyEqProfiles1D
@@ -849,4 +840,4 @@ class FyEq(
 
     boundary_separatrix: FyEqBoundarySeparatrix
 
-    coordinate_system: FyEqCoordinateSystem = sp_property(default_value={})
+    coordinate_system: FyEqCoordinateSystem

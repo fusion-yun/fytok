@@ -1,3 +1,4 @@
+import abc
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
@@ -5,9 +6,13 @@ from spdm.core.htree import List
 from spdm.core.sp_tree import SpTree
 from spdm.core.sp_object import SpObject
 from spdm.core.sp_tree import AttributeTree
-from spdm.core.time import WithTime
-from spdm.core.domain import WithDomain
+from spdm.core.spacetime import SpacetimeVolume
+from spdm.core.pluggable import Pluggable
+
+from spdm.model.entity import Entity
 from spdm.model.actor import Actor
+from spdm.model.context import Context
+from spdm.model.component import Component
 
 from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
@@ -71,13 +76,12 @@ class Identifier(SpTree):
     description: str
 
 
-class IDS(SpTree):
+class IDS(abc.ABC):
     ids_properties: IDSProperties
 
 
-class FyModule(SpObject):
+class FyModule(Pluggable, plugin_prefix="fytok/modules/"):
 
-    _plugin_prefix = "fytok.modules."
     _plugin_registry = {}
 
     def __init_subclass__(cls, plugin_name=None, **kwargs) -> None:
@@ -91,5 +95,13 @@ class FyModule(SpObject):
     """代码信息"""
 
 
-class FyActor(FyModule, WithTime, Actor):
-    pass
+class FySpacetimeVolume(SpacetimeVolume):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self._entry is not None:
+            time = self._cache.get("time", _not_found_)
+            if time is _not_found_:
+                self._entry = self._entry.child(["time_slice", -1])
+            else:
+                self._entry = self._entry.child(["time_slice", {"time": time}])

@@ -1,7 +1,9 @@
 import typing
 
 from spdm.utils.tags import _not_found_
-from spdm.core.geo_object import GeoObject
+from spdm.core.htree import List
+from spdm.core.history import WithHistory
+
 from spdm.model.context import Context
 
 # ---------------------------------
@@ -13,8 +15,8 @@ from fytok.utils.base import IDS, FyModule
 from fytok.modules.dataset_fair import DatasetFAIR
 from fytok.modules.summary import Summary
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSources
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_sources import CoreSourcesSource
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.ec_launchers import ECLaunchers
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.ic_antennas import ICAntennas
@@ -37,64 +39,51 @@ from fytok.modules.transport_solver_numerics import TransportSolverNumerics
 # ---------------------------------
 
 
-class Tokamak(IDS, FyModule, Context, code={"name": "fy_tok"}):
+class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
     # fmt:off
+    dataset_fair            : DatasetFAIR
+    summary                 : Summary
 
     # device
-    wall                    : Wall                      
+    wall                    : Wall
 
     # magnetics
-    tf                      : TF                        
-    pf_active               : PFActive                  
-    magnetics               : Magnetics                 
+    tf                      : TF
+    pf_active               : PFActive
+    magnetics               : Magnetics
 
     # aux
-    ec_launchers            : ECLaunchers               
-    ic_antennas             : ICAntennas                
-    lh_antennas             : LHAntennas                
-    nbi                     : NBI                       
-    pellets                 : Pellets                   
+    ec_launchers            : ECLaunchers
+    ic_antennas             : ICAntennas
+    lh_antennas             : LHAntennas
+    nbi                     : NBI
+    pellets                 : Pellets
 
     # diag
-    interferometer          : Interferometer            
+    interferometer          : Interferometer
 
     # transport: state of device
-    equilibrium             : Equilibrium               
+    equilibrium             : Equilibrium
 
-    core_profiles           : CoreProfiles              
-    core_transport          : CoreTransport  
-    core_sources            : CoreSources   
+    core_profiles           : CoreProfiles
+    core_transport          : List[CoreTransportModel]
+    core_sources            : List[CoreSourcesSource]
 
-    # edge_profiles         : EdgeProfiles              
-    # edge_transport        : EdgeTransport             
-    # edge_sources          : EdgeSources               
-    # edge_transport_solver : EdgeTransportSolver       
+    # edge_profiles         : EdgeProfiles
+    # edge_transport        : EdgeTransport
+    # edge_sources          : EdgeSources
+    # edge_transport_solver : EdgeTransportSolver
 
     # solver
-    transport_solver        : TransportSolverNumerics   
+    transport_solver        : TransportSolverNumerics
 
-    summary                 : Summary
-    
-    dataset_fair            : DatasetFAIR
     # fmt:on
 
-    @property
-    def description(self) -> str:
-        """综述模拟内容"""
-        return f"""
-------------------------------------------------------------------------------------------------------------------------
-                                                Description
-------------------------------------------------------------------------------------------------------------------------
+    def __str__(self) -> str:
+        return f"""------------------------------------------------------------------------------------------------------------------------
 {self.dataset_fair}
 ------------------------------------------------------------------------------------------------------------------------
-Context                     : {self.code} 
-Modules:
-    transport_solver        : {self.transport_solver.code}
-    equilibrium             : {self.equilibrium.code}
-
-    core_profiles           : {self.core_profiles.code }             
-    core_transport          : {', '.join([*self.core_transport.model.search("*/code/name")])}
-    core_sources            : {', '.join([*self.core_sources.source.search("*/code/name")])}
+{super().__str__()}
 ------------------------------------------------------------------------------------------------------------------------
 """
 
@@ -136,71 +125,10 @@ Modules:
 
         super().__init__(*args, **kwargs, dataset_fair=dataset_fair)
 
-    def refresh(self, *args, **kwargs) -> None:
-        super().refresh(*args, **kwargs)
-
-        self.core_profiles.refresh(time=self.time)
-        self.equilibrium.refresh(time=self.time)
-        self.core_sources.refresh(time=self.time)
-        self.core_transport.refresh(time=self.time)
-
     def solve(self, *args, **kwargs) -> None:
         solver_1d = self.transport_solver.refresh(*args, time=self.time, **kwargs)
         profiles_1d = self.transport_solver.fetch()
 
-        self.core_profiles.time_slice.current["profiles_1d"] = profiles_1d
+        self.core_profiles["profiles_1d"] = profiles_1d
 
         return solver_1d
-
-    def flush(self):
-        profiles_1d = self.transport_solver.fetch()
-
-        self.core_profiles.time_slice.current["profiles_1d"] = profiles_1d
-
-        self.core_profiles.flush()
-        self.equilibrium.flush()
-        self.core_transport.flush()
-        self.core_sources.flush()
-        self.transport_solver.flush()
-
-        super().flush()
-
-    # def __view__(self, **styles) -> GeoObject | typing.Dict:
-    #     geo = {"$styles": styles}
-
-    #     o_list = [
-    #         "wall",
-    #         "pf_active",
-    #         "magnetics",
-    #         "interferometer",
-    #         "tf",
-    #         "equilibrium",
-    #         # "ec_launchers",
-    #         # "ic_antennas",
-    #         # "lh_antennas",
-    #         # "nbi",
-    #         # "pellets",
-    #     ]
-
-    #     for o_name in o_list:
-    #         try:
-    #             g = getattr(self, o_name, None)
-    #             if g is None or g is _not_found_:
-    #                 continue
-    #             g = g.__view__(**styles)
-
-    #         except RuntimeError as e:
-    #             logger.error("Failed to get %s.__view__ ! ", g.__class__.__name__, exc_info=e)
-    #             # raise RuntimeError(f"Can not get {g.__class__.__name__}.__view__ !") from error
-    #         else:
-    #             geo[o_name] = g
-
-    #     view_point = (styles.get("view_point", None) or "rz").lower()
-
-    #     if view_point == "rz":
-    #         styles["xlabel"] = r"Major radius $R [m] $"
-    #         styles["ylabel"] = r"Height $Z [m]$"
-
-    #     styles.setdefault("title", self.title)
-
-    #     return geo

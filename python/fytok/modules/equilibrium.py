@@ -10,16 +10,16 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.domain import WithDomain
-from spdm.core.time import WithTime
 
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
+from spdm.model.entity import Entity
 from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
-from fytok.utils.base import IDS, FyModule, Identifier
+from fytok.utils.base import IDS, FyModule, FySpacetimeVolume, Identifier
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics
@@ -352,8 +352,8 @@ class EquilibriumGGD(WithDomain, equilibrium.equilibrium_ggd, domain=".../ggd"):
 class Equilibrium(
     IDS,
     FyModule,
+    FySpacetimeVolume,
     Actor,
-    WithTime,
     plugin_default="fy_eq",
     plugin_prefix="equilibrium/",
     code={"name": "equilibrium"},
@@ -404,23 +404,6 @@ class Equilibrium(
             Poloidal plane coordinate   : $(\rho,\theta,\phi)$
         ```
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self._entry is not None:
-            time = self._cache.get("time", _not_found_)
-            if time is _not_found_:
-                self._entry = self._entry.child(["time_slice", -1])
-            else:
-                self._entry = self._entry.child(["time_slice", {"time": time}])
-
-    class InPorts(Ports):
-        wall: Wall
-        magenetics: Magnetics
-        pf_active: PFActive
-        tf: TF
-
-    in_ports: InPorts
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -515,37 +498,3 @@ class Equilibrium(
         geo["styles"] = kwargs
 
         return geo
-
-    # def __view__(self, view_port="RZ", **kwargs) -> GeoObject:
-    #     geo = {}
-
-    #     if view_port == "RZ":
-    #         o_points, x_points = self.coordinate_system.critical_points
-
-    #         geo["o_points"] = [PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(o_points)]
-    #         geo["x_points"] = [PointRZ(p.r, p.z, name=f"{idx}") for idx, p in enumerate(x_points)]
-
-    #         geo["boundary"] = Curve(self.boundary.outline.r.__array__(), self.boundary.outline.z.__array__())
-
-    #         geo["boundary_separatrix"] = Curve(
-    #             self.boundary_separatrix.outline.r.__array__(),
-    #             self.boundary_separatrix.outline.z.__array__(),
-    #         )
-
-    #     geo["psi"] = self.profiles_2d.psi.__view__()
-
-    #     styles = {
-    #         "o_points": {"$matplotlib": {"c": "red", "marker": "."}},
-    #         "x_points": {"$matplotlib": {"c": "blue", "marker": "x"}},
-    #         "boundary": {"$matplotlib": {"color": "red", "linewidth": 0.5}},
-    #         "boundary_separatrix": {
-    #             "$matplotlib": {
-    #                 "color": "red",
-    #                 "linestyle": "dashed",
-    #                 "linewidth": 0.25,
-    #             }
-    #         },
-    #     }
-    #     styles = update_tree(styles, kwargs)
-
-    #     return geo, styles
