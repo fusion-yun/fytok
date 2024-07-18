@@ -1,3 +1,4 @@
+import abc
 import typing
 import numpy as np
 
@@ -8,6 +9,25 @@ from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
+
+
+class Species(SpTree):
+    label: str
+    a: float
+    z: float
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.label is _not_found_ or self.label is None:
+            self.label = self._metadata.get("label", None)
+
+        atom_desc = atoms[self.label]
+
+        self._cache["z"] = atom_desc.z
+        self._cache["a"] = atom_desc.a
+
+    def __hash__(self) -> int:
+        return hash(self.label)
 
 
 class VacuumToroidalField(SpTree):

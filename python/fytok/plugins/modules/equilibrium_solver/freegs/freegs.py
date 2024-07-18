@@ -13,7 +13,6 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.wall import Wall
 from fytok.modules.utilities import *
 
-from spdm.model.time_sequence import TimeSlice
 from spdm.core.field import Field
 from spdm.core.mesh import Mesh
 
@@ -32,7 +31,7 @@ from spdm.utils.type_hint import (
     scalar_type,
 )
 
-from fytok.plugins.equilibrium.fy_eq import FyEqAnalyze
+from fytok.modules.equilibrium_solver import EquilibriumSolver
 
 try:
     import freegs
@@ -41,10 +40,9 @@ except ModuleNotFoundError as error:
     raise ModuleNotFoundError(f"Can not find module 'freegs'!") from error
 
 
-@sp_tree
-class EquilibriumFreeGS(FyEqAnalyze):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class EquilibriumFreeGS(EquilibriumSolver, plugin_name="freegs"):
+    def initialize(self, *args, **kwargs):
+        super().initialize(*args, **kwargs)
 
         self._machine: freegs.machine.Machine = None
 

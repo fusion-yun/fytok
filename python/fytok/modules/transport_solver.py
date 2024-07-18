@@ -4,7 +4,7 @@ from scipy import constants
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
-from spdm.core.htree import List, Dict
+from spdm.core.htree import List, Dict, HTree
 from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
 
@@ -31,7 +31,7 @@ TWOPI = 2.0 * constants.pi
 class TransportSolverNumericsEquation(SpTree):
     """Profile and derivatives a the primary quantity for a 1D transport equation"""
 
-    identifier: str = sp_property(alias="@name")
+    identifier: str
     """ Identifier of the primary quantity of the transport equation. The description
         node contains the path to the quantity in the physics IDS (example:
         core_profiles/profiles_1d/ion/D/density)"""
@@ -87,7 +87,7 @@ class TransportSolverNumericsEquation(SpTree):
     """ Convergence details"""
 
 
-class TransportSolverNumerics(
+class TransportSolver(
     IDS,
     FyModule,
     Process,
@@ -108,6 +108,8 @@ class TransportSolverNumerics(
     in_ports: InPorts
 
     out_ports: OutPorts
+
+    profiles_1d: CoreProfiles.Profiles1D
 
     equations: List[TransportSolverNumericsEquation]
     """ Set of transport equations"""
@@ -140,25 +142,18 @@ class TransportSolverNumerics(
 
     variables: Dict[Expression]
 
-    def execute(self):
+    def execute(self, *args, **kwargs) -> CoreProfiles:
 
         logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
 
-        eq_grid: CoreRadialGrid = self.in_ports.equilibrium.fetch("profiles_1d/grid")
+        res = CoreProfiles(super().execute(*args, **kwargs))
 
-        if rho_tor_norm is _not_found_:
-            rho_tor_norm = self.code.parameters.rho_tor_norm
+        res.profiles_1d = self.in_ports.core_profiles.profiles_1d.__getstate__()
 
-        new_grid = eq_grid.remesh(rho_tor_norm)
+        rho_tor_norm = res.profiles_1d.rho_tor_norm
 
-        self.out_ports.core_profiles.put("profiles_1d/grid", new_grid)
+        grid = self.in_ports.equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
 
-        X = self.grid.rho_tor_norm
+        res.profiles_1d.grid = grid
 
-        Y = sum([[equ.profile, equ.flux] for equ in self.equations], [])
-
-        profiles_1d = self.profiles_1d.fetch(X, *Y)
-
-        profiles_1d[self.primary_coordinate] = self.grid.get(self.primary_coordinate)
-
-        return profiles_1d
+        return res

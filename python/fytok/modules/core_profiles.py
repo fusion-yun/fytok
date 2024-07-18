@@ -10,6 +10,7 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
 from spdm.core.domain import WithDomain
+from spdm.core.history import WithHistory
 from spdm.model.entity import Entity
 
 from fytok.utils.atoms import atoms
@@ -22,6 +23,7 @@ from fytok.modules.utilities import (
     PlasmaCompositionSpecies,
     CoreRadialGrid,
     VacuumToroidalField,
+    Species,
 )
 
 from fytok.ontology import core_profiles
@@ -30,22 +32,7 @@ PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-class CoreProfilesSpecies(SpTree):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if self.label is _not_found_ or self.label is None:
-            raise RuntimeError(f"Unknown ion {self._metadata}")
-
-        atom_desc = atoms[self.label]
-
-        self._cache["z"] = atom_desc.z
-        self._cache["a"] = atom_desc.a
-
-    label: str = sp_property(alias="_metadata/name")
-
-    z: float
-
-    a: float
+class CoreProfilesSpecies(Species):
 
     temperature: Expression = sp_property(units="eV")
 
@@ -132,8 +119,7 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-class CoreProfilesElectrons(CoreProfilesSpecies):
-    label: str = "e"
+class CoreProfilesElectrons(CoreProfilesSpecies, label="e"):
 
     @sp_property(units="-")
     def collisionality_norm(self) -> Expression:
@@ -382,7 +368,7 @@ class CoreProfiles2D(WithDomain, core_profiles.core_profiles_profiles_2d, domain
     t_i_average: Field = sp_property(unit="eV")
 
 
-class CoreProfiles(IDS, FyModule, FySpacetimeVolume, Entity, code={"name": "core_profiles"}):
+class CoreProfiles(IDS, FyModule, WithHistory, Entity, plugin_name="core_profiles"):
     """
     Core plasma profiles
     """

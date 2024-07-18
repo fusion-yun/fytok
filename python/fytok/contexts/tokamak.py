@@ -28,7 +28,7 @@ from fytok.modules.pellets import Pellets
 from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.modules.wall import Wall
-from fytok.modules.transport_solver_numerics import TransportSolverNumerics
+from fytok.modules.transport_solver import TransportSolver
 
 # from fytok.ontology import GLOBAL_ONTOLOGY
 
@@ -66,6 +66,7 @@ class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
     equilibrium             : Equilibrium
 
     core_profiles           : CoreProfiles
+    
     core_transport          : List[CoreTransportModel]
     core_sources            : List[CoreSourcesSource]
 
@@ -75,7 +76,7 @@ class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
     # edge_transport_solver : EdgeTransportSolver
 
     # solver
-    transport_solver        : TransportSolverNumerics
+    transport_solver        : TransportSolver
 
     # fmt:on
 

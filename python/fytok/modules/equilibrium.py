@@ -9,7 +9,9 @@ from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
-from spdm.core.domain import WithDomain
+from spdm.core.history import WithHistory
+from spdm.core.domain import WithDomain, Domain, MultiDomains
+from spdm.core.spacetime import SpacetimeVolume
 
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
@@ -27,6 +29,86 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
 from fytok.ontology import equilibrium
+
+
+class EquilibriumBoundary(equilibrium.equilibrium_boundary):
+    type: int
+
+    outline: Curve
+
+    psi_norm: float = 0.995
+
+    psi: float = sp_property(units="Wb")
+
+    geometric_axis: PointRZ
+
+    minor_radius: float = sp_property(units="m")
+
+    elongation: float
+
+    elongation_upper: float
+
+    elongation_lower: float
+
+    triangularity: float
+
+    triangularity_upper: float
+
+    triangularity_lower: float
+
+    squareness_upper_inner: float
+
+    squareness_upper_outer: float
+
+    squareness_lower_inner: float
+
+    squareness_lower_outer: float
+
+    x_point: List[PointRZ]
+
+    strike_point: List[PointRZ]
+
+    active_limiter_point: PointRZ
+
+
+class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix):
+    type: int
+
+    outline: Curve
+
+    psi_norm: float = 1.0
+
+    psi: float = sp_property(units="Wb")
+
+    geometric_axis: PointRZ
+
+    minor_radius: float = sp_property(units="m")
+
+    elongation: float
+
+    elongation_upper: float
+
+    elongation_lower: float
+
+    triangularity: float
+
+    triangularity_upper: float
+
+    triangularity_lower: float
+
+    squareness_upper_inner: float
+
+    squareness_upper_outer: float
+
+    squareness_lower_inner: float
+
+    squareness_lower_outer: float
+
+    x_point: PointSetRZ
+
+    strike_point: PointSetRZ
+
+    active_limiter_point: PointRZ
 
 
 class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate_system, domain="grid"):
@@ -261,101 +343,17 @@ class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, dom
     b_field_tor: Field = sp_property(units="T")
 
 
-class EquilibriumBoundary(equilibrium.equilibrium_boundary):
-    type: int
-
-    outline: Curve
-
-    psi_norm: float = 0.995
-
-    psi: float = sp_property(units="Wb")
-
-    geometric_axis: PointRZ
-
-    minor_radius: float = sp_property(units="m")
-
-    elongation: float
-
-    elongation_upper: float
-
-    elongation_lower: float
-
-    triangularity: float
-
-    triangularity_upper: float
-
-    triangularity_lower: float
-
-    squareness_upper_inner: float
-
-    squareness_upper_outer: float
-
-    squareness_lower_inner: float
-
-    squareness_lower_outer: float
-
-    x_point: List[PointRZ]
-
-    strike_point: List[PointRZ]
-
-    active_limiter_point: PointRZ
-
-
-class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix):
-    type: int
-
-    outline: Curve
-
-    psi_norm: float = 1.0
-
-    psi: float = sp_property(units="Wb")
-
-    geometric_axis: PointRZ
-
-    minor_radius: float = sp_property(units="m")
-
-    elongation: float
-
-    elongation_upper: float
-
-    elongation_lower: float
-
-    triangularity: float
-
-    triangularity_upper: float
-
-    triangularity_lower: float
-
-    squareness_upper_inner: float
-
-    squareness_upper_outer: float
-
-    squareness_lower_inner: float
-
-    squareness_lower_outer: float
-
-    x_point: PointSetRZ
-
-    strike_point: PointSetRZ
-
-    active_limiter_point: PointRZ
-
-
-class EequilibriumConstraints(equilibrium.equilibrium_constraints):
-    pass
-
-
-class EquilibriumGGD(WithDomain, equilibrium.equilibrium_ggd, domain=".../ggd"):
+class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):
     pass
 
 
 class Equilibrium(
     IDS,
     FyModule,
-    FySpacetimeVolume,
-    Actor,
-    plugin_default="fy_eq",
+    WithHistory,
+    Entity,
     plugin_prefix="equilibrium/",
+    plugin_default="fy_eq",
     code={"name": "equilibrium"},
 ):
     r"""
@@ -405,6 +403,17 @@ class Equilibrium(
         ```
     """
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self._entry is not None:
+            time = self._cache.get("time", _not_found_)
+            if time is _not_found_:
+                self._entry = self._entry.child(["time_slice", -1])
+            else:
+                self._entry = self._entry.child(["time_slice", {"time": time}])
+
+    grid: MultiDomains
+
     vacuum_toroidal_field: VacuumToroidalField
 
     Boundary = EquilibriumBoundary
@@ -412,9 +421,6 @@ class Equilibrium(
 
     BoundarySeparatrix = EquilibriumBoundarySeparatrix
     boundary_separatrix: EquilibriumBoundarySeparatrix
-
-    Constraints = EequilibriumConstraints
-    constraints: EequilibriumConstraints
 
     GlobalQuantities = EquilibriumGlobalQuantities
     global_quantities: EquilibriumGlobalQuantities
@@ -427,9 +433,6 @@ class Equilibrium(
 
     CoordinateSystem = EquilibriumCoordinateSystem
     coordinate_system: EquilibriumCoordinateSystem
-
-    GGD = EquilibriumGGD
-    ggd: GGD
 
     def __view__(self, view_point="RZ", **kwargs):
         """

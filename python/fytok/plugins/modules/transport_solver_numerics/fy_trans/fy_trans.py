@@ -7,14 +7,14 @@ from spdm.core.expression import Variable, Expression, Scalar, one, zero
 from spdm.core.path import as_path, Path
 from spdm.core.htree import List
 from spdm.numlib.calculus import derivative
-
+from spdm.model.port import Ports, Port
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.transport_solver_numerics import TransportSolverNumerics
+from fytok.modules.transport_solver import TransportSolver
 from fytok.modules.utilities import CoreRadialGrid
 
 
@@ -38,7 +38,7 @@ def derivative_(y: array_type, x: array_type, dc_index=None):
     return res
 
 
-class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
+class FyTrans(TransportSolver, code={"name": "fy_trans"}):
     r"""
     Solve transport equations $\rho=\sqrt{ \Phi/\pi B_{0}}$
     See  :cite:`hinton_theory_1976,coster_european_2010,pereverzev_astraautomated_1991`
@@ -104,8 +104,8 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
     primary_coordinate: str = "rho_tor_norm"
 
-    def initialize(self, *args, **kwargs):
-        super().initialize(*args, **kwargs)
+    def initialize(self):
+        super().initialize()
         enable_momentum = self.code.parameters.enable_momentum or False
         enable_impurity = self.code.parameters.enable_impurity or False
 
@@ -253,31 +253,119 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         # logger.debug([equ.identifier for equ in self.equations])
 
-    def preprocess(self, *args, boundary_value=None, **kwargs):
+    def func(self, X: array_type, _Y: array_type, *args) -> array_type:
+        dY = np.zeros([len(self.equations) * 2, X.size])
+
+        hyper_diff = self._hyper_diff
+
+        # 添加量纲和归一化系数，复原为物理量
+        Y = _Y * self._units.reshape(-1, 1)
+
+        for idx, equ in enumerate(self.equations):
+            y = Y[idx * 2]
+            flux = Y[idx * 2 + 1]
+
+            _d_dt, _D, _V, _S = equ.coefficient
+
+            try:
+                d_dt = _d_dt(X, *Y, *args) if isinstance(_d_dt, Expression) else _d_dt
+                D = _D(X, *Y, *args) if isinstance(_D, Expression) else _D
+                V = _V(X, *Y, *args) if isinstance(_V, Expression) else _V
+                S = _S(X, *Y, *args) if isinstance(_S, Expression) else _S
+            except RuntimeError as error:
+                raise RuntimeError(f"Error when calcuate {equ.identifier} {_S}") from error
+
+            # yp = np.zeros_like(X)
+            # yp[:-1] += 0.5 * ((y[1:] - y[:-1]) / (X[1:] - X[:-1]))  # derivative(flux, X)
+            # yp[1:] += yp[:-1]
+            # yp[0] = 0
+            # yp[-1] *= 2
+            yp = derivative(y, X)
+            d_dr = (-flux + V * y + hyper_diff * yp) / (D + hyper_diff)
+
+            # fluxp = np.zeros_like(X)
+            # fluxp[:-1] = 0.5 * (flux[1:] - flux[:-1]) / (X[1:] - X[:-1])
+            # fluxp[1:] += fluxp[:-1]
+            # fluxp[0] = 0
+            # flux[-1] *= 2
+
+            fluxp = derivative(flux, X)
+            dflux_dr = (S - d_dt + hyper_diff * fluxp) / (1.0 + hyper_diff)
+
+            # if equ.identifier == "ion/alpha/density":
+            #     dflux_dr[-1] = dflux_dr[-2]
+            # if np.any(np.isnan(dflux_dr)):
+            #     logger.exception(f"Error: {equ.identifier} nan in dflux_dr {_R._render_latex_()} {dflux_dr}")
+
+            # 无量纲，归一化
+            dY[idx * 2] = d_dr
+            dY[idx * 2 + 1] = dflux_dr
+            if equ.identifier in ["ion/alpha/density", "ion/He/density"]:
+                #     dY[idx * 2, 0] = 0
+                dY[idx * 2 + 1, -1] = 0
+
+        dY /= self._units.reshape(-1, 1)
+
+        return dY
+
+    def bc(self, ya: array_type, yb: array_type, *args) -> array_type:
+        x0, x1 = self.bc_pos
+
+        bc = []
+
+        ya = ya * self._units
+        yb = yb * self._units
+        for idx, equ in enumerate(self.equations):
+            [u0, v0, w0], [u1, v1, w1] = equ.boundary_condition_value
+
+            try:
+                u0 = u0(x0, *ya, *args) if isinstance(u0, Expression) else u0
+                v0 = v0(x0, *ya, *args) if isinstance(v0, Expression) else v0
+                w0 = w0(x0, *ya, *args) if isinstance(w0, Expression) else w0
+                u1 = u1(x1, *yb, *args) if isinstance(u1, Expression) else u1
+                v1 = v1(x1, *yb, *args) if isinstance(v1, Expression) else v1
+                w1 = w1(x1, *yb, *args) if isinstance(w1, Expression) else w1
+            except Exception as error:
+                logger.error(((u0, v0, w0), (u1, v1, w1)), exc_info=error)
+                # raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
+
+            y0 = ya[2 * idx]
+            flux0 = ya[2 * idx + 1]
+
+            y1 = yb[2 * idx]
+            flux1 = yb[2 * idx + 1]
+
+            # NOTE: 边界值量纲为 flux 通量，以 equ.units[1] 归一化
+            bc.extend([(u0 * y0 + v0 * flux0 - w0) / equ.units[1], (u1 * y1 + v1 * flux1 - w1) / equ.units[1]])
+
+        bc = np.array(bc)
+        return bc
+
+    def execute(self, *args, **kwargs) -> CoreProfiles:
         """准备迭代求解
         - 方程 from self.equations
         - 初值 from initial_value
         - 边界值 from boundary_value
         """
-        current = super().preprocess(*args, **kwargs)
+        res: CoreProfiles = super().execute(*args, **kwargs)
 
-        profiles = self.profiles_1d
+        grid: CoreRadialGrid = res.profiles_1d.grid
 
-        rho_tor_norm = profiles.rho_tor_norm
+        rho_tor_norm = grid.rho_tor_norm
 
-        psi_norm = profiles.psi_norm
+        psi_norm = grid.psi_norm
 
-        eq0: Equilibrium.TimeSlice = self.inports["equilibrium/time_slice/0"].fetch()
+        eq0: Equilibrium = self.in_ports.equilibrium
 
-        eq1: Equilibrium.TimeSlice = self.inports["equilibrium/time_slice/-1"].fetch()
+        eq1: Equilibrium = next(self.in_ports.equilibrium.previous())
 
-        core0_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
+        core0_1d: CoreProfiles.Profiles1D = self.in_ports.core_profiles.profiles_1d
 
-        core1_1d: CoreProfiles.TimeSlice.Profiles1D = self.inports["core_profiles/time_slice/-1/profiles_1d"].fetch()
+        core1_1d: CoreProfiles.Profiles1D = next(self.in_ports.core_profiles.previous()).profiles_1d
 
-        ni = sum([ion.z * ion.get("density", zero) for ion in profiles.ion], zero)
+        ni = sum([ion.z * ion.get("density", zero) for ion in res.profiles_1d.ion], zero)
 
-        ni_flux = sum([ion.z * ion.get("density_flux", zero) for ion in profiles.ion], zero)
+        ni_flux = sum([ion.z * ion.get("density_flux", zero) for ion in res.profiles_1d.ion], zero)
 
         # 杂质密度
         # for label in self.impurities:
@@ -288,15 +376,15 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         impurity_fraction = kwargs.get("impurity_fraction", 0.0)
 
-        profiles.electrons["density"] = ni / (1.0 - impurity_fraction)
+        res.profiles_1d.electrons.density = ni / (1.0 - impurity_fraction)
 
-        profiles.electrons["density_flux"] = ni_flux / (1.0 - impurity_fraction)
+        res.profiles_1d.electrons.density_flux = ni_flux / (1.0 - impurity_fraction)
 
-        tranport: List[CoreTransport.Model.TimeSlice] = self.inports["core_transport/model/*"].fetch(profiles)
+        tranport: List[CoreTransportModel] = [model.fetch(res.profiles_1d) for model in self.in_ports.core_transport]
 
-        sources: List[CoreSources.Source.TimeSlice] = self.inports["core_sources/source/*"].fetch(profiles)
+        sources: List[CoreSourcesSource] = [source.fetch(res.profiles_1d) for source in self.in_ports.core_sources]
 
-        eq0_1d = eq0.profiles_1d
+        eq0_1d: Equilibrium.Profiles1D = eq0.profiles_1d
 
         # if psi_norm is _not_found_:
         #     # psi_norm = profiles.psi / (eq0_1d.grid.psi_boundary - eq0_1d.grid.psi_axis)
@@ -314,7 +402,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
         # $B_0$ magnetic field measured at $R_0$            [T]
         B0 = eq0.vacuum_toroidal_field.b0
 
-        rho_tor_boundary = Scalar(current.grid.rho_tor_boundary)
+        rho_tor_boundary = grid.rho_tor_boundary
 
         # $\frac{\partial V}{\partial\rho}$ V',             [m^2]
         vpr = eq0_1d.dvolume_drho_tor(psi_norm)
@@ -367,7 +455,8 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
 
         self._units = np.array(sum([equ.units for equ in self.equations], tuple()))
 
-        X = current.grid.rho_tor_norm
+        X = grid[self.primary_coordinate]
+
         Y = np.zeros([len(self.equations) * 2, X.size])
 
         if boundary_value is None:
@@ -423,14 +512,14 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
                     ) / c
 
                     if bc_value is None:
-                        bc_value = current.grid.psi_boundary
+                        bc_value = grid.psi_boundary
 
                     # at axis x=0 , dpsi_dx=0
                     bc = [[0, 1, 0]]
 
                     if bc_value is None:
                         assert equ.boundary_condition_type == 1
-                        bc_value = current.grid.psi_boundary
+                        bc_value = grid.psi_boundary
 
                     # at boundary x=1
                     match equ.boundary_condition_type:
@@ -465,7 +554,7 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
                     bc += [[u, v, w]]
 
                 case "psi_norm":
-                    dpsi = current.grid.psi_boundary - current.grid.psi_axis
+                    dpsi = grid.psi_boundary - grid.psi_axis
 
                     psi_norm = profiles.psi_norm
 
@@ -501,14 +590,14 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
                     )
 
                     if bc_value is None:
-                        bc_value = current.grid.psi_norm[-1]
+                        bc_value = grid.psi_norm[-1]
 
                     # at axis x=0 , dpsi_dx=0
                     bc = [[0, 1, 0]]
 
                     if bc_value is None:
                         assert equ.boundary_condition_type == 1
-                        bc_value = current.grid.psi_boundary
+                        bc_value = grid.psi_boundary
 
                     # at boundary x=1
                     match equ.boundary_condition_type:
@@ -766,121 +855,23 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
                 yp = derivative(y, X)
                 Y[idx * 2 + 1] = -D(X, *Y) * yp + V(X, *Y) * y
 
-        current.X = X
-        current.Y = Y / self._units.reshape(-1, 1)
-
-        return current
-
-    def func(self, X: array_type, _Y: array_type, *args) -> array_type:
-        dY = np.zeros([len(self.equations) * 2, X.size])
-
-        hyper_diff = self._hyper_diff
-
-        # 添加量纲和归一化系数，复原为物理量
-        Y = _Y * self._units.reshape(-1, 1)
-
-        for idx, equ in enumerate(self.equations):
-            y = Y[idx * 2]
-            flux = Y[idx * 2 + 1]
-
-            _d_dt, _D, _V, _S = equ.coefficient
-
-            try:
-                d_dt = _d_dt(X, *Y, *args) if isinstance(_d_dt, Expression) else _d_dt
-                D = _D(X, *Y, *args) if isinstance(_D, Expression) else _D
-                V = _V(X, *Y, *args) if isinstance(_V, Expression) else _V
-                S = _S(X, *Y, *args) if isinstance(_S, Expression) else _S
-            except RuntimeError as error:
-                raise RuntimeError(f"Error when calcuate {equ.identifier} {_S}") from error
-
-            # yp = np.zeros_like(X)
-            # yp[:-1] += 0.5 * ((y[1:] - y[:-1]) / (X[1:] - X[:-1]))  # derivative(flux, X)
-            # yp[1:] += yp[:-1]
-            # yp[0] = 0
-            # yp[-1] *= 2
-            yp = derivative(y, X)
-            d_dr = (-flux + V * y + hyper_diff * yp) / (D + hyper_diff)
-
-            # fluxp = np.zeros_like(X)
-            # fluxp[:-1] = 0.5 * (flux[1:] - flux[:-1]) / (X[1:] - X[:-1])
-            # fluxp[1:] += fluxp[:-1]
-            # fluxp[0] = 0
-            # flux[-1] *= 2
-
-            fluxp = derivative(flux, X)
-            dflux_dr = (S - d_dt + hyper_diff * fluxp) / (1.0 + hyper_diff)
-
-            # if equ.identifier == "ion/alpha/density":
-            #     dflux_dr[-1] = dflux_dr[-2]
-            # if np.any(np.isnan(dflux_dr)):
-            #     logger.exception(f"Error: {equ.identifier} nan in dflux_dr {_R._render_latex_()} {dflux_dr}")
-
-            # 无量纲，归一化
-            dY[idx * 2] = d_dr
-            dY[idx * 2 + 1] = dflux_dr
-            if equ.identifier in ["ion/alpha/density", "ion/He/density"]:
-                #     dY[idx * 2, 0] = 0
-                dY[idx * 2 + 1, -1] = 0
-
-        dY /= self._units.reshape(-1, 1)
-
-        return dY
-
-    def bc(self, ya: array_type, yb: array_type, *args) -> array_type:
-        x0, x1 = self.bc_pos
-
-        bc = []
-
-        ya = ya * self._units
-        yb = yb * self._units
-        for idx, equ in enumerate(self.equations):
-            [u0, v0, w0], [u1, v1, w1] = equ.boundary_condition_value
-
-            try:
-                u0 = u0(x0, *ya, *args) if isinstance(u0, Expression) else u0
-                v0 = v0(x0, *ya, *args) if isinstance(v0, Expression) else v0
-                w0 = w0(x0, *ya, *args) if isinstance(w0, Expression) else w0
-                u1 = u1(x1, *yb, *args) if isinstance(u1, Expression) else u1
-                v1 = v1(x1, *yb, *args) if isinstance(v1, Expression) else v1
-                w1 = w1(x1, *yb, *args) if isinstance(w1, Expression) else w1
-            except Exception as error:
-                logger.error(((u0, v0, w0), (u1, v1, w1)), exc_info=error)
-                # raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
-
-            y0 = ya[2 * idx]
-            flux0 = ya[2 * idx + 1]
-
-            y1 = yb[2 * idx]
-            flux1 = yb[2 * idx + 1]
-
-            # NOTE: 边界值量纲为 flux 通量，以 equ.units[1] 归一化
-            bc.extend([(u0 * y0 + v0 * flux0 - w0) / equ.units[1], (u1 * y1 + v1 * flux1 - w1) / equ.units[1]])
-
-        bc = np.array(bc)
-        return bc
-
-    def execute(self, current, *previous):
-        current = super().execute(current, *previous)
-
-        X = current.X
-        Y = current.Y
+        Y = Y / self._units.reshape(-1, 1)
 
         self.bc_pos = (X[0], X[-1])
         # 设定初值
-        if Y is None:
-            Y = np.zeros([len(self.equations) * 2, len(X)])
+        Y = np.zeros([len(self.equations) * 2, len(X)])
 
-            for idx, equ in enumerate(self.equations):
-                Y[2 * idx + 0] = (
-                    equ.profile(X)
-                    if isinstance(equ.profile, Expression)
-                    else np.full_like(X, equ.profile if equ.profile is not _not_found_ else 0)
-                )
-                Y[2 * idx + 1] = (
-                    equ.flux(X)
-                    if isinstance(equ.flux, Expression)
-                    else np.full_like(X, equ.flux if equ.flux is not _not_found_ else 0)
-                )
+        for idx, equ in enumerate(self.equations):
+            Y[2 * idx + 0] = (
+                equ.profile(X)
+                if isinstance(equ.profile, Expression)
+                else np.full_like(X, equ.profile if equ.profile is not _not_found_ else 0)
+            )
+            Y[2 * idx + 1] = (
+                equ.flux(X)
+                if isinstance(equ.flux, Expression)
+                else np.full_like(X, equ.flux if equ.flux is not _not_found_ else 0)
+            )
 
         sol = solve_bvp(
             self.func,
@@ -894,40 +885,29 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
             verbose=self.code.parameters.verbose or 0,
         )
 
-        current.X = sol.x
-        current.Y = sol.y
-        current.Yp = sol.yp
-        current.rms_residuals = sol.rms_residuals
+        X = sol.X
+
+        res.profiles_1d[self.primary_coordinate] = X
+
+        res.profiles_1d["grid"] = grid.remesh(**{self.primary_coordinate: X})
+
+        Y = sol.Y * self._units.reshape(-1, 1)
+        Yp = sol.Yp * self._units.reshape(-1, 1)
+
+        for idx, equ in enumerate(self.equations):
+            res.profiles_1d[f"{equ.identifier}"] = Y[2 * idx]
+            res.profiles_1d[f"{equ.identifier}_flux"] = Y[2 * idx + 1]
+
+        res.profiles_1d["/rms_residuals"] = sol.rms_residuals
 
         logger.info(
             f"Solving the transport equation [{ 'success' if sol.success else 'failed'}]: {sol.message} , {sol.niter} iterations"
         )
 
-        return current
-
-    def postprocess(self, current):
-        current = super().postprocess(current)
-
-        X = current.X
-        Y = current.Y * self._units.reshape(-1, 1)
-        Yp = current.Yp * self._units.reshape(-1, 1)
-
-        current["grid"] = CoreRadialGrid(
-            {
-                "rho_tor_norm": X,
-                "psi_norm": Y[0],
-                "psi_axis": current.grid.psi_axis,
-                "psi_boundary": current.grid.psi_boundary,
-                "rho_tor_boundary": current.grid.rho_tor_boundary,
-            }
-        )
-
-        current["equations"] = []
-
         for idx, equ in enumerate(self.equations):
             d_dt, D, V, R = equ.coefficient
 
-            current.equations.append(
+            self.equations.append(
                 {
                     "@name": equ.identifier,
                     "boundary_condition_type": equ.boundary_condition_type,
@@ -940,4 +920,4 @@ class FyTrans(TransportSolverNumerics, code={"name": "fy_trans"}):
                 }
             )
 
-        return current
+        return res
