@@ -3,7 +3,7 @@ import typing
 import numpy as np
 
 from spdm.utils.type_hint import array_type, ArrayType
-
+from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
 from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.domain import DomainPPoly

@@ -1,7 +1,8 @@
 import unittest
 import pathlib
 from spdm.core.field import Field
-from spdm.mesh.mesh_rectilinear import RectilinearMesh
+from spdm.domain.mesh_rectilinear import RectilinearMesh
+
 from fytok.utils.logger import logger
 from fytok.modules.equilibrium import Equilibrium
 

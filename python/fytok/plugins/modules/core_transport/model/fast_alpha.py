@@ -1,17 +1,17 @@
 import numpy as np
 
-from spdm.core.expression import derivative
 from spdm.core.sp_tree import sp_tree
 
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 
-from .predefined import PredefinedTransport
 
-
-@sp_tree
-class FastAlpha(PredefinedTransport):
+class FastAlpha(
+    CoreTransportModel,
+    category="alpha",
+    code={"name": "fast_alpha", "description": f" Fast alpha, Angioni's model"},
+):
     """
     FastAlpha   Model
 
@@ -26,17 +26,16 @@ class FastAlpha(PredefinedTransport):
 
     """
 
-    identifier = "alpha"
-    code = {"name": "fast_alpha", "description": f" Fast alpha, Angioni's model"}
+    def execute(self, *args, **kwargs):
+        res: CoreTransportModel = super().execute(*args, **kwargs)
 
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D, *args, **kwargs) -> CoreTransport.Model.TimeSlice:
-        current: CoreTransport.Model.TimeSlice = super().fetch(profiles_1d, *args, **kwargs)
-
-        eq: Equilibrium.TimeSlice = self.inports["equilibrium/time_slice/current"].fetch()
+        eq: Equilibrium = self.in_ports.equilibrium
 
         R0 = eq.vacuum_toroidal_field.r0
 
-        rho_tor_norm = profiles_1d.rho_tor_norm
+        profiles_1d: CoreProfiles.Profiles1D = self.in_ports.core_profiles.profiles_1d
+
+        rho_tor_norm = self.in_ports.core_profiles.profiles_1d.rho_tor_norm
 
         # _x = rho_tor_norm
 
@@ -44,7 +43,7 @@ class FastAlpha(PredefinedTransport):
 
         # chi_e = current.profiles_1d.electrons.energy.d
 
-        D = current.profiles_1d.ion["D"].particles.d  # 0.1 * (chi + chi_e)
+        D = profiles_1d.ion["D"].particles.d  # 0.1 * (chi + chi_e)
 
         Te = profiles_1d.electrons.temperature
 
@@ -64,9 +63,6 @@ class FastAlpha(PredefinedTransport):
 
         fast_factor_v = fast_factor_d * rho_tor_norm / R0  # Cs * (1 - delta)
 
-        current.profiles_1d.ion = [{"@name": "alpha", "particles": {"d": fast_factor_d, "v": -fast_factor_v}}]
+        res.profiles_1d.ion.insert({"label": "alpha", "particles": {"d": fast_factor_d, "v": -fast_factor_v}})
 
-        return current
-
-
-CoreTransport.Model.register(["fast_alpha"], FastAlpha)
+        return res

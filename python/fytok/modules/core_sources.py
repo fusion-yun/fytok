@@ -2,25 +2,28 @@ import typing
 
 from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import sp_property, SpTree
-from spdm.core.htree import List
+from spdm.core.htree import List, Set
 from spdm.core.expression import Expression
+from spdm.core.mesh import Mesh
+from spdm.core.category import WithCategory
 from spdm.core.domain import WithDomain
+from spdm.core.history import WithHistory
 
 from spdm.model.entity import Entity
 from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyModule, FySpacetimeVolume
+from fytok.utils.base import IDS, FyModule
 
-from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies
+from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies, Species
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
 
 from fytok.ontology import core_sources
 
 
-class CoreSourcesSpecies(SpTree):
+class CoreSourcesSpecies(Species):
     """Source terms related to electrons"""
 
     class _Decomposed(SpTree):
@@ -33,23 +36,6 @@ class CoreSourcesSpecies(SpTree):
 
         explicit_part: Expression
         """ Explicit part of the source term"""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        if self.z is _not_found_:
-            ion = atoms[self.label]
-            self.z = ion.z
-            self.a = ion.a
-
-    label: str = sp_property(alias="@name")
-    """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
-
-    z: int
-    """ Charge number of the neutral species"""
-
-    a: float
-    """ Mass number of the neutral species"""
 
     particles: Expression = sp_property(units="s^-1.m^-3", default_value=0)
     """Source term for electron density equation"""
@@ -76,12 +62,11 @@ class CoreSourcesSpecies(SpTree):
     momentum: CoreVectorComponents = sp_property(units="kg.m^-1.s^-2")
 
 
-class CoreSourcesElectrons(CoreSourcesSpecies):
-    label: str = "electron"
-    """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
+class CoreSourcesElectrons(CoreSourcesSpecies, label="electron"):
+    """String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
 
 
-class CoreSourcesNeutral(core_sources.core_sources_source_profiles_1d_neutral):
+class CoreSourcesNeutral(CoreSourcesSpecies):
     pass
 
 
@@ -116,17 +101,23 @@ class CoreSourcesProfiles1D(WithDomain, core_sources.core_sources_source_profile
     electrons: CoreSourcesElectrons
 
     Ion = CoreSourcesSpecies
-    ion: List[CoreSourcesSpecies]
+    ion: Set[CoreSourcesSpecies]
 
     Neutral = CoreSourcesNeutral
-    neutral: List[CoreSourcesNeutral]
+    neutral: Set[CoreSourcesNeutral]
 
 
 class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profiles_2d, domain="grid"):
-    pass
+    grid: Mesh
 
 
-class CoreSourcesSource(FyModule, FySpacetimeVolume, Actor, plugin_prefix="core_sources/source/"):
+class CoreSourcesSource(
+    FyModule,
+    WithHistory,
+    WithCategory,
+    Actor,
+    plugin_prefix="core_sources/source/",
+):
 
     class InPorts(Ports):
         equilibrium: Equilibrium
@@ -154,3 +145,7 @@ class CoreSourcesSource(FyModule, FySpacetimeVolume, Actor, plugin_prefix="core_
             radial_grid = self.in_ports.equilibrium.profiles_1d.grid.fetch(psi_norm)
 
         return super().refresh({"profiles_1d": {"psi_norm": psi_norm, "grid": radial_grid}}, *args, **kwargs)
+
+
+class CoreSources(IDS, Entity, plugin_name="core_sources"):
+    source: Set[CoreSourcesSource]

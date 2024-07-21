@@ -21,7 +21,7 @@ from spdm.model.entity import Entity
 from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
-from fytok.utils.base import IDS, FyModule, FySpacetimeVolume, Identifier
+from fytok.utils.base import IDS, FyModule, Identifier
 from fytok.modules.wall import Wall
 from fytok.modules.tf import TF
 from fytok.modules.magnetics import Magnetics

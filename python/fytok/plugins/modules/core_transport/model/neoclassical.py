@@ -7,14 +7,20 @@ from spdm.core.entry import _next_
 from spdm.core.path import update_tree
 
 from spdm.utils.tags import _not_found_
-
-from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.utils.logger import logger
 
 
-class NeoClassical(CoreTransport.Model):
+class NeoClassical(
+    CoreTransportModel,
+    identifier="neoclassical",
+    code={
+        "name": "neoclassical",
+        "description": f" Neoclassical model, based on  Tokamaks, 3ed, J.A.Wesson 2003",
+    },
+):
     """
     Neoclassical Transport Model
     ===============================
@@ -24,26 +30,15 @@ class NeoClassical(CoreTransport.Model):
     - Tokamaks, 3ed,  J.A.Wesson 2003
     """
 
-    _metdata = {
-        "identifier": "neoclassical",
-        "code": {
-            "name": "neoclassical",
-            "description": f" Neoclassical model, based on  Tokamaks, 3ed, J.A.Wesson 2003",
-        },
-    }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> float:
-        residual = super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+    def execute(self, *args, **kwargs):
+        residual = super().execute(*args, **kwargs)
 
         eV = constants.electron_volt
-        B0 = equilibrium.vacuum_toroidal_field.b0
-        R0 = equilibrium.vacuum_toroidal_field.r0
+        B0 = self.in_ports.equilibrium.vacuum_toroidal_field.b0
+        R0 = self.in_ports.equilibrium.vacuum_toroidal_field.r0
 
-        core_profiles_1d = core_profiles.profiles_1d
-        equilibrium_1d = equilibrium.profiles_1d
+        core_profiles_1d = self.in_ports.core_profiles.profiles_1d
+        equilibrium_1d = self.in_ports.equilibrium.profiles_1d
 
         rho_tor_norm = self.profiles_1d.grid_d.rho_tor_norm
 
@@ -250,7 +245,9 @@ class NeoClassical(CoreTransport.Model):
         )
 
         self.profiles_1d["j_bootstrap"] = function_like(j_bootstrap, rho_tor_norm)
-        self.profiles_1d["j_ohmic"] = function_like(core_profiles_1d.e_field.parallel(rho_tor_norm) / eta, rho_tor_norm)
+        self.profiles_1d["j_ohmic"] = function_like(
+            core_profiles_1d.e_field.parallel(rho_tor_norm) / eta, rho_tor_norm
+        )
 
         return residual
 

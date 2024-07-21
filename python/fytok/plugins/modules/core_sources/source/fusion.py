@@ -4,15 +4,18 @@ from spdm.core.expression import Variable, zero
 from spdm.core.sp_tree import sp_tree
 from fytok.utils.atoms import nuclear_reaction, atoms
 from fytok.utils.logger import logger
-from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.utilities import *
 
 PI = scipy.constants.pi
 
 
-@sp_tree
-class FusionReaction(CoreSources.Source):
+class FusionReaction(
+    CoreSourcesSource,
+    identifier="fusion",
+    code={"name": "fusion", "description": "Fusion reaction"},
+):
     """[summary]
 
     Args:
@@ -54,10 +57,6 @@ class FusionReaction(CoreSources.Source):
     Here $E_{c}$ is the slowing down critical energy. We remind that $E_{c}/E_{\\alpha}=33.05 T_e/E_{\\alpha}$, where $E_{\\alpha}=3500 keV$  is the thirth energy of $\\alpha$ particles.
     """
 
-    identifier = "fusion"
-
-    code = {"name": "fusion", "description": "Fusion reaction"}  # type: ignore
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         x = np.linspace(0, 10.0, 256)
@@ -66,8 +65,8 @@ class FusionReaction(CoreSources.Source):
         self._sivukhin._metadata["name"] = "sivukhin"
         self._sivukhin._metadata["label"] = "F"
 
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D) -> CoreSources.Source.TimeSlice:
-        current: CoreSources.Source.TimeSlice = super().fetch(profiles_1d)
+    def fetch(self, profiles_1d: CoreProfiles.Profiles1D) -> CoreSourcesSource:
+        current: CoreSourcesSource = super().fetch(profiles_1d)
 
         heating = self.code.parameters.heating is not False
 
@@ -149,7 +148,7 @@ class FusionReaction(CoreSources.Source):
             # 离子加热分量
             #  [Stix, Plasma Phys. 14 (1972) 367 Eq.15
 
-            frac = self._sivukhin(E1 / Ecrit) 
+            frac = self._sivukhin(E1 / Ecrit)
 
             # 加热离子
             for label in [r0, r1]:
@@ -160,6 +159,3 @@ class FusionReaction(CoreSources.Source):
             source_1d.electrons.energy += Efus * (1.0 - frac)
 
         return current
-
-
-CoreSources.Source.register(["fusion"], FusionReaction)

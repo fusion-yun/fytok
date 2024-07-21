@@ -2,7 +2,7 @@ import scipy.constants
 import numpy as np
 
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.equilibrium import Equilibrium
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
@@ -13,20 +13,23 @@ from spdm.core.sp_tree import sp_tree
 from spdm.utils.type_hint import array_type
 
 
-@CoreSources.Source.register(["bootstrap"])
-@sp_tree
-class BootstrapCurrent(CoreSources.Source):
-    identifier = "bootstrap_current"
-    code = {
+class BootstrapCurrent(
+    CoreSourcesSource,
+    category="bootstrap",
+    code={
         "name": "bootstrap_current",
         "description": "Bootstrap current, based on  Tokamaks, 3ed, sec 14.12 J.A.Wesson 2003",
-    }
+    },
+):
 
-    def fetch(self, x: Variable | array_type, **variables: Expression) -> CoreSources.Source.TimeSlice:
-        current: CoreSources.Source.TimeSlice = super().fetch(x, **variables)
-        equilibrium: Equilibrium.TimeSlice = self.inputs.get_source("equilibrium").time_slice.current
+    def execute(self, *args, **kwargs) -> dict:
+        current = self.execute(*args, **kwargs)
+
+        equilibrium: Equilibrium = self.in_ports.equilibrium
+        core_profiles: CoreProfiles = self.in_ports.core_profiles
 
         source_1d = current.profiles_1d
+
         eq_1d = equilibrium.profiles_1d
 
         grid = source_1d.grid
@@ -78,7 +81,9 @@ class BootstrapCurrent(CoreSources.Source):
 
         s = eq_1d.trapped_fraction(psi_norm)  # np.sqrt(2*epsilon)  #
         c1 = (4.0 + 2.6 * s) / (1.0 + 1.02 * np.sqrt(nu_e) + 1.07 * nu_e) / (1.0 + 1.07 * epsilon32 * nu_e)
-        c3 = (7.0 + 6.5 * s) / (1.0 + 0.57 * np.sqrt(nu_e) + 0.61 * nu_e) / (1.0 + 0.61 * epsilon32 * nu_e) - c1 * 5 / 2
+        c3 = (7.0 + 6.5 * s) / (1.0 + 0.57 * np.sqrt(nu_e) + 0.61 * nu_e) / (
+            1.0 + 0.61 * epsilon32 * nu_e
+        ) - c1 * 5 / 2
 
         j_bootstrap = c1 * dlnPe + c3 * dlnTe
 

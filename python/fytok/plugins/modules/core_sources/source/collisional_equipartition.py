@@ -5,25 +5,25 @@ import typing
 
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
-from spdm.core.expression import Expression, Variable, smooth, zero
+from spdm.core.expression import Expression, Variable, zero
 from spdm.core.sp_tree import sp_tree
 from fytok.modules.core_profiles import CoreProfiles, CoreProfilesSpecies
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_sources import CoreSourcesSource
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 
 
-@sp_tree
-class CollisionalEquipartition(CoreSources.Source):
-    identifier = "collisional_equipartition"
-
-    code = {"name": "collisional_equipartition", "description": "Fusion reaction"}  # type: ignore
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D) -> CoreSources.Source.TimeSlice:
+class CollisionalEquipartition(
+    CoreSourcesSource,
+    identifier="collisional_equipartition",
+    code={"name": "collisional_equipartition", "description": "Fusion reaction"},
+):
+    
+    def fetch(self, profiles_1d: CoreProfiles.Profiles1D) -> CoreSourcesSource:
         ii_collision: bool = self.code.parameters.ii_collision
         ie_collision: bool = self.code.parameters.ie_collision
-        current: CoreSources.Source.TimeSlice = super().fetch(profiles_1d)
+        current: CoreSourcesSource = super().fetch(profiles_1d)
 
         source_1d = current.profiles_1d
 
@@ -166,6 +166,3 @@ class CollisionalEquipartition(CoreSources.Source):
         # Plasma electrical conductivity:
         source_1d.conductivity_parallel = conductivity_parallel
         return current
-
-
-CoreSources.Source.register("collisional_equipartition", CollisionalEquipartition)

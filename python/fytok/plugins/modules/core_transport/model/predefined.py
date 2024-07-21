@@ -2,7 +2,7 @@ import collections
 
 import numpy as np
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 from spdm.utils.logger import logger
 from spdm.utils.type_hint import array_type
@@ -10,15 +10,11 @@ from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import sp_tree
 
 
-@sp_tree
-class PredefinedTransport(CoreTransport.Model):
+class PredefinedTransport(CoreTransportModel, identifier="predefined", code={"name": "predifined"}):
     """ """
 
-    identifier = "predefined"
-    code = {"name": "predefined", "description": f"predefined", "copyright": "fytok"}
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D, *args, **kwargs) -> CoreTransport.Model.TimeSlice:
-        current: CoreTransport.Model.TimeSlice = super().fetch(*args, **kwargs)
+    def fetch(self, profiles_1d: CoreProfiles.Profiles1D, *args, **kwargs) -> CoreTransportModel:
+        current: CoreTransportModel = super().fetch(*args, **kwargs)
 
         rho_tor_norm = profiles_1d.rho_tor_norm
 
@@ -70,6 +66,3 @@ class PredefinedTransport(CoreTransport.Model):
         )
 
         return current
-
-
-CoreTransport.Model.register(["predefined"], PredefinedTransport)

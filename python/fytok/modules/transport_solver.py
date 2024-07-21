@@ -28,7 +28,7 @@ TOLERANCE = 1.0e-6
 TWOPI = 2.0 * constants.pi
 
 
-class TransportSolverNumericsEquation(SpTree):
+class TransportSolverEquation(SpTree):
     """Profile and derivatives a the primary quantity for a 1D transport equation"""
 
     identifier: str
@@ -91,7 +91,7 @@ class TransportSolver(
     IDS,
     FyModule,
     Process,
-    plugin_prefix="transport_solver_numerics/",
+    plugin_prefix="transport_solver/",
     plugin_default="fy_trans",
 ):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
@@ -111,7 +111,7 @@ class TransportSolver(
 
     profiles_1d: CoreProfiles.Profiles1D
 
-    equations: List[TransportSolverNumericsEquation]
+    equations: List[TransportSolverEquation]
     """ Set of transport equations"""
 
     control_parameters: AttributeTree
@@ -134,11 +134,11 @@ class TransportSolver(
 
     neutral: set
 
-    primary_coordinate: str = "rho_tor_norm"
-    r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
-      rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
+    # primary_coordinate: str = "rho_tor_norm"
+    # r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
+    #   rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    equations: List[TransportSolverNumericsEquation]
+    equations: List[TransportSolverEquation]
 
     variables: Dict[Expression]
 

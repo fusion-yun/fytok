@@ -3,7 +3,7 @@ from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
 from spdm.core.htree import List
-from spdm.core.sp_tree import SpTree
+from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.sp_object import SpObject
 from spdm.core.sp_tree import AttributeTree
 from spdm.core.spacetime import SpacetimeVolume
@@ -41,7 +41,7 @@ class Code(SpTree):
 
         self._cache = Path().update(self._cache, self._parent._metadata.get("code", _not_found_))
 
-    name: str
+    name: str = "unnamed"
     """代码名称，也是调用 plugin 的 identifier"""
 
     module_path: str
@@ -84,24 +84,26 @@ class FyModule(Pluggable, plugin_prefix="fytok/modules/"):
 
     _plugin_registry = {}
 
+    def __new__(cls, *args, plugin_name=None, **kwargs) -> None:
+        if plugin_name is None and len(args) > 0 and isinstance(args[0], dict):
+            plugin_name = Path("code/name").get(args[0], None)
+        if plugin_name is None:
+            plugin_name = Path("code/name").get(kwargs, None)
+        return super().__new__(cls, *args, plugin_name=plugin_name, **kwargs)
+
     def __init_subclass__(cls, plugin_name=None, **kwargs) -> None:
         if plugin_name is None:
             plugin_name = Path("code/name").get(kwargs, None)
         return super().__init_subclass__(plugin_name=plugin_name, **kwargs)
 
-    identifier: str
+    identifier: str = sp_property(alias="_metadata/identifier")
+    """模块标识符"""
 
     code: Code
     """代码信息"""
 
-
-class FySpacetimeVolume(SpacetimeVolume):
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if self._entry is not None:
-            time = self._cache.get("time", _not_found_)
-            if time is _not_found_:
-                self._entry = self._entry.child(["time_slice", -1])
-            else:
-                self._entry = self._entry.child(["time_slice", {"time": time}])
+    def __hash__(self) -> int:
+        label = self.identifier
+        if label is _not_found_:
+            label = self.code.name
+        return hash(label)

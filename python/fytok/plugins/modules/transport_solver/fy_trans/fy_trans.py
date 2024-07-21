@@ -38,7 +38,7 @@ def derivative_(y: array_type, x: array_type, dc_index=None):
     return res
 
 
-class FyTrans(TransportSolver, code={"name": "fy_trans"}):
+class FyTrans(TransportSolver, code={"name": "fy_trans", "parameters": {"primary_coordinate": "rho_tor_norm"}}):
     r"""
     Solve transport equations $\rho=\sqrt{ \Phi/\pi B_{0}}$
     See  :cite:`hinton_theory_1976,coster_european_2010,pereverzev_astraautomated_1991`
@@ -100,12 +100,8 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                     :label: transport_electron_temperature
         """
 
-    solver: str = "fy_trans_bvp_solver"
-
-    primary_coordinate: str = "rho_tor_norm"
-
-    def initialize(self):
-        super().initialize()
+    def initialize(self, *args, **kwargs):
+        super().initialize(*args, **kwargs)
         enable_momentum = self.code.parameters.enable_momentum or False
         enable_impurity = self.code.parameters.enable_impurity or False
 

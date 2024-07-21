@@ -1,7 +1,7 @@
 import typing
 
 from spdm.utils.tags import _not_found_
-from spdm.core.htree import List
+from spdm.core.htree import List, Set
 from spdm.core.history import WithHistory
 
 from spdm.model.context import Context
@@ -14,11 +14,13 @@ from fytok.utils.base import IDS, FyModule
 # ---------------------------------
 from fytok.modules.dataset_fair import DatasetFAIR
 from fytok.modules.summary import Summary
+
+from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.core_transport import CoreTransportModel
+
 from fytok.modules.ec_launchers import ECLaunchers
-from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.ic_antennas import ICAntennas
 from fytok.modules.interferometer import Interferometer
 from fytok.modules.lh_antennas import LHAntennas
@@ -28,7 +30,9 @@ from fytok.modules.pellets import Pellets
 from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.modules.wall import Wall
+
 from fytok.modules.transport_solver import TransportSolver
+from fytok.modules.equilibrium_solver import EquilibriumSolver
 
 # from fytok.ontology import GLOBAL_ONTOLOGY
 
@@ -67,8 +71,8 @@ class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
 
     core_profiles           : CoreProfiles
     
-    core_transport          : List[CoreTransportModel]
-    core_sources            : List[CoreSourcesSource]
+    core_transport          : Set[CoreTransportModel]
+    core_sources            : Set[CoreSourcesSource]
 
     # edge_profiles         : EdgeProfiles
     # edge_transport        : EdgeTransport
@@ -76,6 +80,7 @@ class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
     # edge_transport_solver : EdgeTransportSolver
 
     # solver
+    equilibrium_solver      : EquilibriumSolver
     transport_solver        : TransportSolver
 
     # fmt:on

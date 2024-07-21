@@ -1,17 +1,21 @@
 import numpy as np
 
 from spdm.utils.tags import _not_found_
-from spdm.core.htree import List
+from spdm.core.htree import Set
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.domain import WithDomain
+from spdm.core.history import WithHistory
+from spdm.core.category import WithCategory
+
 from spdm.core.mesh import Mesh
 from spdm.model.entity import Entity
 from spdm.model.actor import Actor
 
 from fytok.utils.atoms import atoms
-from fytok.utils.base import IDS, FyModule, FySpacetimeVolume
-from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
+from fytok.utils.base import IDS, FyModule
+
+from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField, Species
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
 
@@ -36,37 +40,19 @@ class CoreTransportModelMomentum(core_transport.core_transport_model_4_momentum)
     flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-class CoreTransportElectrons(core_transport.core_transport_model_electrons):
-    label: str = "electrons"
-    """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
-
+class CoreTransportElectrons(Species, core_transport.core_transport_model_electrons, label="e"):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
     momentum: CoreTransportModelMomentum
 
 
-class CoreTransportIon(core_transport.core_transport_model_ions):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        ion = atoms[self.label]
-        self.z = ion.z
-        self.a = ion.a
-
-    label: str = sp_property(alias="@name")
-    """ String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
-
-    z: int
-    """ Charge number of the neutral species"""
-
-    a: float
-    """ Mass number of the neutral species"""
-
+class CoreTransportIon(Species, core_transport.core_transport_model_ions):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
     momentum: CoreTransportModelMomentum
 
 
-class CoreTransportNeutral(core_transport.core_transport_model_neutral):
+class CoreTransportNeutral(Species, core_transport.core_transport_model_neutral):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
 
@@ -89,17 +75,29 @@ class CoreTransportProfiles1D(WithDomain, core_transport.core_transport_model_pr
     electrons: CoreTransportElectrons
 
     Ion = CoreTransportIon
-    ion: List[CoreTransportIon]
+    ion: Set[CoreTransportIon]
 
     Neutral = CoreTransportNeutral
-    neutral: List[CoreTransportNeutral]
+    neutral: Set[CoreTransportNeutral]
 
 
 class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_profiles_2d, domain="grid"):
     grid: Mesh
 
 
-class CoreTransportModel(FyModule, FySpacetimeVolume, Actor, plugin_prefix="core_transport/model/"):
+class CoreTransportModel(
+    FyModule,
+    WithHistory,
+    WithCategory,
+    Actor,
+    plugin_prefix="core_transport/model/",
+):
+
+    class InPorts:
+        core_profiles: CoreProfiles
+        equilibrium: Equilibrium
+
+    in_ports: InPorts
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -111,63 +109,14 @@ class CoreTransportModel(FyModule, FySpacetimeVolume, Actor, plugin_prefix="core
     Profiles2D = CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def preprocess(self, *args, **kwargs):
-        current = super().preprocess(*args, **kwargs)
+    def execute(self, *args, **kwargs):
+        current: CoreTransportModel = CoreTransportModel(super().execute(*args, **kwargs))
 
-        current["vacuum_toroidal_field"] = self.inports["/equilibrium/time_slice/0/vacuum_toroidal_field"].fetch()
+        current.vacuum_toroidal_field = self.in_ports.equilibrium.vacuum_toroidal_field
 
-        grid = current.get_cache("profiles_1d/grid_d", _not_found_)
-
-        if not isinstance(grid, CoreRadialGrid):
-            eq_grid: CoreRadialGrid = self.inports["/equilibrium/time_slice/0/profiles_1d/grid"].fetch()
-
-            if isinstance(grid, dict):
-                new_grid = grid
-                if not isinstance(grid.get("psi_axis", _not_found_), float):
-                    new_grid["psi_axis"] = eq_grid.psi_axis
-                    new_grid["psi_boundary"] = eq_grid.psi_boundary
-                    new_grid["rho_tor_boundary"] = eq_grid.rho_tor_boundary
-                # new_grid = {
-                #     **eq_grid._cache,
-                #     **{k: v for k, v in grid.items() if v is not _not_found_ and v is not None},
-                # }
-            else:
-                rho_tor_norm = kwargs.get("rho_tor_norm", self.code.parameters.rho_tor_norm)
-                new_grid = eq_grid.remesh(rho_tor_norm)
-
-            current["profiles_1d/grid_d"] = new_grid
+        current.profiles_1d.gird = self.in_ports.core_profiles.profiles_1d.grid
 
         return current
-
-    def execute(self, current, *previous):
-        return super().execute(current, *previous)
-
-    def postprocess(self, current):
-        return super().postprocess(current)
-
-    def fetch(self, *args, **kwargs):
-        if len(args) > 0 and isinstance(args[0], CoreProfiles.Profiles1D):
-            args = (args[0].rho_tor_norm, *args[1:])
-
-        return super().fetch(*args, **kwargs)
-
-    def flush(self):
-        super().flush()
-
-        profiles_1d: CoreProfiles.Profiles1D = self.inports["core_profiles/time_slice/0/profiles_1d"].fetch()
-
-        current.update(self.fetch(profiles_1d)._cache)
-
-        return current
-
-    def refresh(
-        self,
-        *args,
-        core_profiles: CoreProfiles = None,
-        equilibrium: Equilibrium = None,
-        **kwargs,
-    ):
-        return super().refresh(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
     @staticmethod
     def _flux2DV(
