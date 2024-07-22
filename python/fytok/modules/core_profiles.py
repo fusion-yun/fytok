@@ -3,21 +3,19 @@ import scipy.constants
 
 
 from spdm.utils.type_hint import array_type
-from spdm.utils.tags import _not_found_
-
 from spdm.core.htree import Set, List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.field import Field
+from spdm.core.mesh import Mesh
 from spdm.core.domain import WithDomain
 from spdm.core.history import WithHistory
 from spdm.model.entity import Entity
 
-from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 from fytok.utils.base import IDS, FyModule
 
-from fytok.modules.equilibrium import Equilibrium
+
 from fytok.modules.utilities import (
     CoreVectorComponents,
     PlasmaCompositionSpecies,
@@ -119,7 +117,10 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-class CoreProfilesElectrons(CoreProfilesSpecies, label="e"):
+class CoreProfilesElectrons(CoreProfilesSpecies):
+
+    def __init__(self, *args, label="e", **kwargs):
+        super().__init__(*args, label=label, **kwargs)
 
     @sp_property(units="-")
     def collisionality_norm(self) -> Expression:
@@ -178,7 +179,7 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="psi_nrom"):
+class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="psi_norm"):
 
     grid: CoreRadialGrid = {"extrapolate": 0}
 
@@ -310,7 +311,9 @@ class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain
 
     @sp_property
     def beta_pol(self) -> Expression:
-        return 4 * self.pressure.I / (self._parent.vacuum_toroidal_field.r0 * constants.mu_0 * (self.j_total**2))
+        return (
+            4 * self.pressure.I / (self._parent.vacuum_toroidal_field.r0 * scipy.constants.mu_0 * (self.j_total**2))
+        )
 
     # if isinstance(d, np.ndarray) or (hasattr(d.__class__, 'empty') and not d.empty):
     #     return d
@@ -364,8 +367,54 @@ class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain
     pprime: Expression = sp_property(label="$p^{\prime}$")
 
 
-class CoreProfiles2D(WithDomain, core_profiles.core_profiles_profiles_2d, domain="grid"):
-    t_i_average: Field = sp_property(unit="eV")
+class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
+    temperature: Expression
+    """Temperature (average over charge states when multiple charge states are considered) {dynamic} [eV]"""
+    density: Expression
+    """Density (thermal+non-thermal) (sum over charge states when multiple charge states are considered) {dynamic} [m^-3]"""
+    density_thermal: Expression
+    """Density (thermal) (sum over charge states when multiple charge states are considered) {dynamic} [m^-3]"""
+    density_fast: Expression
+    """Density of fast (non-thermal) particles (sum over charge states when multiple charge states are considered) {dynamic} [m^-3]"""
+    pressure: Expression
+    """Pressure (thermal+non-thermal) (sum over charge states when multiple charge states are considered) {dynamic} [Pa]"""
+    pressure_thermal: Expression
+    """Pressure (thermal) associated with random motion ~average((v-average(v))^2) (sum over charge states when multiple charge states are considered) {dynamic} [Pa]"""
+    pressure_fast_perpendicular: Expression
+    """Fast (non-thermal) perpendicular pressure (sum over charge states when multiple charge states are considered) {dynamic} [Pa]"""
+    pressure_fast_parallel: Expression
+    """Fast (non-thermal) parallel pressure (sum over charge states when multiple charge states are considered) {dynamic} [Pa]"""
+    rotation_frequency_tor: Expression
+    """Toroidal rotation frequency (i.e. toroidal velocity divided by the major radius at which the toroidal velocity is taken) (average over charge states when multiple charge states are considered) {dynamic} [rad.s^-1]"""
+    velocity: Expression
+    """Velocity (average over charge states when multiple charge states are considered) at the position of maximum major radius on every flux surface [m.s^-1]	structure	"""
+    multiple_states_flag: Expression
+    """Multiple states calculation flag : 0-Only the 'ion' level is considered and the 'state' array of structure is empty; 1-Ion states are considered and are described in the 'state' array of structure {dynamic}"""
+
+
+class CoreProfiles2D(WithDomain, domain="grid"):
+    grid: Mesh
+
+    ion: Set[CoreProfilesIon2D]
+
+    t_i_average: Expression
+    """Ion temperature (averaged on states and ion species) {dynamic} [eV] """
+    n_i_total_over_n_e: Expression
+    """Ratio of total ion density (sum over species and charge states) over electron density. (thermal+non-thermal) {dynamic} [-] """
+    n_i_thermal_total: Expression
+    """Total ion thermal density (sum over species and charge states) {dynamic} [m^-3] """
+    momentum_tor: Expression
+    """Total plasma toroidal momentum, summed over ion species and electrons weighted by their density and major radius, i.e. sum_over_species(n*R*m*Vphi) {dynamic} [kg.m^-1.s^-1] """
+    zeff: Expression
+    """Effective charge {dynamic} [-]	FLT_2D	1- profiles_2d(itime)/grid/dim1 """
+    pressure_ion_total: Expression
+    """Total (sum over ion species) thermal ion pressure {dynamic} [Pa] """
+    pressure_thermal: Expression
+    """Thermal pressure (electrons+ions) {dynamic} [Pa] """
+    pressure_perpendicular: Expression
+    """Total perpendicular pressure (electrons+ions, thermal+non-thermal) {dynamic} [Pa] """
+    pressure_parallel: Expression
+    """Total parallel pressure (electrons+ions, thermal+non-thermal) {dynamic} [Pa]"""
 
 
 class CoreProfiles(IDS, FyModule, WithHistory, Entity, plugin_name="core_profiles"):

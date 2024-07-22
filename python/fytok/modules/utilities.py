@@ -10,6 +10,8 @@ from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
 
+from fytok.utils.atoms import atoms
+
 
 class Species(SpTree):
     label: str
@@ -17,6 +19,9 @@ class Species(SpTree):
     z: float
 
     def __init__(self, *args, **kwargs) -> None:
+        if len(args) == 1 and isinstance(args[0], str):
+            args = ({"label": args[0]},)
+
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
             self.label = self._metadata.get("label", None)

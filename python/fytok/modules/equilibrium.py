@@ -1,31 +1,22 @@
-import typing
-
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
-from spdm.core.entry import Entry
 from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.history import WithHistory
-from spdm.core.domain import WithDomain, Domain, MultiDomains
-from spdm.core.spacetime import SpacetimeVolume
+from spdm.core.domain import WithDomain, MultiDomains
 
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
 from spdm.model.entity import Entity
-from spdm.model.port import Ports
-from spdm.model.actor import Actor
+
 
 from fytok.utils.base import IDS, FyModule, Identifier
-from fytok.modules.wall import Wall
-from fytok.modules.tf import TF
-from fytok.modules.magnetics import Magnetics
-from fytok.modules.pf_active import PFActive
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
 from fytok.ontology import equilibrium
@@ -411,8 +402,6 @@ class Equilibrium(
                 self._entry = self._entry.child(["time_slice", -1])
             else:
                 self._entry = self._entry.child(["time_slice", {"time": time}])
-
-    grid: MultiDomains
 
     vacuum_toroidal_field: VacuumToroidalField
 

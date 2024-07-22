@@ -1,10 +1,8 @@
 import typing
 from scipy import constants
 
-from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
-
-from spdm.core.htree import List, Dict, HTree
+from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
 
@@ -18,9 +16,6 @@ from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 from fytok.utils.base import IDS, FyModule
 
-from fytok.modules.utilities import CoreRadialGrid
-
-# from ..ontology import transport_solver_numerics
 
 EPSILON = 1.0e-15
 TOLERANCE = 1.0e-6

@@ -1,16 +1,14 @@
 import scipy.constants
 import numpy as np
 
+from spdm.core.function import Function
+
+
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.equilibrium import Equilibrium
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
-
-from spdm.core.function import Function
-from spdm.core.expression import Variable, Expression, piecewise
-from spdm.core.sp_tree import sp_tree
-from spdm.utils.type_hint import array_type
 
 
 class BootstrapCurrent(

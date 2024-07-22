@@ -1,14 +1,13 @@
 import numpy as np
 
-from spdm.core.htree import Dict, HTree
-from spdm.core.expression import Expression
-from spdm.core.function import Function, Polynomials
-from spdm.core.sp_tree import sp_property, sp_tree, SpTree
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
+from spdm.core.htree import Dict
+from spdm.core.sp_tree import sp_property, SpTree
+from spdm.numlib.polynomial import Polynomials
 
 
-from ..ontology import amns_data
+from fytok.ontology import amns_data
 
 
 class AMNSProcess(SpTree):

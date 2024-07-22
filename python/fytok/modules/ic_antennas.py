@@ -13,4 +13,5 @@ class ICAntennas(IDS, FyModule, Component, ic_antennas.ic_antennas):
             geo["antenna"] = [antenna.name for antenna in self.antenna]
             styles["antenna"] = {"$matplotlib": {"color": "blue"}, "text": True}
 
-        return geo, styles
+        geo["$styles"] = styles
+        return geo

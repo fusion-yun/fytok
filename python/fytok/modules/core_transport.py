@@ -1,18 +1,18 @@
+import abc
+import typing
 import numpy as np
 
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import Set
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import sp_property
 from spdm.core.expression import Expression
 from spdm.core.domain import WithDomain
 from spdm.core.history import WithHistory
 from spdm.core.category import WithCategory
 
 from spdm.core.mesh import Mesh
-from spdm.model.entity import Entity
 from spdm.model.actor import Actor
 
-from fytok.utils.atoms import atoms
 from fytok.utils.base import IDS, FyModule
 
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField, Species
@@ -71,13 +71,8 @@ class CoreTransportProfiles1D(WithDomain, core_transport.core_transport_model_pr
         rho_tor_norm = self.grid.rho_tor_norm
         return self.grid.fetch(0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
 
-    Electrons = CoreTransportElectrons
     electrons: CoreTransportElectrons
-
-    Ion = CoreTransportIon
     ion: Set[CoreTransportIon]
-
-    Neutral = CoreTransportNeutral
     neutral: Set[CoreTransportNeutral]
 
 
@@ -87,10 +82,10 @@ class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_pr
 
 class CoreTransportModel(
     FyModule,
-    WithHistory,
     WithCategory,
     Actor,
     plugin_prefix="core_transport/model/",
+    final=False,
 ):
 
     class InPorts:
@@ -99,17 +94,17 @@ class CoreTransportModel(
 
     in_ports: InPorts
 
-    vacuum_toroidal_field: VacuumToroidalField
-
     flux_multiplier: float = 0.0
 
-    Profiles1D = CoreTransportProfiles1D
+    vacuum_toroidal_field: VacuumToroidalField
+
+    Profiles1D: CoreTransportProfiles1D
     profiles_1d: CoreTransportProfiles1D
 
-    Profiles2D = CoreTransportProfiles2D
+    Profiles2D: CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def execute(self, *args, **kwargs):
+    def execute(self, *args, **kwargs) -> typing.Self:
         current: CoreTransportModel = CoreTransportModel(super().execute(*args, **kwargs))
 
         current.vacuum_toroidal_field = self.in_ports.equilibrium.vacuum_toroidal_field
@@ -138,3 +133,8 @@ class CoreTransportModel(
         spec.particles.v = spec.particles.flux + D * ion.density.dln / rho_tor_boundary
         spec.energy.d = Chi
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
+
+
+class CoreTransport(IDS):
+    Model = CoreTransportModel
+    model: Set[CoreTransportModel]

@@ -6,12 +6,18 @@ from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from scipy import constants
-from spdm.core.function import function_like
 from spdm.numlib.misc import array_like
 from fytok.utils.logger import logger
 
 
-class Spitzer(CoreTransport.Model):
+class Spitzer(
+    CoreTransport.Model,
+    category="neoclassical",
+    code={
+        "name": "spitzer",
+        "description": " Spitzer Resistivity",
+    },
+):
     """
     Spitzer Resistivity
 
@@ -19,17 +25,7 @@ class Spitzer(CoreTransport.Model):
     - Tokamaks, Third Edition, Chapter 14  ,p727,  J.A.Wesson 2003
     """
 
-    _metadata = {
-        "identifier": "neoclassical",
-        "code": {
-            "name": "spitzer",
-            "description": f" Spitzer Resistivity",
-        },
-    }
-
-    def refresh(
-        self, *args, equilibrium: Equilibrium.TimeSlice, core_profiles_1d: CoreProfiles.Profiles1d, **kwargs
-    ) -> float:
+    def execute(self, *args, **kwargs) -> dict:
         # residual = super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
         eV = constants.electron_volt
