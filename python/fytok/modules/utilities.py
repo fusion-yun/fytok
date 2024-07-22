@@ -9,11 +9,10 @@ from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
-
 from fytok.utils.atoms import atoms
 
 
-class Species(SpTree):
+class Species(abc.ABC):
     label: str
     a: float
     z: float
@@ -43,73 +42,26 @@ class VacuumToroidalField(SpTree):
 class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
     """芯部径向坐标"""
 
-    # PPolyDomain.__init__(self, self._cache["psi_norm"])
-    # assert isinstance(self.psi_axis, float), f"psi_axis must be specified  {self.psi_axis}"
-    # assert isinstance(self.psi_boundary, float), f"psi_boundary must be specified {self.psi_boundary}"
-    # assert isinstance(self.rho_tor_boundary, float), f"rho_tor_boundary must be specified {self.rho_tor_boundary}"
-    # assert self.rho_tor_norm[0] >= 0 and self.rho_tor_norm[-1] <= 1.0, f"illegal rho_tor_norm {self.rho_tor_norm}"
-    # assert self.psi_norm[0] >= 0 and self.psi_norm[-1] <= 1.0, f"illegal psi_norm {self.psi_norm}"
+    def __init__(self, *args, primary_coordinate: str = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.primary_coordinate = primary_coordinate or self._metadata.get("primary_coordinate", "psi_norm")
 
-    def remesh(self, rho_tor_norm=None, psi_norm=None, **kwargs) -> typing.Self:
+    def remesh(self, primary_coordinate: str = None, **kwargs) -> typing.Self:
         """Duplicate the grid with new rho_tor_norm or psi_norm"""
 
-        if isinstance(rho_tor_norm, array_type):
-            psi_norm = Function(self.rho_tor_norm, self.psi_norm)(rho_tor_norm)
-            if psi_norm[0] < 0:
-                psi_norm[0] = 0.0
-        elif isinstance(psi_norm, array_type):
-            rho_tor_norm = Function(self.psi_norm, self.rho_tor_norm)(psi_norm)
-            if rho_tor_norm[0] < 0:
-                psi_norm[0] = 0.0
-
-        else:
-            rho_tor_norm = self.rho_tor_norm
-            psi_norm = self.psi_norm
-        # if rho_tor_norm is None or rho_tor_norm is _not_found_:
-        #     if psi_norm is _not_found_ or psi_norm is None:
-        #         psi_norm = self.psi_norm
-        #         rho_tor_norm = self.rho_tor_norm
-        #     else:
-        #         rho_tor_norm = Function(
-        #             self.psi_norm,
-        #             self.rho_tor_norm,
-        #             name="rho_tor_norm",
-        #             label=r"\bar{\rho}",
-        #         )(psi_norm)
-        # else:
-        #     rho_tor_norm = np.asarray(rho_tor_norm)
-
-        # if psi_norm is _not_found_ or psi_norm is None:
-        #     psi_norm = Function(
-        #         self.rho_tor_norm,
-        #         self.psi_norm,
-        #         name="psi_norm",
-        #         label=r"\bar{\psi}",
-        #     )(rho_tor_norm)
-
-        # else:
-        #     psi_norm = np.asarray(psi_norm)
+        axis_name, x1 = next(iter(kwargs.items()))
+        x0 = getattr(self, axis_name)
 
         return CoreRadialGrid(
-            {
-                "rho_tor_norm": rho_tor_norm,
-                "psi_norm": psi_norm,
-                "psi_axis": self.psi_axis,
-                "psi_boundary": self.psi_boundary,
-                "rho_tor_boundary": self.rho_tor_boundary,
-            }
+            psi_norm=Function(x0, self.psi_norm)(x1) if self.psi_norm is not _not_found_ else _not_found_,
+            rho_tor_norm=Function(x0, self.rho_tor_norm)(x1) if self.rho_tor_norm is not _not_found_ else _not_found_,
+            phi_norm=Function(x0, self.phi_norm)(x1) if self.phi_norm is not _not_found_ else _not_found_,
+            psi_axis=self.psi_axis,
+            psi_boundary=self.psi_boundary,
+            phi_boundary=self.phi_boundary,
+            rho_tor_boundary=self.rho_tor_boundary,
+            primary_coordinate=primary_coordinate or self.primary_coordinate,
         )
-
-    def fetch(self, first=None, psi_norm=None, **kwargs) -> typing.Self:
-        if isinstance(first, array_type):
-            rho_tor_norm = first
-        else:
-            rho_tor_norm = getattr(first, "rho_tor_norm", kwargs.pop("rho_tor_norm", None))
-
-        if psi_norm is None and isinstance(first, SpTree):
-            psi_norm = getattr(first, "psi_norm", None)
-
-        return self.remesh(rho_tor_norm, psi_norm=psi_norm, **kwargs)
 
     psi_axis: float
     psi_boundary: float
@@ -139,7 +91,7 @@ class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
 
     @property
     def coordinates(self) -> typing.Tuple[ArrayType, ...]:
-        return (self.psi_norm,)
+        return (getattr(self, self.primary_coordinate),)
 
 
 class CoreVectorComponents(SpTree):
@@ -161,10 +113,9 @@ class CoreVectorComponents(SpTree):
     """ Toroidal component"""
 
 
-class DetectorAperture(SpTree):  # (utilities._T_detector_aperture):
-    def __view__(self, view="RZ", **styles):
-        geo = {}
-        return geo, styles
+class DetectorAperture(SpTree):
+    def __view__(self, **styles):
+        return {"$styles": styles}
 
 
 class PlasmaCompositionIonState(SpTree):

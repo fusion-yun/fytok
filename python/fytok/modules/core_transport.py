@@ -7,7 +7,6 @@ from spdm.core.htree import Set
 from spdm.core.sp_tree import sp_property
 from spdm.core.expression import Expression
 from spdm.core.domain import WithDomain
-from spdm.core.history import WithHistory
 from spdm.core.category import WithCategory
 
 from spdm.core.mesh import Mesh
@@ -40,7 +39,7 @@ class CoreTransportModelMomentum(core_transport.core_transport_model_4_momentum)
     flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-class CoreTransportElectrons(Species, core_transport.core_transport_model_electrons, label="e"):
+class CoreTransportElectrons(Species, core_transport.core_transport_model_electrons, default_value={"label": "electron"}):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
     momentum: CoreTransportModelMomentum

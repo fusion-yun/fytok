@@ -34,7 +34,6 @@ class EquilibriumSolver(
     FyModule,
     Process,
     plugin_prefix="equilibrium_solver/",
-    plugin_default="fy_eq_solver",
 ):
     r"""Solve  GS equaiton"""
 

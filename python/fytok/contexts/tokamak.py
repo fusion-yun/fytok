@@ -41,7 +41,7 @@ from fytok.modules.equilibrium_solver import EquilibriumSolver
 # ---------------------------------
 
 
-class Tokamak(IDS, FyModule, WithHistory, Context, code={"name": "fy_tok"}):
+class Tokamak(IDS, FyModule, Context, code={"name": "fy_tok"}):
 
     def __init__(
         self,

@@ -13,7 +13,6 @@ from spdm.model.entity import Entity
 from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
-from fytok.utils.atoms import atoms
 from fytok.utils.base import IDS, FyModule
 
 from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies, Species
@@ -23,7 +22,7 @@ from fytok.modules.equilibrium import Equilibrium
 from fytok.ontology import core_sources
 
 
-class CoreSourcesSpecies(Species):
+class CoreSourcesSpecies(Species, SpTree):
     """Source terms related to electrons"""
 
     class _Decomposed(SpTree):
@@ -62,7 +61,7 @@ class CoreSourcesSpecies(Species):
     momentum: CoreVectorComponents = sp_property(units="kg.m^-1.s^-2")
 
 
-class CoreSourcesElectrons(CoreSourcesSpecies, label="electron"):
+class CoreSourcesElectrons(CoreSourcesSpecies, default_value={"label": "electron"}):
     """String identifying the neutral species (e.g. H, D, T, He, C, ...)"""
 
 
@@ -113,7 +112,6 @@ class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profile
 
 class CoreSourcesSource(
     FyModule,
-    WithHistory,
     WithCategory,
     Actor,
     plugin_prefix="core_sources/source/",

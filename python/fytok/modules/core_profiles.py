@@ -2,11 +2,9 @@ import numpy as np
 import scipy.constants
 
 
-from spdm.utils.type_hint import array_type
 from spdm.core.htree import Set, List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
-from spdm.core.field import Field
 from spdm.core.mesh import Mesh
 from spdm.core.domain import WithDomain
 from spdm.core.history import WithHistory
@@ -30,7 +28,7 @@ PI = scipy.constants.pi
 TWOPI = 2.0 * PI
 
 
-class CoreProfilesSpecies(Species):
+class CoreProfilesSpecies(Species, SpTree):
 
     temperature: Expression = sp_property(units="eV")
 
@@ -58,8 +56,6 @@ class CoreProfilesSpecies(Species):
 
 
 class CoreProfilesState(CoreProfilesSpecies):
-    label: str
-    """ String identifying state"""
 
     electron_configuration: str
     """ Configuration of atomic orbitals of this state, e.g. 1s2-2s1"""
@@ -117,10 +113,7 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-class CoreProfilesElectrons(CoreProfilesSpecies):
-
-    def __init__(self, *args, label="e", **kwargs):
-        super().__init__(*args, label=label, **kwargs)
+class CoreProfilesElectrons(CoreProfilesSpecies, default_value={"label": "electron"}):
 
     @sp_property(units="-")
     def collisionality_norm(self) -> Expression:
@@ -179,9 +172,9 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="psi_norm"):
+class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="grid/rho_tor_norm"):
 
-    grid: CoreRadialGrid = {"extrapolate": 0}
+    grid: CoreRadialGrid = {"primary_coordinate": "rho_tor_norm"}
 
     Electrons = CoreProfilesElectrons
     electrons: CoreProfilesElectrons
@@ -192,15 +185,10 @@ class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain
     Neutral = CoreProfilesNeutral
     neutral: Set[CoreProfilesNeutral]
 
-    rho_tor_norm: array_type | Expression = sp_property(
-        label=r"\bar{\rho}_{tor}", units="-", alias="grid/rho_tor_norm"
-    )
-
-    rho_tor: Expression = sp_property(label=r"\rho_{tor}", units="m", alias="grid/rho_tor")
-
-    psi_norm: array_type | Expression = sp_property(label=r"\bar{\psi}", units="-")
-
-    psi: Expression = sp_property(label=r"\psi", units="Wb")
+    # rho_tor_norm: Expression = sp_property(label=r"\bar{\rho}_{tor}", units="-")
+    # rho_tor: Expression = sp_property(label=r"\rho_{tor}", units="m")
+    # psi_norm: Expression = sp_property(label=r"\bar{\psi}", units="-")
+    # psi: Expression = sp_property(label=r"\psi", units="Wb")
 
     @sp_property
     def zeff(self) -> Expression:
@@ -291,7 +279,7 @@ class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain
         def parallel(self) -> Expression:
             vloop = self._parent.get("vloop", None)
             if vloop is None:
-                logger.error(f"Can not calculate E_parallel from vloop!")
+                logger.error("Can not calculate E_parallel from vloop!")
                 e_par = 0.0
             else:
                 e_par = vloop / (TWOPI * self._parent.grid.r0)
@@ -367,6 +355,10 @@ class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain
     pprime: Expression = sp_property(label="$p^{\prime}$")
 
 
+class CoreProfilesElectrons2D(WithDomain, Species, domain=".../grid"):
+    pass
+
+
 class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
     temperature: Expression
     """Temperature (average over charge states when multiple charge states are considered) {dynamic} [eV]"""
@@ -395,6 +387,7 @@ class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
 class CoreProfiles2D(WithDomain, domain="grid"):
     grid: Mesh
 
+    electrons: CoreProfilesElectrons2D
     ion: Set[CoreProfilesIon2D]
 
     t_i_average: Expression
