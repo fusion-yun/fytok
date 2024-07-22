@@ -42,9 +42,10 @@ class VacuumToroidalField(SpTree):
 class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
     """芯部径向坐标"""
 
-    def __init__(self, *args, primary_coordinate: str = None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.primary_coordinate = primary_coordinate or self._metadata.get("primary_coordinate", "psi_norm")
+        if self._coordinates is None:
+            self._coordinates = (getattr(self, self.primary_coordinate),)
 
     def remesh(self, primary_coordinate: str = None, **kwargs) -> typing.Self:
         """Duplicate the grid with new rho_tor_norm or psi_norm"""
@@ -62,6 +63,8 @@ class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
             rho_tor_boundary=self.rho_tor_boundary,
             primary_coordinate=primary_coordinate or self.primary_coordinate,
         )
+
+    primary_coordinate: str = "psi_norm"
 
     psi_axis: float
     psi_boundary: float

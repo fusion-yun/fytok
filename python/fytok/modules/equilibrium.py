@@ -185,30 +185,11 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     """
 
-    @sp_property
-    def grid(self) -> CoreRadialGrid:
-        L = (self.psi[-1] - self.psi[0]) / (self.psi_norm[-1] - self.psi_norm[0])
-        psi_axis = self.psi[-1] - L * self.psi_norm[-1]
-        psi_boundary = L + psi_axis
-        psi_norm = self.psi_norm
-        rho_tor_norm = _not_found_
-        rho_tor_boundary = _not_found_
-        if self.rho_tor_norm is not _not_found_:
-            rho_tor_norm = self.rho_tor_norm(self.psi_norm)
-            if self.rho_tor is not _not_found_:
-                rho_tor_boundary = self.rho_tor[-1] / self.rho_tor_norm[-1]
+    grid: CoreRadialGrid = {"primary_coordinate": "psi_norm"}
 
-        return CoreRadialGrid(
-            psi_norm=psi_norm,
-            rho_tor_norm=rho_tor_norm,
-            psi_axis=psi_axis,
-            psi_boundary=psi_boundary,
-            rho_tor_boundary=rho_tor_boundary,
-        )
+    psi_norm: Expression = sp_property(units="-", label=r"\bar{\psi}")
 
-    psi_norm: array_type | Expression = sp_property(units="-", label=r"\bar{\psi}")
-
-    psi: array_type | Expression = sp_property(units="Wb", label=r"\psi")
+    psi: Expression = sp_property(units="Wb", label=r"\psi")
 
     dphi_dpsi: Expression = sp_property(label=r"\frac{d\phi}{d\psi}", units="-")
 

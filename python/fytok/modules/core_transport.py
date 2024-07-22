@@ -39,7 +39,9 @@ class CoreTransportModelMomentum(core_transport.core_transport_model_4_momentum)
     flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
 
 
-class CoreTransportElectrons(Species, core_transport.core_transport_model_electrons, default_value={"label": "electron"}):
+class CoreTransportElectrons(
+    Species, core_transport.core_transport_model_electrons, default_value={"label": "electron"}
+):
     particles: CoreTransportModelParticles
     energy: CoreTransportModelEnergy
     momentum: CoreTransportModelMomentum
@@ -84,10 +86,9 @@ class CoreTransportModel(
     WithCategory,
     Actor,
     plugin_prefix="core_transport/model/",
-    final=False,
 ):
 
-    class InPorts:
+    class InPorts(Actor.InPorts):
         core_profiles: CoreProfiles
         equilibrium: Equilibrium
 
@@ -103,12 +104,14 @@ class CoreTransportModel(
     Profiles2D: CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def execute(self, *args, **kwargs) -> typing.Self:
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
         current: CoreTransportModel = CoreTransportModel(super().execute(*args, **kwargs))
 
-        current.vacuum_toroidal_field = self.in_ports.equilibrium.vacuum_toroidal_field
+        current.vacuum_toroidal_field = equilibrium.vacuum_toroidal_field
 
-        current.profiles_1d.gird = self.in_ports.core_profiles.profiles_1d.grid
+        current.profiles_1d.grid = equilibrium.profiles_1d.grid.remesh(
+            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
+        )
 
         return current
 
