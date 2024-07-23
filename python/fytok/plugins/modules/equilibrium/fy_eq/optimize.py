@@ -39,7 +39,6 @@ def minimize_filter(
 
     # X, Y = np.meshgrid(np.linspace(xmin, xmax, nx),
     #                    np.linspace(ymin, ymax, ny), indexing='ij')
-
     data = func(X, Y)
 
     nx, ny = data.shape

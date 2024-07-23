@@ -1,14 +1,13 @@
 import numpy as np
 import scipy.constants
 
-
+from spdm.utils.tags import _not_found_
 from spdm.core.htree import Set, List
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
 from spdm.core.domain import WithDomain
 from spdm.core.history import WithHistory
-from spdm.model.entity import Entity
 
 from fytok.utils.logger import logger
 from fytok.utils.base import IDS, FyEntity
@@ -204,15 +203,15 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     @sp_property
     def pressure_thermal(self) -> Expression:
-        return sum([ion.pressure_thermal for ion in self.ion], self.electrons.pressure_thermal)
+        return sum(ion.pressure_thermal for ion in self.ion) + self.electrons.pressure_thermal
 
     @sp_property
     def t_i_average(self) -> Expression:
-        return sum([ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion]) / self.n_i_total
+        return sum(ion.z_ion_1d * ion.temperature * ion.density for ion in self.ion) / self.n_i_total
 
     @sp_property
     def n_i_total(self) -> Expression:
-        return sum([(ion.z_ion_1d * ion.density) for ion in self.ion])
+        return sum((ion.z_ion_1d * ion.density) for ion in self.ion)
 
     @sp_property
     def n_i_total_over_n_e(self) -> Expression:
@@ -220,7 +219,7 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     @sp_property
     def n_i_thermal_total(self) -> Expression:
-        return sum([ion.z * ion.density_thermal for ion in self.ion])
+        return sum(ion.z * ion.density_thermal for ion in self.ion)
 
     # t_i_average: Expression = sp_property(units="eV")
 
@@ -277,8 +276,8 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
         @sp_property
         def parallel(self) -> Expression:
-            vloop = self._parent.get("vloop", None)
-            if vloop is None:
+            vloop = self._parent.get("vloop", _not_found_)
+            if vloop is _not_found_:
                 logger.error("Can not calculate E_parallel from vloop!")
                 e_par = 0.0
             else:
@@ -305,11 +304,9 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     # if isinstance(d, np.ndarray) or (hasattr(d.__class__, 'empty') and not d.empty):
     #     return d
-
     # else:
     #     Te = self.electrons.temperature
     #     ne = self.electrons.density
-
     #     # Electron collisions: Coulomb logarithm
     #     # clog = np.asarray([
     #     #     (24.0 - 1.15*np.log10(ne[idx]*1.0e-6) + 2.30*np.log10(Te[idx]))
@@ -319,7 +316,6 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
     #     clog = self.coulomb_logarithm
     #     # electron collision time:
     #     # tau_e = (np.sqrt(2.*constants.electron_mass)*(Te**1.5)) / 1.8e-19 / (ne * 1.0e-6) / clog
-
     #     # Plasma electrical conductivity:
     #     return 1.96e0 * constants.elementary_charge**2   \
     #         * ((np.sqrt(2.*constants.electron_mass)*(Te**1.5)) / 1.8e-19 / clog) \
@@ -331,13 +327,13 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
         @ref: Tokamaks 2003  Ch.14.5 p727 ,2003
         """
         Te = self.electrons.temperature
-        Ne = self.electrons.density
+        ne = self.electrons.density
 
         # Coulomb logarithm
         #  Ch.14.5 p727 Tokamaks 2003
 
-        return (14.9 - 0.5 * np.log(Ne / 1e20) + np.log(Te / 1000)) * (Te < 10) + (
-            15.2 - 0.5 * np.log(Ne / 1e20) + np.log(Te / 1000)
+        return (14.9 - 0.5 * np.log(ne / 1e20) + np.log(Te / 1000)) * (Te < 10) + (
+            15.2 - 0.5 * np.log(ne / 1e20) + np.log(Te / 1000)
         ) * (Te >= 10)
 
     @sp_property
@@ -346,13 +342,13 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
         @ref: Tokamak 2003, eq 14.6.1
         """
         Te = self.electrons.temperature(self.grid.rho_tor_norm)
-        Ne = self.electrons.density(self.grid.rho_tor_norm)
+        ne = self.electrons.density(self.grid.rho_tor_norm)
         lnCoul = self.coulomb_logarithm(self.grid.rho_tor_norm)
-        return 1.09e16 * ((Te / 1000.0) ** (3 / 2)) / Ne / lnCoul
+        return 1.09e16 * ((Te / 1000.0) ** (3 / 2)) / ne / lnCoul
 
-    ffprime: Expression = sp_property(label="$ff^{\prime}$")
+    ffprime: Expression = sp_property(label=r"$ff^{\prime}$")
 
-    pprime: Expression = sp_property(label="$p^{\prime}$")
+    pprime: Expression = sp_property(label=r"$p^{\prime}$")
 
 
 class CoreProfilesElectrons2D(WithDomain, Species, domain=".../grid"):
