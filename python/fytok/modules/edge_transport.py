@@ -2,13 +2,13 @@ import typing
 from spdm.core.htree import List
 from spdm.model.actor import Actor
 
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import edge_transport
 
 _TSlice = typing.TypeVar("_TSlice")
 
 
-class EdgeTransportModel(FyModule, Actor[_TSlice], edge_transport.edge_transport_model):
+class EdgeTransportModel(FyEntity, Actor[_TSlice], edge_transport.edge_transport_model):
     pass
 
 

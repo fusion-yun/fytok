@@ -7,12 +7,12 @@ from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline
 
 from fytok.utils.logger import logger
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 from fytok.ontology import wall
 
 
-class Wall(IDS, FyModule, Component, wall.Wall):
+class Wall(IDS, FyEntity, Component, wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
     Description2D = wall.wall_2d

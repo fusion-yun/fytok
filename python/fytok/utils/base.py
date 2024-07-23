@@ -1,4 +1,5 @@
 import abc
+import typing
 from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
@@ -80,21 +81,21 @@ class IDS(abc.ABC):
     ids_properties: IDSProperties
 
 
-class FyModule(Pluggable, plugin_prefix="fytok/modules/"):
+class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
 
     _plugin_registry = {}
 
-    def __new__(cls, *args, plugin_name=None, **kwargs) -> None:
+    def __new__(cls, *args, plugin_name: str = None, **kwargs) -> typing.Self:
         if plugin_name is None and len(args) > 0 and isinstance(args[0], dict):
             plugin_name = Path("code/name").get(args[0], None)
         if plugin_name is None:
             plugin_name = Path("code/name").get(kwargs, None)
         return super().__new__(cls, *args, plugin_name=plugin_name, **kwargs)
 
-    def __init_subclass__(cls, plugin_name=None, **kwargs) -> None:
+    def __init_subclass__(cls, plugin_name: str = None, **kwargs) -> None:
         if plugin_name is None:
             plugin_name = Path("code/name").get(kwargs, None)
-        return super().__init_subclass__(plugin_name=plugin_name, **kwargs)
+        super().__init_subclass__(plugin_name=plugin_name, **kwargs)
 
     identifier: str = sp_property(alias="_metadata/identifier")
     """模块标识符"""

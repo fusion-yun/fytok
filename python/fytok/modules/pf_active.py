@@ -1,11 +1,11 @@
 from spdm.geometry.polygon import Rectangle
 
 from spdm.model.component import Component
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import pf_active
 
 
-class PFActive(IDS, FyModule, Component, pf_active.pf_active):
+class PFActive(IDS, FyEntity, Component, pf_active.pf_active):
     def __view__(self, view_point="RZ", **styles):
         geo = {"$styles": styles}
 

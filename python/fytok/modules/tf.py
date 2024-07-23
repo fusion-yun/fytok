@@ -3,13 +3,13 @@ from scipy.constants import pi
 
 from spdm.model.component import Component
 from spdm.geometry.polygon import Polygon
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import tf
 
 TWOPI = 2.0 * pi
 
 
-class TF(IDS, FyModule, Component, tf.tf):
+class TF(IDS, FyEntity, Component, tf.tf):
 
     def __view__(self, view_point="RZ", **kwargs):
         geo = {}

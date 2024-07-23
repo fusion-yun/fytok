@@ -14,7 +14,7 @@ from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 
 EPSILON = 1.0e-15
@@ -84,7 +84,7 @@ class TransportSolverEquation(SpTree):
 
 class TransportSolver(
     IDS,
-    FyModule,
+    FyEntity,
     Process,
     plugin_prefix="transport_solver/",
     plugin_default="fy_trans",

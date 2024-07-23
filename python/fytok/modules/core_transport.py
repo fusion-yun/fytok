@@ -12,7 +12,7 @@ from spdm.core.category import WithCategory
 from spdm.core.mesh import Mesh
 from spdm.model.actor import Actor
 
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField, Species
 from fytok.modules.core_profiles import CoreProfiles
@@ -58,7 +58,9 @@ class CoreTransportNeutral(Species, core_transport.core_transport_model_neutral)
     energy: CoreTransportModelEnergy
 
 
-class CoreTransportProfiles1D(WithDomain, core_transport.core_transport_model_profiles_1d, domain="grid"):
+class CoreTransportProfiles1D(
+    WithDomain, core_transport.core_transport_model_profiles_1d, domain="grid/rho_tor_norm"
+):
 
     grid: CoreRadialGrid
     """ Radial grid"""
@@ -70,11 +72,15 @@ class CoreTransportProfiles1D(WithDomain, core_transport.core_transport_model_pr
     @sp_property
     def grid_flux(self) -> CoreRadialGrid:
         rho_tor_norm = self.grid.rho_tor_norm
-        return self.grid.fetch(0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
+        return self.grid.remesh(rho_tor_norm=0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
 
     electrons: CoreTransportElectrons
     ion: Set[CoreTransportIon]
     neutral: Set[CoreTransportNeutral]
+
+    rho_tor_norm: Expression = sp_property(alias="grid/rho_tor_norm", label=r"$\bar{\rho}_{tor}$", units="-")
+
+    conductivity_parallel: Expression = sp_property(label=r"$\sigma_{\parallel}$", units=r"$\Omega^{-1}\cdot m^{-1}$")
 
 
 class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_profiles_2d, domain="grid"):
@@ -82,7 +88,7 @@ class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_pr
 
 
 class CoreTransportModel(
-    FyModule,
+    FyEntity,
     WithCategory,
     Actor,
     plugin_prefix="core_transport/model/",
@@ -98,14 +104,14 @@ class CoreTransportModel(
 
     vacuum_toroidal_field: VacuumToroidalField
 
-    Profiles1D: CoreTransportProfiles1D
+    Profiles1D = CoreTransportProfiles1D
     profiles_1d: CoreTransportProfiles1D
 
-    Profiles2D: CoreTransportProfiles2D
+    Profiles2D = CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
     def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        current: CoreTransportModel = CoreTransportModel(super().execute(*args, **kwargs))
+        current = super().execute(*args, **kwargs)
 
         current.vacuum_toroidal_field = equilibrium.vacuum_toroidal_field
 

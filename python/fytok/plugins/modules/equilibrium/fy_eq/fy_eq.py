@@ -164,23 +164,23 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     #     surfs = GeoObjectSet([surf for _, surf in self.find_surfaces(psi_norm)])
     #     return CurvilinearMesh(psi_norm, theta, geometry=surfs, periods=[False, 2.0 * scipy.constants.pi])
 
-    @sp_property(mesh="grid")
+    @sp_property
     def r(self) -> Field:
         return self.grid.points[0]
 
-    @sp_property(mesh="grid")
+    @sp_property
     def z(self) -> Field:
         return self.grid.points[1]
 
-    @sp_property(mesh="grid")
+    @sp_property
     def jacobian(self) -> Field:
         raise NotImplementedError(f"")
 
-    @sp_property(mesh="grid")
+    @sp_property
     def tensor_covariant(self) -> Field:
         raise NotImplementedError(f"")
 
-    @sp_property(mesh="grid")
+    @sp_property
     def tensor_contravariant(self) -> Field:
         raise NotImplementedError(f"")
 
@@ -830,14 +830,20 @@ class FyEq(equilibrium.Equilibrium, code={"name": "fy_eq"}):
 
     """
 
+    GlobalQuantities = FyEqGlobalQuantities
     global_quantities: FyEqGlobalQuantities
 
+    Profiles1D = FyEqProfiles1D
     profiles_1d: FyEqProfiles1D
 
+    Profiles2D = FyEqProfiles2D
     profiles_2d: FyEqProfiles2D
 
+    Boundary = FyEqBoundary
     boundary: FyEqBoundary
 
+    BoundarySeparatrix = FyEqBoundarySeparatrix
     boundary_separatrix: FyEqBoundarySeparatrix
 
+    CoordinateSystem = FyEqCoordinateSystem
     coordinate_system: FyEqCoordinateSystem

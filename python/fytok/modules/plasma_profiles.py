@@ -5,7 +5,7 @@ from spdm.core.sp_tree import SpTree
 from spdm.core.mesh import Mesh
 from spdm.model.entity import Entity
 
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 from fytok.modules.utilities import VacuumToroidalField
 
 
@@ -21,7 +21,7 @@ class PlasmaProfiles2D(WithDomain, SpTree, domain="grid"):
     grid: Mesh
 
 
-class PlasmaProfiles(IDS, FyModule, SpacetimeVolume, Entity, code={"name": "plasma_profiles"}):
+class PlasmaProfiles(IDS, FyEntity, SpacetimeVolume, Entity, code={"name": "plasma_profiles"}):
     """
     Plasma profiles core+edge
     """

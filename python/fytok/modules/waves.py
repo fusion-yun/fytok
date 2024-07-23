@@ -1,13 +1,13 @@
 import typing
 
 from spdm.model.actor import Actor
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import waves
 
 
 class Waves(
     IDS,
-    FyModule,
+    FyEntity,
     Actor,
     waves.waves,
     plugin_prefix="waves/",

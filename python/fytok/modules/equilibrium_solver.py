@@ -18,7 +18,7 @@ from fytok.modules.wall import Wall
 from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 from fytok.modules.utilities import CoreRadialGrid
 
@@ -31,7 +31,7 @@ class EequilibriumConstraints(equilibrium.equilibrium_constraints):
 
 class EquilibriumSolver(
     IDS,
-    FyModule,
+    FyEntity,
     Process,
     plugin_prefix="equilibrium_solver/",
 ):

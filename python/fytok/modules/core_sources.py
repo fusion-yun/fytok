@@ -13,7 +13,7 @@ from spdm.model.entity import Entity
 from spdm.model.port import Ports
 from spdm.model.actor import Actor
 
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies, Species
 from fytok.modules.core_profiles import CoreProfiles
@@ -111,13 +111,13 @@ class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profile
 
 
 class CoreSourcesSource(
-    FyModule,
+    FyEntity,
     WithCategory,
     Actor,
     plugin_prefix="core_sources/source/",
 ):
 
-    class InPorts(Ports):
+    class InPorts(Actor.InPorts):
         equilibrium: Equilibrium
         core_profiles: CoreProfiles
 
@@ -134,15 +134,15 @@ class CoreSourcesSource(
     Profiles2D = CoreSourcesProfiles2D
     profiles_2d: CoreSourcesProfiles2D
 
-    def refresh(self, *args, psi_norm=None, radial_grid=None, **kwargs) -> typing.Self:
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
 
-        if psi_norm is None:
-            psi_norm = self.in_ports.core_profiles.profiles_1d.psi_norm
+        res = super().execute(*args, **kwargs)
 
-        if radial_grid is None:
-            radial_grid = self.in_ports.equilibrium.profiles_1d.grid.fetch(psi_norm)
+        rho_tor_norm = core_profiles.profiles_1d.grid.psi_norm
 
-        return super().refresh({"profiles_1d": {"psi_norm": psi_norm, "grid": radial_grid}}, *args, **kwargs)
+        res.profiles_1d.grid = equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
+
+        return res
 
 
 class CoreSources(IDS, Entity, plugin_name="core_sources"):

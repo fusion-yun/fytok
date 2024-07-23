@@ -13,10 +13,8 @@ from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
 
-from spdm.model.entity import Entity
 
-
-from fytok.utils.base import IDS, FyModule, Identifier
+from fytok.utils.base import IDS, Identifier, FyEntity
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
 from fytok.ontology import equilibrium
@@ -320,10 +318,9 @@ class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):
 
 
 class Equilibrium(
+    FyEntity,
     IDS,
-    FyModule,
     WithHistory,
-    Entity,
     plugin_prefix="equilibrium/",
     plugin_default="fy_eq",
     code={"name": "equilibrium"},

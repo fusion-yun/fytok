@@ -1,11 +1,11 @@
 from spdm.model.component import Component
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 
 from fytok.ontology import ic_antennas
 
 
-class ICAntennas(IDS, FyModule, Component, ic_antennas.ic_antennas):
+class ICAntennas(IDS, FyEntity, Component, ic_antennas.ic_antennas):
     def __view__(self, view="RZ", **styles):
 
         geo = {}

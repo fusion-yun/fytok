@@ -1,7 +1,7 @@
 from functools import cached_property
 
 from spdm.model.context import Context
-from spdm.core.obsolete.sp_tree import sp_tree
+from spdm.core.sp_tree import sp_tree
 
 from .pulse_schedule import PulseSchedule
 

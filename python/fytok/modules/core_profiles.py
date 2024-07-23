@@ -11,7 +11,7 @@ from spdm.core.history import WithHistory
 from spdm.model.entity import Entity
 
 from fytok.utils.logger import logger
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 
 from fytok.modules.utilities import (
@@ -172,7 +172,7 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     ion_time_slice: float = sp_property(units="s")
 
 
-class CoreProfiles1D(WithDomain, core_profiles.core_profiles_profiles_1d, domain="grid/rho_tor_norm"):
+class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     grid: CoreRadialGrid = {"primary_coordinate": "rho_tor_norm"}
 
@@ -410,7 +410,7 @@ class CoreProfiles2D(WithDomain, domain="grid"):
     """Total parallel pressure (electrons+ions, thermal+non-thermal) {dynamic} [Pa]"""
 
 
-class CoreProfiles(IDS, FyModule, WithHistory, Entity, plugin_name="core_profiles"):
+class CoreProfiles(FyEntity, IDS, WithHistory, code={"name": "core_profiles"}):
     """
     Core plasma profiles
     """

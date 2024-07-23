@@ -7,7 +7,7 @@ from spdm.model.context import Context
 
 # ---------------------------------
 from fytok.utils.envs import *
-from fytok.utils.base import IDS, FyModule
+from fytok.utils.base import IDS, FyEntity
 
 # ---------------------------------
 from fytok.modules.dataset_fair import DatasetFAIR
@@ -41,7 +41,7 @@ from fytok.modules.equilibrium_solver import EquilibriumSolver
 # ---------------------------------
 
 
-class Tokamak(IDS, FyModule, Context, code={"name": "fy_tok"}):
+class Tokamak(FyEntity, IDS, Context, code={"name": "fy_tok"}):
 
     def __init__(
         self,
@@ -132,6 +132,6 @@ class Tokamak(IDS, FyModule, Context, code={"name": "fy_tok"}):
     def solve(self, *args, **kwargs) -> None:
         solver_1d = self.transport_solver.refresh(*args, time=self.time, **kwargs)
         profiles_1d = self.transport_solver.fetch()
-        self.core_profiles["profiles_1d"] = profiles_1d
+        self.core_profiles.profiles_1d = profiles_1d
 
         return solver_1d
