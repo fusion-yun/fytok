@@ -1,4 +1,4 @@
-import typing
+"""NBI"""
 
 from spdm.model.component import Component
 from spdm.geometry.line import Line
@@ -19,12 +19,14 @@ def draw_nbi_unit(unit: nbi._T_nbi_unit, name: str):
     return geo
 
 
-class NBI(IDS, FyEntity, Component, nbi.nbi):
+class NBI(FyEntity, IDS, Component, nbi.nbi):
+    """NBI"""
+
     def __view__(self, view_point="RZ", **styles):
-        geo = {}
+        geo = {"$styles": styles}
 
         match view_point.lower():
             case "top":
                 geo["unit"] = [draw_nbi_unit(unit) for unit in self.unit]
 
-        return geo, styles
+        return geo

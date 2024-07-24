@@ -1,3 +1,4 @@
+
 import numpy as np
 
 from spdm.utils.tags import _not_found_
@@ -7,7 +8,7 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.numlib.polynomial import Polynomials
 
 
-from fytok.ontology import amns_data
+# from fytok.ontology import amns_data
 
 
 class AMNSProcess(SpTree):
@@ -21,16 +22,16 @@ class AMNSProcess(SpTree):
         type="chebyshev",
         preprocess=(lambda x: -1.0 + 2 * np.log(np.abs(x) / 50) / np.log(1000)),  # domain 50eV ~ 50000eV
         postprocess=(lambda y: np.exp(y) / (1.6022e-12 * 1.0e6)),  # change units erg.cm^-3/s => eV.m^-3/s
-    )
+    )  # type:ignore
 
 
 class AMNS(Dict[AMNSProcess]):
-    def _find_(self, key: str, *args, **kwargs) -> AMNSProcess:
-        _key = key
-        while isinstance(_key, str):
-            res = self.get_cache(_key, _not_found_)
+    def _find_(self, key: str) -> AMNSProcess:
+        res = _not_found_
+        while isinstance(key, str):
+            res = self.get_cache(key, _not_found_)
             if isinstance(res, str):
-                _key = res
+                key = res
             else:
                 break
 
@@ -304,16 +305,3 @@ amns = AMNS(
         "T": "H",
     }
 )
-
-
-if __name__ == "__main__":
-    from fytok.modules.amns_data import amns
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    x = np.linspace(200, 10000)
-    for s in ["H", "D", "He"]:
-        plt.plot(x, amns[s].radiation(x), label=s)
-    plt.ylabel(r"$ev \cdot m^{3}/s$")
-    plt.xlabel("$T[eV]$")
-    plt.legend()

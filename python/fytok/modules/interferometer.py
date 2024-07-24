@@ -1,3 +1,5 @@
+""" Interferometer module """
+
 from spdm.geometry.line import Line
 from spdm.utils.tags import _not_found_
 from spdm.model.component import Component
@@ -6,9 +8,9 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import interferometer
 
 
-class Interferometer(IDS, FyEntity, Component, interferometer.interferometer):
+class Interferometer(FyEntity, IDS, Component, interferometer.Interferometer):
     def __view__(self, view_point="RZ", **kwargs) -> dict:
-        geo = {**kwargs}
+        geo = {"$styles": kwargs}
         match view_point.lower():
             case "rz":
                 if self.channel is not _not_found_:

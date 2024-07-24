@@ -7,5 +7,5 @@ from fytok.ontology import distributions
 _TSlice = typing.TypeVar("_TSlice")
 
 
-class Distributions(IDS, FyEntity, Actor[_TSlice], distributions._T_distributions):
+class Distributions(FyEntity, IDS, Actor[_TSlice], distributions._T_distributions):
     pass

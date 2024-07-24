@@ -1,12 +1,17 @@
+""" Description of a 2D, axi-symmetric, tokamak equilibrium; result of an equilibrium code.
+"""
+
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
+from spdm.core.path import Path
+from spdm.core.entry import as_entry
 from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
-from spdm.core.history import WithHistory
+from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain, MultiDomains
 
 from spdm.geometry.curve import Curve
@@ -21,6 +26,8 @@ from fytok.ontology import equilibrium
 
 
 class EquilibriumBoundary(equilibrium.equilibrium_boundary):
+    """Boundary of the equilibrium"""
+
     type: int
 
     outline: Curve
@@ -61,6 +68,8 @@ class EquilibriumBoundary(equilibrium.equilibrium_boundary):
 
 
 class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix):
+    """Boundary of the equilibrium"""
+
     type: int
 
     outline: Curve
@@ -101,6 +110,7 @@ class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix)
 
 
 class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate_system, domain="grid"):
+    """Coordinate system of the equilibrium"""
 
     grid: Mesh
 
@@ -116,6 +126,8 @@ class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate
 
 
 class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
+    """Global quantities of the equilibrium"""
+
     psi_axis: float = sp_property(units="Wb")
 
     psi_boundary: float = sp_property(units="Wb")
@@ -221,7 +233,7 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     @sp_property
     def geometric_axis(self) -> PointRZ:
-        return (self.major_radius, self.magnetic_z)
+        return PointRZ(self.major_radius, self.magnetic_z)
 
     minor_radius: Expression = sp_property(units="m")
 
@@ -245,23 +257,23 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     squareness_lower_outer: Expression
 
-    squareness: Expression = sp_property(default_value=zero)
+    squareness: Expression = zero
 
-    volume: Expression = sp_property(units="m^3")
+    volume: Expression = sp_property(units=r"m^3")
 
     rho_volume_norm: Expression
 
-    dvolume_dpsi: Expression = sp_property(units="m^3 \cdot Wb^{-1}")
+    dvolume_dpsi: Expression = sp_property(units=r"m^3 \cdot Wb^{-1}")
 
-    dvolume_drho_tor: Expression = sp_property(units="m^2", label=r"V^{\prime}")
+    dvolume_drho_tor: Expression = sp_property(units=r"m^2", label=r"V^{\prime}")
 
-    area: Expression = sp_property(units="m^2")
+    area: Expression = sp_property(units=r"m^2")
 
-    darea_dpsi: Expression = sp_property(units="m^2 \cdot Wb^{-1}")
+    darea_dpsi: Expression = sp_property(units=r"m^2 \cdot Wb^{-1}")
 
-    darea_drho_tor: Expression = sp_property(units="m")
+    darea_drho_tor: Expression = sp_property(units=r"m")
 
-    surface: Expression = sp_property(units="m^2")
+    surface: Expression = sp_property(units=r"m^2")
 
     trapped_fraction: Expression
 
@@ -283,10 +295,11 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     beta_pol: Expression
 
-    mass_density: Expression = sp_property(units="kg \cdot m^{-3}")
+    mass_density: Expression = sp_property(units=r"kg \cdot m^{-3}")
 
 
 class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, domain="grid"):
+    """Profiles 2D"""
 
     type: Identifier
 
@@ -319,8 +332,8 @@ class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):
 
 class Equilibrium(
     FyEntity,
+    WithTime,
     IDS,
-    WithHistory,
     plugin_prefix="equilibrium/",
     plugin_default="fy_eq",
     code={"name": "equilibrium"},
@@ -373,13 +386,14 @@ class Equilibrium(
     """
 
     def __init__(self, *args, **kwargs) -> None:
+
         super().__init__(*args, **kwargs)
+
         if self._entry is not None:
-            time = self._cache.get("time", _not_found_)
-            if time is _not_found_:
-                self._entry = self._entry.child(["time_slice", -1])
-            else:
-                self._entry = self._entry.child(["time_slice", {"time": time}])
+            self._entry = self._entry.child(["time_slice", -1])
+            time = Path(["time"]).get(self._cache, _not_found_)
+            if time is not _not_found_:
+                self._entry = self._child({"time": time})
 
     vacuum_toroidal_field: VacuumToroidalField
 

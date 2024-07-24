@@ -3,17 +3,17 @@ from scipy.constants import pi
 
 from spdm.model.component import Component
 from spdm.geometry.polygon import Polygon
+
 from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import tf
 
 TWOPI = 2.0 * pi
 
 
-class TF(IDS, FyEntity, Component, tf.tf):
+class TF(FyEntity, IDS, Component, tf.tf):
 
     def __view__(self, view_point="RZ", **kwargs):
-        geo = {}
-        styles = kwargs
+        geo = {"$styles": kwargs}
         r0 = self.r0
 
         match view_point.lower():

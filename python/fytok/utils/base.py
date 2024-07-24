@@ -1,3 +1,16 @@
+"""
+This module contains the base classes and definitions for the fytok package.
+
+Classes:
+- IDSProperties: Represents the properties of an IDS (Integrated Development System).
+- Library: Represents a library used by the code.
+- Code: Represents a code module.
+- Identifier: Represents an identifier.
+- IDS: Abstract base class for IDS.
+- FyEntity: Represents an entity in the fytok package.
+
+"""
+
 import abc
 import typing
 from spdm.utils.type_hint import array_type
@@ -5,21 +18,27 @@ from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
 from spdm.core.htree import List
 from spdm.core.sp_tree import SpTree, sp_property
-from spdm.core.sp_object import SpObject
 from spdm.core.sp_tree import AttributeTree
-from spdm.core.spacetime import SpacetimeVolume
-from spdm.core.pluggable import Pluggable
 
 from spdm.model.entity import Entity
-from spdm.model.actor import Actor
-from spdm.model.context import Context
-from spdm.model.component import Component
+
 
 from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
-from fytok.utils.logger import logger
 
 
 class IDSProperties(SpTree):
+    """
+    Represents the properties of an IDS (Integrated Development System).
+
+    Attributes:
+    - comment: A comment for the IDS.
+    - homogeneous_time: The homogeneous time of the IDS.
+    - provider: The provider of the IDS.
+    - creation_date: The creation date of the IDS.
+    - version_put: The version put of the IDS.
+    - provenance: The provenance of the IDS.
+    """
+
     comment: str
     homogeneous_time: int
     provider: str
@@ -29,6 +48,17 @@ class IDSProperties(SpTree):
 
 
 class Library(SpTree):
+    """
+    Represents a library used by the code.
+
+    Attributes:
+    - name: The name of the library.
+    - commit: The commit of the library.
+    - version: The version of the library.
+    - repository: The repository of the library.
+    - parameters: The parameters of the library.
+    """
+
     name: str
     commit: str
     version: str = "0.0.0"
@@ -37,9 +67,23 @@ class Library(SpTree):
 
 
 class Code(SpTree):
+    """
+    Represents a code module.
+
+    Attributes:
+    - name: The name of the code.
+    - module_path: The module path of the code.
+    - commit: The commit of the code.
+    - version: The version of the code.
+    - copyright: The copyright of the code.
+    - repository: The repository of the code.
+    - output_flag: The output flag of the code.
+    - library: The libraries used by the code.
+    - parameters: The parameters of the code.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self._cache = Path().update(self._cache, self._parent._metadata.get("code", _not_found_))
 
     name: str = "unnamed"
@@ -63,6 +107,15 @@ class Code(SpTree):
 
 
 class Identifier(SpTree):
+    """
+    Represents an identifier.
+
+    Attributes:
+    - name: The name of the identifier.
+    - index: The index of the identifier.
+    - description: The description of the identifier.
+    """
+
     def __init__(self, *args, **kwargs):
         if len(args) == 0:
             pass
@@ -78,10 +131,24 @@ class Identifier(SpTree):
 
 
 class IDS(abc.ABC):
+    """
+    Abstract base class for IDS (Interface Data Structure).
+
+    Attributes:
+    - ids_properties: The properties of the IDS.
+    """
+
     ids_properties: IDSProperties
 
 
 class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
+    """
+    Represents an entity in the fytok package.
+
+    Attributes:
+    - identifier: The identifier of the entity.
+    - code: The code module of the entity.
+    """
 
     _plugin_registry = {}
 
@@ -97,11 +164,14 @@ class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
             plugin_name = Path("code/name").get(kwargs, None)
         super().__init_subclass__(plugin_name=plugin_name, **kwargs)
 
-    identifier: str = sp_property(alias="_metadata/identifier")
+    identifier: str = sp_property(alias="_metadata/identifier")  # type:ignore
     """模块标识符"""
 
     code: Code
     """代码信息"""
+
+    def __str__(self) -> str:
+        return str(self.code)
 
     def __hash__(self) -> int:
         label = self.identifier

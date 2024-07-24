@@ -3,7 +3,8 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import lh_antennas
 
 
-class LHAntennas(IDS, FyEntity, Component, lh_antennas.lh_antennas):
+class LHAntennas(FyEntity, IDS, Component, lh_antennas.lh_antennas):
+
     def __view__(self, view_point="RZ", **styles):
 
         geo = {}
@@ -11,5 +12,5 @@ class LHAntennas(IDS, FyEntity, Component, lh_antennas.lh_antennas):
             case "top":
                 geo["antenna"] = [antenna.name for antenna in self.antenna]
                 styles["antenna"] = {"$matplotlib": {"color": "blue"}, "text": True}
-
-        return geo, styles
+        geo["$styles"] = styles
+        return geo

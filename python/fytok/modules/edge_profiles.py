@@ -7,5 +7,5 @@ class EdgeProfilesTimeSlice(edge_profiles.EdgeProfilesTimeSlice):
     pass
 
 
-class EdgeProfiles(IDS, FyEntity, Actor, code={"name": "edge_profiles"}):
+class EdgeProfiles(FyEntity, IDS, Actor, code={"name": "edge_profiles"}):
     pass

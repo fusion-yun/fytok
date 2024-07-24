@@ -5,5 +5,5 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import gyrokinetics
 
 
-class Gyrokinetics(IDS, FyEntity, Actor, gyrokinetics.Gyrokinetics):
+class Gyrokinetics(FyEntity, IDS, Actor, gyrokinetics.Gyrokinetics):
     """回旋动理学"""

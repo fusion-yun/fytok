@@ -1,16 +1,15 @@
+"""Source terms for the core transport equations"""
+
 import typing
 
-from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import sp_property, SpTree
-from spdm.core.htree import List, Set
+from spdm.core.htree import Set
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
 from spdm.core.category import WithCategory
+from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
-from spdm.core.history import WithHistory
-
-from spdm.model.entity import Entity
-from spdm.model.port import Ports
+from spdm.model.process import ProcessBundle
 from spdm.model.actor import Actor
 
 from fytok.utils.base import IDS, FyEntity
@@ -74,6 +73,8 @@ class CoreSourcesGlobalQuantities(core_sources.core_sources_source_global):
 
 
 class CoreSourcesProfiles1D(WithDomain, core_sources.core_sources_source_profiles_1d, domain="rho_tor_norm"):
+    """Source terms profiles 1D"""
+
     grid: CoreRadialGrid
     """ Radial grid"""
 
@@ -121,7 +122,7 @@ class CoreSourcesSource(
         equilibrium: Equilibrium
         core_profiles: CoreProfiles
 
-    in_ports: InPorts
+    in_ports: InPorts  # type:ignore
 
     species: DistributionSpecies
 
@@ -134,9 +135,9 @@ class CoreSourcesSource(
     Profiles2D = CoreSourcesProfiles2D
     profiles_2d: CoreSourcesProfiles2D
 
-    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
 
-        res = super().execute(*args, **kwargs)
+        res = super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
         rho_tor_norm = core_profiles.profiles_1d.grid.psi_norm
 
@@ -145,5 +146,10 @@ class CoreSourcesSource(
         return res
 
 
-class CoreSources(IDS, Entity, plugin_name="core_sources"):
-    source: Set[CoreSourcesSource]
+class CoreSources(FyEntity, WithTime, IDS, Actor, code={"name": "core_sources"}):
+    """Source terms for the core transport equations"""
+
+    in_ports: CoreSourcesSource.InPorts  # type:ignore
+
+    Source = CoreSourcesSource
+    source: ProcessBundle[CoreSourcesSource]

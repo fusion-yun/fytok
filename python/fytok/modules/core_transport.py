@@ -6,11 +6,13 @@ from spdm.utils.tags import _not_found_
 from spdm.core.htree import Set
 from spdm.core.sp_tree import sp_property
 from spdm.core.expression import Expression
+from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
 from spdm.core.category import WithCategory
 
 from spdm.core.mesh import Mesh
 from spdm.model.actor import Actor
+from spdm.model.process import ProcessBundle
 
 from fytok.utils.base import IDS, FyEntity
 
@@ -93,6 +95,7 @@ class CoreTransportModel(
     Actor,
     plugin_prefix="core_transport/model/",
 ):
+    """CoreTransport Model """
 
     class InPorts(Actor.InPorts):
         core_profiles: CoreProfiles
@@ -110,8 +113,8 @@ class CoreTransportModel(
     Profiles2D = CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        current = super().execute(*args, **kwargs)
+    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+        current = super().refresh(*args, **kwargs)
 
         current.vacuum_toroidal_field = equilibrium.vacuum_toroidal_field
 
@@ -143,6 +146,9 @@ class CoreTransportModel(
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
 
 
-class CoreTransport(IDS):
+class CoreTransport(FyEntity, WithTime, IDS, Actor, code={"name": "core_transport"}):
+
+    in_ports: CoreTransportModel.InPorts  # type:ignore
+
     Model = CoreTransportModel
-    model: Set[CoreTransportModel]
+    model: ProcessBundle[CoreTransportModel]

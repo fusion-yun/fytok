@@ -3,7 +3,7 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import ec_launchers
 
 
-class ECLaunchers(IDS, FyEntity, Component, ec_launchers.ec_launchers):
+class ECLaunchers(FyEntity, IDS, Component, ec_launchers.ec_launchers):
     def __view__(self, view_point="RZ", **styles):
         geo = {}
 

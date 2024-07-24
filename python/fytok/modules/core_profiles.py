@@ -7,7 +7,7 @@ from spdm.core.sp_tree import sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
 from spdm.core.domain import WithDomain
-from spdm.core.history import WithHistory
+from spdm.core.time import WithTime
 
 from fytok.utils.logger import logger
 from fytok.utils.base import IDS, FyEntity
@@ -253,13 +253,13 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     j_ohmic: Expression = sp_property(units="A/m^2")
 
-    @sp_property(units="A/m^2")
+    @sp_property(units=r"A/m^2")
     def j_non_inductive(self) -> Expression:
         return self.j_total - self.j_ohmic
 
     j_bootstrap: Expression = sp_property(units="A/m^2")
 
-    @sp_property(units="ohm^-1.m^-1")
+    @sp_property(units=r"ohm^-1.m^-1")
     def conductivity_parallel(self) -> Expression:
         return self.j_ohmic / self.e_field.parallel
 
@@ -268,7 +268,7 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
         diamagnetic: Expression
 
-        parallel: Expression
+        # parallel: Expression
 
         poloidal: Expression
 
@@ -334,7 +334,9 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
         return (14.9 - 0.5 * np.log(ne / 1e20) + np.log(Te / 1000)) * (Te < 10) + (
             15.2 - 0.5 * np.log(ne / 1e20) + np.log(Te / 1000)
-        ) * (Te >= 10)
+        ) * (
+            Te >= 10
+        )  # type:ignore
 
     @sp_property
     def electron_collision_time(self) -> Expression:
@@ -406,7 +408,7 @@ class CoreProfiles2D(WithDomain, domain="grid"):
     """Total parallel pressure (electrons+ions, thermal+non-thermal) {dynamic} [Pa]"""
 
 
-class CoreProfiles(FyEntity, IDS, WithHistory, code={"name": "core_profiles"}):
+class CoreProfiles(FyEntity, WithTime, IDS, code={"name": "core_profiles"}):
     """
     Core plasma profiles
     """

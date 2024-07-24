@@ -1,18 +1,18 @@
-from spdm.utils.tags import _not_found_
+""" Wall module"""
 
+from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
 from spdm.model.component import Component
 
 from spdm.geometry.circle import Circle
 from spdm.geometry.polyline import Polyline
 
-from fytok.utils.logger import logger
 from fytok.utils.base import IDS, FyEntity
 
 from fytok.ontology import wall
 
 
-class Wall(IDS, FyEntity, Component, wall.Wall):
+class Wall(FyEntity, IDS, Component, wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
     Description2D = wall.wall_2d

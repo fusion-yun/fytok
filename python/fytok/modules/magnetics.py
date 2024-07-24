@@ -1,5 +1,6 @@
-from spdm.utils.tags import _not_found_
+"""Magnetic diagnostics for equilibrium identification and plasma shape control."""
 
+from spdm.utils.tags import _not_found_
 from spdm.geometry.point import Point
 from spdm.model.component import Component
 
@@ -7,7 +8,7 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import magnetics
 
 
-class Magnetics(IDS, FyEntity, Component, magnetics.magnetics):
+class Magnetics(FyEntity, IDS, Component, magnetics.Magnetics):
     """Magnetic diagnostics for equilibrium identification and plasma shape control."""
 
     def __view__(self, view_point="RZ", **styles):

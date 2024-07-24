@@ -1,29 +1,31 @@
-import typing
+""" 等离子体分布 core+edge """
+
+from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
-from spdm.core.spacetime import SpacetimeVolume
 from spdm.core.sp_tree import SpTree
 from spdm.core.mesh import Mesh
-from spdm.model.entity import Entity
 
 from fytok.utils.base import IDS, FyEntity
 from fytok.modules.utilities import VacuumToroidalField
 
 
 class PlasmaGlobalQuantities(SpTree):
-    pass
+    """零维量"""
 
 
 class PlasmaProfiles1D(WithDomain, SpTree, domain="psi_norm"):
-    pass
+    """一维分布磁面"""
 
 
 class PlasmaProfiles2D(WithDomain, SpTree, domain="grid"):
+    """二维分布"""
+
     grid: Mesh
 
 
-class PlasmaProfiles(IDS, FyEntity, SpacetimeVolume, Entity, code={"name": "plasma_profiles"}):
+class PlasmaProfiles(FyEntity, WithTime, IDS, code={"name": "plasma_profiles"}):
     """
-    Plasma profiles core+edge
+    等离子体分布 core+edge
     """
 
     vacuum_toroidal_field: VacuumToroidalField

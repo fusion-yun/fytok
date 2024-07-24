@@ -1,12 +1,14 @@
+""" Tokamak
+    用于集成子模块，以实现工作流。
+
+"""
+
 import typing
-
-from spdm.core.htree import Set
-from spdm.core.history import WithHistory
-
 from spdm.model.context import Context
+from spdm.core.time import WithTime
 
 # ---------------------------------
-from fytok.utils.envs import *
+# from fytok.utils.envs import *
 from fytok.utils.base import IDS, FyEntity
 
 # ---------------------------------
@@ -15,8 +17,8 @@ from fytok.modules.summary import Summary
 
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSourcesSource
-from fytok.modules.core_transport import CoreTransportModel
+from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_transport import CoreTransport
 
 from fytok.modules.ec_launchers import ECLaunchers
 from fytok.modules.ic_antennas import ICAntennas
@@ -41,7 +43,8 @@ from fytok.modules.equilibrium_solver import EquilibriumSolver
 # ---------------------------------
 
 
-class Tokamak(FyEntity, IDS, Context, code={"name": "fy_tok"}):
+class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
+    """Tokamak 整合子模块"""
 
     def __init__(
         self,
@@ -97,8 +100,8 @@ class Tokamak(FyEntity, IDS, Context, code={"name": "fy_tok"}):
     equilibrium             : Equilibrium
     core_profiles           : CoreProfiles
 
-    core_transport          : Set[CoreTransportModel]
-    core_sources            : Set[CoreSourcesSource]
+    core_transport          : CoreTransport
+    core_sources            : CoreSources
 
     # edge_profiles         : EdgeProfiles
     # edge_transport        : EdgeTransport
@@ -115,7 +118,7 @@ class Tokamak(FyEntity, IDS, Context, code={"name": "fy_tok"}):
         return f"""------------------------------------------------------------------------------------------------------------------------
 {self.dataset_fair}
 ------------------------------------------------------------------------------------------------------------------------
-{super().__str__()}
+{Context.__str__(self)}
 ------------------------------------------------------------------------------------------------------------------------
 """
 
@@ -129,9 +132,11 @@ class Tokamak(FyEntity, IDS, Context, code={"name": "fy_tok"}):
         """当前状态标签，由程序版本、用户名、时间戳等信息确定"""
         return f"{self.dataset_fair.tag}_{int(self.time*100):06d}"
 
-    def solve(self, *args, **kwargs) -> None:
-        solver_1d = self.transport_solver.refresh(*args, time=self.time, **kwargs)
-        profiles_1d = self.transport_solver.fetch()
-        self.core_profiles.profiles_1d = profiles_1d
+    def refresh(self, *args, **kwargs) -> typing.Self:
 
-        return solver_1d
+        self.core_transport.refresh()
+        self.core_sources.refresh()
+        self.transport_solver.refresh()
+        self.equilibrium_solver.refresh()
+
+        return super().refresh(*args, **kwargs)

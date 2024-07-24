@@ -1,3 +1,5 @@
+""" Utilities/Common modules """
+
 import abc
 import typing
 import numpy as np
@@ -9,6 +11,7 @@ from spdm.core.sp_tree import SpTree, sp_property
 from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
+
 from fytok.utils.atoms import atoms
 
 
@@ -62,7 +65,7 @@ class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
             phi_boundary=self.phi_boundary,
             rho_tor_boundary=self.rho_tor_boundary,
             primary_coordinate=primary_coordinate or self.primary_coordinate,
-        )
+        )  # type:ignore
 
     primary_coordinate: str = "psi_norm"
 

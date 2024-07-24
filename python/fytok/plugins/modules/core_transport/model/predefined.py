@@ -1,8 +1,8 @@
 import collections
-
+import typing
 import numpy as np
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransportModel
+from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from spdm.utils.logger import logger
 from spdm.utils.type_hint import array_type
@@ -10,21 +10,19 @@ from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import sp_tree
 
 
-class PredefinedTransport(CoreTransportModel, identifier="predefined", code={"name": "predifined"}):
-    """ """
+class PredefinedTransport(CoreTransport.Model, category="predefined", code={"name": "predefined"}):
+    """Predefined transport model"""
 
-    def fetch(self, profiles_1d: CoreProfiles.Profiles1D, *args, **kwargs) -> CoreTransportModel:
-        current: CoreTransportModel = super().fetch(*args, **kwargs)
+    def execute(self, *args, core_profiles: CoreProfiles, equilibrium: Equilibrium, **kwargs) -> typing.Self:
+        current = super().execute(*args, core_profiles=core_profiles, **kwargs)
 
-        rho_tor_norm = profiles_1d.rho_tor_norm
+        rho_tor_norm = current.profiles_1d.grid.rho_torm_norm
 
-        eq: Equilibrium.TimeSlice = self.inports["equilibrium/time_slice/current"].fetch()
+        eq_1d = equilibrium.profiles_1d
 
-        eq_1d = eq.profiles_1d
+        B0 = np.abs(equilibrium.vacuum_toroidal_field.b0)
 
-        B0 = np.abs(eq.vacuum_toroidal_field.b0)
-
-        R0 = eq.vacuum_toroidal_field.r0
+        R0 = equilibrium.vacuum_toroidal_field.r0
 
         # rho_tor_norm = Variable(0, name="rho_tor_norm", label=r"\bar{\rho}_{tor}")
 
@@ -51,18 +49,22 @@ class PredefinedTransport(CoreTransportModel, identifier="predefined", code={"na
 
         current.flux_multiplier = 3 / 2
 
-        current.profiles_1d.grid_d = eq_1d.grid
-        current.profiles_1d.electrons.particles.d = D
-        current.profiles_1d.electrons.particles.v = -v_pinch_ne
-        current.profiles_1d.electrons.energy.d = chi_e
-        current.profiles_1d.electrons.energy.v = -v_pinch_Te
+        prof_1d: CoreTransport.Model.Profiles1D = current.profiles_1d
 
-        current.profiles_1d.ion.extend(
-            [
-                {"@name": "D", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}},
-                {"@name": "T", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}},
-                {"@name": "He", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}},
-            ]
+        prof_1d.grid_d = eq_1d.grid
+        prof_1d.electrons.particles.d = D
+        prof_1d.electrons.particles.v = -v_pinch_ne
+        prof_1d.electrons.energy.d = chi_e
+        prof_1d.electrons.energy.v = -v_pinch_Te
+
+        prof_1d.ion.insert(
+            {"name": "D", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}}
+        )
+        prof_1d.ion.insert(
+            {"name": "T", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}}
+        )
+        prof_1d.ion.insert(
+            {"name": "He", "particles": {"d": D, "v": -v_pinch_ni}, "energy": {"d": chi, "v": -v_pinch_Ti}}
         )
 
         return current
