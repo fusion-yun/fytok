@@ -183,7 +183,7 @@ class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
     plasma_resistance: float = sp_property(units="ohm")
 
 
-class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
+class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="grid"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -209,13 +209,13 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     pressure: Expression = sp_property(units="Pa", label="P")
 
-    dpressure_dpsi: Expression = sp_property(units="Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
+    dpressure_dpsi: Expression = sp_property(units=r"Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
 
     f: Expression = sp_property(units="T.m")
 
-    f_df_dpsi: Expression = sp_property(units="T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
+    f_df_dpsi: Expression = sp_property(units=r"T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
 
-    j_tor: Expression = sp_property(units="A \cdot m^{-2}")
+    j_tor: Expression = sp_property(units=r"A \cdot m^{-2}")
 
     j_parallel: Expression = sp_property(units="A/m^2")
 
@@ -386,7 +386,6 @@ class Equilibrium(
     """
 
     def __init__(self, *args, **kwargs) -> None:
-
         super().__init__(*args, **kwargs)
 
         if self._entry is not None:

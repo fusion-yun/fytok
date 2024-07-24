@@ -1,3 +1,5 @@
+""" 输运求解器 """
+
 import typing
 from scipy import constants
 
@@ -7,12 +9,12 @@ from spdm.core.expression import Expression
 from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
 
 from spdm.model.process import Process
-from spdm.model.port import Ports
+
 
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSourcesSource
-from fytok.modules.core_transport import CoreTransportModel
+from fytok.modules.core_sources import CoreSources
+from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 from fytok.utils.base import IDS, FyEntity
 
@@ -83,26 +85,26 @@ class TransportSolverEquation(SpTree):
 
 
 class TransportSolver(
-    IDS,
     FyEntity,
+    IDS,
     Process,
     plugin_prefix="transport_solver/",
     plugin_default="fy_trans",
 ):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
-    class InPorts(Ports):
+    class InPorts(Process.InPorts):
         equilibrium: Equilibrium
         core_profiles: CoreProfiles
-        core_transport: List[CoreTransportModel]
-        core_sources: List[CoreSourcesSource]
+        core_transport: CoreTransport
+        core_sources: CoreSources
 
-    class OutPorts(Ports):
+    class OutPorts(Process.OutPorts):
         core_profiles: CoreProfiles
 
-    in_ports: InPorts
+    in_ports: InPorts  # type:ignore
 
-    out_ports: OutPorts
+    out_ports: OutPorts  # type:ignore
 
     profiles_1d: CoreProfiles.Profiles1D
 
@@ -137,18 +139,26 @@ class TransportSolver(
 
     variables: Dict[Expression]
 
-    def execute(self, *args, **kwargs) -> CoreProfiles:
+    def refresh(self, *args, **kwargs) -> OutPorts:
 
         logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
 
-        res = CoreProfiles(super().execute(*args, **kwargs))
+        super().refresh(*args, **kwargs)
 
-        res.profiles_1d = self.in_ports.core_profiles.profiles_1d.__getstate__()
+        equilibrium = self.in_ports.equilibrium
 
-        rho_tor_norm = res.profiles_1d.rho_tor_norm
+        core_profiles_in = self.in_ports.core_profiles
 
-        grid = self.in_ports.equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
+        core_profiles_out = self.out_ports.core_profiles
 
-        res.profiles_1d.grid = grid
+        core_profiles_out.time = equilibrium.time
+        core_profiles_out.vacuum_toroidal_field.r0 = equilibrium.vacuum_toroidal_field.r0
+        core_profiles_out.vacuum_toroidal_field.b0 = equilibrium.vacuum_toroidal_field.b0
+        
+        # rho_tor_norm = core_profiles_in.profiles_1d.grid.rho_tor_norm
+        # grid = equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
+        # core_profiles_out.profiles_1d.grid = grid
 
-        return res
+        core_profiles_out.profiles_1d.ion = [ion.label for ion in core_profiles_in.profiles_1d.ion]
+
+        return self.out_ports

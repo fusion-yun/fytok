@@ -12,6 +12,7 @@ from spdm.core.category import WithCategory
 
 from spdm.core.mesh import Mesh
 from spdm.model.actor import Actor
+from spdm.model.context import Context
 from spdm.model.process import ProcessBundle
 
 from fytok.utils.base import IDS, FyEntity
@@ -95,7 +96,7 @@ class CoreTransportModel(
     Actor,
     plugin_prefix="core_transport/model/",
 ):
-    """CoreTransport Model """
+    """CoreTransport Model"""
 
     class InPorts(Actor.InPorts):
         core_profiles: CoreProfiles
@@ -146,7 +147,7 @@ class CoreTransportModel(
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
 
 
-class CoreTransport(FyEntity, WithTime, IDS, Actor, code={"name": "core_transport"}):
+class CoreTransport(FyEntity, WithTime, IDS, Context, code={"name": "core_transport"}):
 
     in_ports: CoreTransportModel.InPorts  # type:ignore
 

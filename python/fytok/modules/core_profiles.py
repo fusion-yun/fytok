@@ -172,6 +172,7 @@ class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
 
 
 class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
+    """Core Profiles 1D"""
 
     grid: CoreRadialGrid = {"primary_coordinate": "rho_tor_norm"}
 
@@ -191,7 +192,7 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
 
     @sp_property
     def zeff(self) -> Expression:
-        return sum([((ion.z_ion_1d**2) * ion.density) for ion in self.ion]) / self.n_i_total
+        return sum(((ion.z_ion_1d**2) * ion.density) for ion in self.ion) / self.n_i_total
 
     @sp_property
     def pressure(self) -> Expression:

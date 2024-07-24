@@ -53,19 +53,37 @@ class CoreRadialGrid(DomainPPoly, plugin_name="core_radial"):
     def remesh(self, primary_coordinate: str = None, **kwargs) -> typing.Self:
         """Duplicate the grid with new rho_tor_norm or psi_norm"""
 
-        axis_name, x1 = next(iter(kwargs.items()))
-        x0 = getattr(self, axis_name)
+        new_axis = _not_found_
 
-        return CoreRadialGrid(
-            psi_norm=Function(x0, self.psi_norm)(x1) if self.psi_norm is not _not_found_ else _not_found_,
-            rho_tor_norm=Function(x0, self.rho_tor_norm)(x1) if self.rho_tor_norm is not _not_found_ else _not_found_,
-            phi_norm=Function(x0, self.phi_norm)(x1) if self.phi_norm is not _not_found_ else _not_found_,
-            psi_axis=self.psi_axis,
-            psi_boundary=self.psi_boundary,
-            phi_boundary=self.phi_boundary,
-            rho_tor_boundary=self.rho_tor_boundary,
-            primary_coordinate=primary_coordinate or self.primary_coordinate,
-        )  # type:ignore
+        if primary_coordinate is None:
+            primary_coordinate, new_axis = next(iter(kwargs.items()))
+
+        if isinstance(new_axis, array_type):
+            old_axis = getattr(self, primary_coordinate)
+
+            assert isinstance(old_axis, array_type), f"Can not get x-axis {primary_coordinate}"
+
+            return CoreRadialGrid(
+                psi_norm=(
+                    Function(old_axis, self.psi_norm)(new_axis) if self.psi_norm is not _not_found_ else _not_found_
+                ),
+                rho_tor_norm=(
+                    Function(old_axis, self.rho_tor_norm)(new_axis)
+                    if self.rho_tor_norm is not _not_found_
+                    else _not_found_
+                ),
+                phi_norm=(
+                    Function(old_axis, self.phi_norm)(new_axis) if self.phi_norm is not _not_found_ else _not_found_
+                ),
+                psi_axis=self.psi_axis,
+                psi_boundary=self.psi_boundary,
+                phi_boundary=self.phi_boundary,
+                rho_tor_boundary=self.rho_tor_boundary,
+                primary_coordinate=primary_coordinate,
+            )  # type:ignore
+
+        else:
+            return CoreRadialGrid(**(self._cache | {"primary_coordinate": primary_coordinate}))
 
     primary_coordinate: str = "psi_norm"
 

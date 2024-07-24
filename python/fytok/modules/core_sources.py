@@ -11,6 +11,7 @@ from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
 from spdm.model.process import ProcessBundle
 from spdm.model.actor import Actor
+from spdm.model.context import Context
 
 from fytok.utils.base import IDS, FyEntity
 
@@ -146,7 +147,7 @@ class CoreSourcesSource(
         return res
 
 
-class CoreSources(FyEntity, WithTime, IDS, Actor, code={"name": "core_sources"}):
+class CoreSources(FyEntity, WithTime, IDS, Context, code={"name": "core_sources"}):
     """Source terms for the core transport equations"""
 
     in_ports: CoreSourcesSource.InPorts  # type:ignore
