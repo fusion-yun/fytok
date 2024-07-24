@@ -166,23 +166,23 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
 
     @sp_property
     def r(self) -> Field:
-        return self.grid.points[0]
+        return self.grid.coordinates[0]  # type:ignore
 
     @sp_property
     def z(self) -> Field:
-        return self.grid.points[1]
+        return self.grid.coordinates[1]  # type:ignore
 
     @sp_property
     def jacobian(self) -> Field:
-        raise NotImplementedError(f"")
+        raise NotImplementedError("")
 
     @sp_property
     def tensor_covariant(self) -> Field:
-        raise NotImplementedError(f"")
+        raise NotImplementedError("")
 
     @sp_property
     def tensor_contravariant(self) -> Field:
-        raise NotImplementedError(f"")
+        raise NotImplementedError("")
 
     ###############################
     # surface integral
@@ -419,12 +419,13 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
 
 
 class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
+    """Profiles 1d"""
 
     _profiles_2d: FyEqProfiles2D = sp_property(alias="../profiles_2d")
 
     _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
 
-    psi_norm: array_type
+    psi_norm: Expression = sp_property(alias="grid/psi_norm")
 
     f_df_dpsi: Expression
 
@@ -436,18 +437,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
 
     @sp_property
     def grid(self) -> CoreRadialGrid:
-        psi_norm = self.psi_norm
-        rho_tor_norm = self.rho_tor_norm(self.psi_norm)
-        if rho_tor_norm[0] < 0:
-            rho_tor_norm[0] = 0.0
-        return CoreRadialGrid(
-            psi_norm,
-            psi_norm=psi_norm,
-            psi_axis=self._coord.psi_axis,
-            psi_boundary=self._coord.psi_boundary,
-            rho_tor_norm=rho_tor_norm,
-            rho_tor_boundary=np.sqrt(np.abs(self.phi(self.psi_norm[-1]) / (scipy.constants.pi * self._coord.b0))),
-        )
+        return self._parent.coordinate_system.grid.remesh("psi_norm")
 
     @sp_property(label=r"\psi")
     def psi(self) -> Expression:

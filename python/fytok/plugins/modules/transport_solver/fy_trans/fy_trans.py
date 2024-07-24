@@ -356,7 +356,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         profiles_1d_out = core_profiles_out.profiles_1d
 
-        grid: CoreRadialGrid = equilibrium.profiles_1d_out.grid
+        grid: CoreRadialGrid = equilibrium.profiles_1d.grid
 
         rho_tor_norm = grid.rho_tor_norm
 

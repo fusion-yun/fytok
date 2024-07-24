@@ -47,9 +47,7 @@ def find_countours_skimage(vals: list, z: np.ndarray, x: np.ndarray, y: np.ndarr
     if z.shape == x.shape and z.shape == y.shape:
         pass
     else:
-        raise ValueError(
-            f"Array shape does not match! x:{x.shape} , y:{y.shape}, z:{z.shape} "
-        )
+        raise ValueError(f"Array shape does not match! x:{x.shape} , y:{y.shape}, z:{z.shape} ")
     shape = z.shape
     dim0 = np.linspace(0, shape[0] - 1, shape[0])
     dim1 = np.linspace(0, shape[1] - 1, shape[1])
@@ -83,25 +81,17 @@ def find_countours_skimage(vals: list, z: np.ndarray, x: np.ndarray, y: np.ndarr
 
 def find_contours(
     *args, values, **kwargs
-) -> typing.Generator[
-    typing.Tuple[float, typing.Generator[GeoObject | None, None, None]], None, None
-]:
+) -> typing.Generator[typing.Tuple[float, typing.Generator[GeoObject | None, None, None]], None, None]:
     if len(args) == 3:
         z, x, y = args
     elif len(args) == 1:
         if not isinstance(args[0], Field):
-            raise TypeError(
-                f"Wrong type of argument! should be Field, got {type(args[0])}"
-            )
+            raise TypeError(f"Wrong type of argument! should be Field, got {type(args[0])}")
         f = args[0]
-        xy = f.mesh.points
-        x = xy[0]
-        y = xy[1]
+        x, y = f.mesh.coordinates
         z = np.asarray(f)
     else:
-        raise ValueError(
-            f"Wrong number of arguments! should be 1 or 3, got {len(args)}"
-        )
+        raise ValueError(f"Wrong number of arguments! should be 1 or 3, got {len(args)}")
 
     yield from find_countours_skimage(values, z, x, y, **kwargs)
 
@@ -113,7 +103,7 @@ def find_critical_points(
 
     xpoints = []
 
-    R, Z = psi.mesh.points
+    R, Z = psi.mesh.coordinates
     _R = Variable(0, "R")
     Bp2 = (psi.pd(0, 1) ** 2 + psi.pd(1, 0) ** 2) / (_R**2)
 

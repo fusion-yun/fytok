@@ -120,9 +120,9 @@ class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate
 
     jacobian: Field = sp_property(units="mixed")
 
-    tensor_covariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_covariant: Field = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
-    tensor_contravariant: array_type = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_contravariant: Field = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
 
 class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
