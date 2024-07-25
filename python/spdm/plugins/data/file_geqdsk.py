@@ -1,12 +1,11 @@
+""" 访问 GEqdsk 文件 """
+
 import typing
 import pathlib
 import numpy as np
-from scipy import interpolate
 from spdm.core.entry import Entry, as_entry
 from spdm.core.file import File
-from spdm.core.field import Field
 from spdm.core.function import Function
-from spdm.core.path import as_path
 from spdm.utils.logger import logger
 
 
@@ -59,9 +58,7 @@ def sp_read_geqdsk(file):
             try:
                 v = float(d)
             except Exception as error:
-                raise RuntimeError(
-                    f"Error reading data {n} {count} {data[-4:]} '{d}'"
-                ) from error
+                raise RuntimeError(f"Error reading data {n} {count} {data[-4:]} '{d}'") from error
             data.append(v)
             if n >= count - 1 or ((n + 1) % 5 == 0):
                 file.readline()
@@ -137,18 +134,9 @@ def sp_write_geqdsk(p, file):
     nh = p["nh"]
 
     file.write("%48s%4i%4i%4i\n" % (p.get("description", "NO DESCRIPTION"), 3, nw, nh))
-    file.write(
-        "%16.8e%16.8e%16.8e%16.8e%16.8e\n"
-        % (p["rdim"], p["zdim"], p["rcentr"], p["rleft"], p["zmid"])
-    )
-    file.write(
-        "%16.8e%16.8e%16.8e%16.8e%16.8e\n"
-        % (p["rmaxis"], p["zmaxis"], p["simag"], p["sibry"], p["bcentr"])
-    )
-    file.write(
-        "%16.8e%16.8e%16.8e%16.8e%16.8e\n"
-        % (p["current"], p["simag"], 0, p["rmaxis"], 0)
-    )
+    file.write("%16.8e%16.8e%16.8e%16.8e%16.8e\n" % (p["rdim"], p["zdim"], p["rcentr"], p["rleft"], p["zmid"]))
+    file.write("%16.8e%16.8e%16.8e%16.8e%16.8e\n" % (p["rmaxis"], p["zmaxis"], p["simag"], p["sibry"], p["bcentr"]))
+    file.write("%16.8e%16.8e%16.8e%16.8e%16.8e\n" % (p["current"], p["simag"], 0, p["rmaxis"], 0))
     file.write("%16.8e%16.8e%16.8e%16.8e%16.8e\n" % (p["zmaxis"], 0, p["sibry"], 0, 0))
 
     def _write_data(d):
@@ -183,9 +171,7 @@ def sp_write_geqdsk(p, file):
 def sp_to_geqdsk(d, description: str | None = None, time_slice=0, **kwargs) -> dict:
     entry: Entry = as_entry(d)
 
-    geqdsk: dict = {
-        "description": description or entry.get("description", "NOTHING TO SAY")
-    }
+    geqdsk: dict = {"description": description or entry.get("description", "NOTHING TO SAY")}
 
     limiter_r = entry.get("wall/description_2d/0/limiter/unit/0/outline/r", None)
     limiter_z = entry.get("wall/description_2d/0/limiter/unit/0/outline/z", None)
@@ -217,18 +203,14 @@ def sp_to_geqdsk(d, description: str | None = None, time_slice=0, **kwargs) -> d
     rbbs = eq.get("boundary/outline/r", np.zeros([0]))
     zbbs = eq.get("boundary/outline/z", np.zeros([0]))
 
-    geqdsk["bbsrz"] = np.append(
-        rbbs.reshape([1, rbbs.size]), zbbs.reshape([1, rbbs.size]), axis=0
-    ).transpose()
+    geqdsk["bbsrz"] = np.append(rbbs.reshape([1, rbbs.size]), zbbs.reshape([1, rbbs.size]), axis=0).transpose()
 
     # psi
 
     psirz = eq.get("profiles_2d/psi")
 
     if eq.get("profiles_2d/grid_type/index", None) != 1:
-        raise NotImplementedError(
-            f"TODO: {eq.get('profiles_2d/grid_type/index', None)}"
-        )
+        raise NotImplementedError(f"TODO: {eq.get('profiles_2d/grid_type/index', None)}")
 
     dim1 = eq.get("profiles_2d/grid/dim1")
     dim2 = eq.get("profiles_2d/grid/dim2")
@@ -343,15 +325,7 @@ def sp_from_geqdsk(geqdsk: dict, eq: typing.Optional[Entry] = None) -> Entry:
     e_Bp_TWOPI = 1.0
     limrz = geqdsk.get("limrz", None)
     if isinstance(limrz, np.ndarray):
-        eq["wall"] = {
-            "description_2d": [
-                {
-                    "limiter": {
-                        "unit": [{"outline": {"r": limrz[:, 0], "z": limrz[:, 1]}}]
-                    }
-                }
-            ]
-        }
+        eq["wall"] = {"description_2d": [{"limiter": {"unit": [{"outline": {"r": limrz[:, 0], "z": limrz[:, 1]}}]}}]}
 
     eq["equilibrium/time"] = [0.0]
     eq["equilibrium/vacuum_toroidal_field/r0"] = r0
@@ -400,8 +374,11 @@ def sp_from_geqdsk(geqdsk: dict, eq: typing.Optional[Entry] = None) -> Entry:
                 },
             },
             "profiles_1d": {  # Profiles 1D
+                "grid": {
+                    "psi_axis": psi_axis,
+                    "psi_boundary": psi_boundary,
+                },
                 "psi_norm": np.linspace(0.0, 1.0, nw),
-                "psi": np.linspace(psi_axis, psi_boundary, nw),
                 "f": geqdsk["fpol"],
                 "f_df_dpsi": geqdsk["ffprim"],
                 "pressure": geqdsk["pres"],

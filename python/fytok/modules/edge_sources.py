@@ -2,7 +2,7 @@ from copy import copy, deepcopy
 import math
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import List, Dict
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 
 from spdm.core.aos import AoS
 from spdm.core.expression import Expression, Variable, zero, one

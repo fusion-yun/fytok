@@ -4,7 +4,7 @@ import numpy as np
 
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import Set
-from spdm.core.sp_tree import sp_property
+from spdm.core.sp_tree import annotation, sp_property
 from spdm.core.expression import Expression
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
@@ -25,21 +25,21 @@ from fytok.ontology import core_transport
 
 
 class CoreTransportModelParticles(core_transport.core_transport_model_2_density):
-    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
+    d: Expression = annotation(domain=".../grid_d/rho_tor_norm")
+    v: Expression = annotation(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = annotation(domain=".../grid_flux/rho_tor_norm")
 
 
 class CoreTransportModelEnergy(core_transport.core_transport_model_2_energy):
-    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
+    d: Expression = annotation(domain=".../grid_d/rho_tor_norm")
+    v: Expression = annotation(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = annotation(domain=".../grid_flux/rho_tor_norm")
 
 
 class CoreTransportModelMomentum(core_transport.core_transport_model_4_momentum):
-    d: Expression = sp_property(domain=".../grid_d/rho_tor_norm")
-    v: Expression = sp_property(domain=".../grid_v/rho_tor_norm")
-    flux: Expression = sp_property(domain=".../grid_flux/rho_tor_norm")
+    d: Expression = annotation(domain=".../grid_d/rho_tor_norm")
+    v: Expression = annotation(domain=".../grid_v/rho_tor_norm")
+    flux: Expression = annotation(domain=".../grid_flux/rho_tor_norm")
 
 
 class CoreTransportElectrons(
@@ -68,9 +68,9 @@ class CoreTransportProfiles1D(
     grid: CoreRadialGrid
     """ Radial grid"""
 
-    grid_d: CoreRadialGrid = sp_property(alias="grid")
+    grid_d: CoreRadialGrid = annotation(alias="grid")
 
-    grid_v: CoreRadialGrid = sp_property(alias="grid")
+    grid_v: CoreRadialGrid = annotation(alias="grid")
 
     @sp_property
     def grid_flux(self) -> CoreRadialGrid:
@@ -81,9 +81,9 @@ class CoreTransportProfiles1D(
     ion: Set[CoreTransportIon]
     neutral: Set[CoreTransportNeutral]
 
-    rho_tor_norm: Expression = sp_property(alias="grid/rho_tor_norm", label=r"$\bar{\rho}_{tor}$", units="-")
+    rho_tor_norm: Expression = annotation(alias="grid/rho_tor_norm", label=r"$\bar{\rho}_{tor}$", units="-")
 
-    conductivity_parallel: Expression = sp_property(label=r"$\sigma_{\parallel}$", units=r"$\Omega^{-1}\cdot m^{-1}$")
+    conductivity_parallel: Expression = annotation(label=r"$\sigma_{\parallel}$", units=r"$\Omega^{-1}\cdot m^{-1}$")
 
 
 class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_profiles_2d, domain="grid"):

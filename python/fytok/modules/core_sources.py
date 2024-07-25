@@ -2,7 +2,7 @@
 
 import typing
 
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.htree import Set
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
@@ -36,7 +36,7 @@ class CoreSourcesSpecies(Species, SpTree):
         explicit_part: Expression
         """ Explicit part of the source term"""
 
-    particles: Expression = sp_property(units="s^-1.m^-3", default_value=0)
+    particles: Expression = annotation(units="s^-1.m^-3", default_value=0)
     """Source term for electron density equation"""
 
     particles_decomposed: _Decomposed
@@ -47,7 +47,7 @@ class CoreSourcesSpecies(Species, SpTree):
         source term for the electron density equation."""
         return self.particles.I
 
-    energy: Expression = sp_property(units="W.m^-3", default_value=0)
+    energy: Expression = annotation(units="W.m^-3", default_value=0)
     """Source term for the electron energy equation"""
 
     energy_decomposed: _Decomposed
@@ -58,7 +58,7 @@ class CoreSourcesSpecies(Species, SpTree):
         of the source term for the electron energy equation"""
         return self.energy.I
 
-    momentum: CoreVectorComponents = sp_property(units="kg.m^-1.s^-2")
+    momentum: CoreVectorComponents = annotation(units="kg.m^-1.s^-2")
 
 
 class CoreSourcesElectrons(CoreSourcesSpecies, default_value={"label": "electron"}):
@@ -79,7 +79,7 @@ class CoreSourcesProfiles1D(WithDomain, core_sources.core_sources_source_profile
     grid: CoreRadialGrid
     """ Radial grid"""
 
-    total_ion_energy: Expression = sp_property(units="W.m^-3")
+    total_ion_energy: Expression = annotation(units="W.m^-3")
     """Total ion energy source"""
 
     @sp_property(units="W")

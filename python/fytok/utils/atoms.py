@@ -4,7 +4,7 @@ import numpy as np
 import scipy.constants
 from spdm.core.htree import Dict, List
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.sp_tree import annotation, sp_property, sp_tree
 from spdm.core.sp_tree import AttributeTree
 from spdm.core.path import update_tree
 
@@ -123,7 +123,7 @@ def get_species(species):
 class Reaction:
     reactants: tuple
     products: tuple
-    reactivities: Expression = sp_property(label=r"\sigma")
+    reactivities: Expression = annotation(label=r"\sigma")
 
     @sp_property(units="eV")
     def energy(self) -> typing.Tuple[float, float]:

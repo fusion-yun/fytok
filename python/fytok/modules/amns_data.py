@@ -1,10 +1,9 @@
-
 import numpy as np
 
 from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 from spdm.core.htree import Dict
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.numlib.polynomial import Polynomials
 
 
@@ -17,7 +16,7 @@ class AMNSProcess(SpTree):
             args = [{"radiation": args[0]}, *args[1:]]
         super().__init__(*args, **kwargs)
 
-    radiation: Polynomials = sp_property(
+    radiation: Polynomials = annotation(
         units="eV*m^3/s",
         type="chebyshev",
         preprocess=(lambda x: -1.0 + 2 * np.log(np.abs(x) / 50) / np.log(1000)),  # domain 50eV ~ 50000eV

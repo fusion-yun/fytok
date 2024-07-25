@@ -8,7 +8,7 @@ from spdm.core.path import Path
 from spdm.core.entry import as_entry
 from spdm.core.htree import List
 from spdm.core.expression import Expression, zero
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.time import WithTime
@@ -34,11 +34,11 @@ class EquilibriumBoundary(equilibrium.equilibrium_boundary):
 
     psi_norm: float = 0.995
 
-    psi: float = sp_property(units="Wb")
+    psi: float = annotation(units="Wb")
 
     geometric_axis: PointRZ
 
-    minor_radius: float = sp_property(units="m")
+    minor_radius: float = annotation(units="m")
 
     elongation: float
 
@@ -76,11 +76,11 @@ class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix)
 
     psi_norm: float = 1.0
 
-    psi: float = sp_property(units="Wb")
+    psi: float = annotation(units="Wb")
 
     geometric_axis: PointRZ
 
-    minor_radius: float = sp_property(units="m")
+    minor_radius: float = annotation(units="m")
 
     elongation: float
 
@@ -114,30 +114,30 @@ class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate
 
     grid: Mesh
 
-    r: Field = sp_property(units="m")
+    r: Field = annotation(units="m")
 
-    z: Field = sp_property(units="m")
+    z: Field = annotation(units="m")
 
-    jacobian: Field = sp_property(units="mixed")
+    jacobian: Field = annotation(units="mixed")
 
-    tensor_covariant: Field = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_covariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
-    tensor_contravariant: Field = sp_property(coordinate3="1...3", coordinate4="1...3", units="mixed")
+    tensor_contravariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
 
 
 class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
     """Global quantities of the equilibrium"""
 
-    psi_axis: float = sp_property(units="Wb")
+    psi_axis: float = annotation(units="Wb")
 
-    psi_boundary: float = sp_property(units="Wb")
+    psi_boundary: float = annotation(units="Wb")
 
-    b_field_tor_axis: float = sp_property(units="T")
+    b_field_tor_axis: float = annotation(units="T")
 
     magnetic_axis: PointRZ
     """ Magnetic axis position and toroidal field"""
 
-    ip: float = sp_property(units="A")
+    ip: float = annotation(units="A")
 
     beta_pol: float
 
@@ -147,18 +147,18 @@ class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
 
     li_3: float
 
-    volume: float = sp_property(units="m^3")
+    volume: float = annotation(units="m^3")
 
-    area: float = sp_property(units="m^2")
+    area: float = annotation(units="m^2")
 
-    surface: float = sp_property(units="m^2")
+    surface: float = annotation(units="m^2")
 
-    length_pol: float = sp_property(units="m")
+    length_pol: float = annotation(units="m")
 
     class CurrentCentre(SpTree):
-        r: float = sp_property(units="m")
-        z: float = sp_property(units="m")
-        velocity_z: float = sp_property(units="m.s^-1")
+        r: float = annotation(units="m")
+        z: float = annotation(units="m")
+        velocity_z: float = annotation(units="m.s^-1")
 
     current_centre: CurrentCentre
 
@@ -172,18 +172,18 @@ class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
 
     q_min: Qmin
 
-    energy_mhd: float = sp_property(units="J")
+    energy_mhd: float = annotation(units="J")
 
-    psi_external_average: float = sp_property(units="Wb")
+    psi_external_average: float = annotation(units="Wb")
 
-    v_external: float = sp_property(units="V")
+    v_external: float = annotation(units="V")
 
-    plasma_inductance: float = sp_property(units="H")
+    plasma_inductance: float = annotation(units="H")
 
-    plasma_resistance: float = sp_property(units="ohm")
+    plasma_resistance: float = annotation(units="ohm")
 
 
-class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="grid"):
+class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -197,49 +197,49 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     grid: CoreRadialGrid = {"primary_coordinate": "psi_norm"}
 
-    psi_norm: Expression = sp_property(units="-", label=r"\bar{\psi}")
+    psi_norm: array_type = annotation(units="-", label=r"\bar{\psi}")
 
-    psi: Expression = sp_property(units="Wb", label=r"\psi")
+    psi: Expression = annotation(units="Wb", label=r"\psi")
 
-    dphi_dpsi: Expression = sp_property(label=r"\frac{d\phi}{d\psi}", units="-")
+    dphi_dpsi: Expression = annotation(units="-", label=r"\frac{d\phi}{d\psi}")
 
-    phi: Expression = sp_property(units="Wb", label=r"\phi")
+    phi: Expression = annotation(units="Wb", label=r"\phi")
 
-    q: Expression = sp_property(units="-", label="q")
+    q: Expression = annotation(units="-", label="q")
 
-    pressure: Expression = sp_property(units="Pa", label="P")
+    pressure: Expression = annotation(units="Pa", label="P")
 
-    dpressure_dpsi: Expression = sp_property(units=r"Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
+    dpressure_dpsi: Expression = annotation(units=r"Pa.Wb^-1", label=r"\frac{dP}{d\psi}")
 
-    f: Expression = sp_property(units="T.m")
+    f: Expression = annotation(units="T.m")
 
-    f_df_dpsi: Expression = sp_property(units=r"T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
+    f_df_dpsi: Expression = annotation(units=r"T^2.m^2/Wb", label=r"\frac{f d f}{d \psi}")
 
-    j_tor: Expression = sp_property(units=r"A \cdot m^{-2}")
+    j_tor: Expression = annotation(units=r"A \cdot m^{-2}")
 
-    j_parallel: Expression = sp_property(units="A/m^2")
+    j_parallel: Expression = annotation(units=r"A/m^2")
 
-    magnetic_shear: Expression = sp_property(units="-")
+    magnetic_shear: Expression = annotation(units="-")
 
-    r_inboard: Expression = sp_property(units="m")
+    r_inboard: Expression = annotation(units="m")
 
-    r_outboard: Expression = sp_property(units="m")
+    r_outboard: Expression = annotation(units="m")
 
-    rho_tor: Expression = sp_property(units="m", label=r"\rho_{tor}")
+    rho_tor: Expression = annotation(units="m", label=r"\rho_{tor}")
 
-    rho_tor_norm: Expression = sp_property(units="m", label=r"\bar{\rho_{tor}}")
+    rho_tor_norm: Expression = annotation(units="m", label=r"\bar{\rho_{tor}}")
 
-    dpsi_drho_tor: Expression = sp_property(units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}")
+    dpsi_drho_tor: Expression = annotation(units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}")
 
     @sp_property
     def geometric_axis(self) -> PointRZ:
         return PointRZ(self.major_radius, self.magnetic_z)
 
-    minor_radius: Expression = sp_property(units="m")
+    minor_radius: Expression = annotation(units="m")
 
-    major_radius: Expression = sp_property(units="m")  # R0
+    major_radius: Expression = annotation(units="m")  # R0
 
-    magnetic_z: Expression = sp_property(units="m")  # Z0
+    magnetic_z: Expression = annotation(units="m")  # Z0
 
     elongation: Expression
 
@@ -259,21 +259,21 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     squareness: Expression = zero
 
-    volume: Expression = sp_property(units=r"m^3")
+    volume: Expression = annotation(units=r"m^3")
 
     rho_volume_norm: Expression
 
-    dvolume_dpsi: Expression = sp_property(units=r"m^3 \cdot Wb^{-1}")
+    dvolume_dpsi: Expression = annotation(units=r"m^3 \cdot Wb^{-1}")
 
-    dvolume_drho_tor: Expression = sp_property(units=r"m^2", label=r"V^{\prime}")
+    dvolume_drho_tor: Expression = annotation(units=r"m^2", label=r"V^{\prime}")
 
-    area: Expression = sp_property(units=r"m^2")
+    area: Expression = annotation(units=r"m^2")
 
-    darea_dpsi: Expression = sp_property(units=r"m^2 \cdot Wb^{-1}")
+    darea_dpsi: Expression = annotation(units=r"m^2 \cdot Wb^{-1}")
 
-    darea_drho_tor: Expression = sp_property(units=r"m")
+    darea_drho_tor: Expression = annotation(units=r"m")
 
-    surface: Expression = sp_property(units=r"m^2")
+    surface: Expression = annotation(units=r"m^2")
 
     trapped_fraction: Expression
 
@@ -287,15 +287,15 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
     gm8: Expression
     gm9: Expression
 
-    b_field_average: Expression = sp_property(units="T")
+    b_field_average: Expression = annotation(units="T")
 
-    b_field_min: Expression = sp_property(units="T")
+    b_field_min: Expression = annotation(units="T")
 
-    b_field_max: Expression = sp_property(units="T")
+    b_field_max: Expression = annotation(units="T")
 
     beta_pol: Expression
 
-    mass_density: Expression = sp_property(units=r"kg \cdot m^{-3}")
+    mass_density: Expression = annotation(units=r"kg \cdot m^{-3}")
 
 
 class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, domain="grid"):
@@ -305,25 +305,25 @@ class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, dom
 
     grid: Mesh
 
-    r: Field = sp_property(units="m")
+    r: Field = annotation(units="m", alias=["grid/coordinates", (0,)])
 
-    z: Field = sp_property(units="m")
+    z: Field = annotation(units="m", alias=["grid/coordinates", (1,)])
 
-    psi: Field = sp_property(units="Wb")
+    psi: Field = annotation(units="Wb")
 
-    theta: Field = sp_property(units="rad")
+    theta: Expression = annotation(units="rad")
 
-    phi: Field = sp_property(units="Wb")
+    phi: Expression = annotation(units="Wb")
 
-    j_tor: Field = sp_property(units="A.m^-2")
+    j_tor: Expression = annotation(units="A.m^-2")
 
-    j_parallel: Field = sp_property(units="A.m^-2")
+    j_parallel: Expression = annotation(units="A.m^-2", label=r"$j_{\parallel}$")
 
-    b_field_r: Field = sp_property(units="T")
+    b_field_r: Expression = annotation(units="T", label="B_{r}")
 
-    b_field_z: Field = sp_property(units="T")
+    b_field_z: Expression = annotation(units="T", label="B_{z}")
 
-    b_field_tor: Field = sp_property(units="T")
+    b_field_tor: Expression = annotation(units="T", label="B_{tor}")
 
 
 class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):

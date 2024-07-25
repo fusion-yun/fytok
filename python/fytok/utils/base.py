@@ -17,7 +17,7 @@ from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
 from spdm.core.htree import List
-from spdm.core.sp_tree import SpTree, sp_property
+from spdm.core.sp_tree import SpTree, annotation, sp_property
 from spdm.core.sp_tree import AttributeTree
 
 from spdm.model.entity import Entity
@@ -164,7 +164,7 @@ class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
             plugin_name = Path("code/name").get(kwargs, None)
         super().__init_subclass__(plugin_name=plugin_name, **kwargs)
 
-    identifier: str = sp_property(alias="_metadata/identifier")  # type:ignore
+    identifier: str = annotation(alias="_metadata/identifier")  # type:ignore
     """模块标识符"""
 
     code: Code

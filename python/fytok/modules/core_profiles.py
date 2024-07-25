@@ -3,7 +3,7 @@ import scipy.constants
 
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import Set, List
-from spdm.core.sp_tree import sp_property, SpTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
 from spdm.core.domain import WithDomain
@@ -29,29 +29,29 @@ TWOPI = 2.0 * PI
 
 class CoreProfilesSpecies(Species, SpTree):
 
-    temperature: Expression = sp_property(units="eV")
+    temperature: Expression = annotation(units="eV")
 
-    density: Expression = sp_property(units="m^-3")
+    density: Expression = annotation(units="m^-3")
     # return self.density_thermal + self.density_fast
 
-    density_thermal: Expression = sp_property(units="m^-3")
+    density_thermal: Expression = annotation(units="m^-3")
 
-    density_fast: Expression = sp_property(units="m^-3")
+    density_fast: Expression = annotation(units="m^-3")
 
     @sp_property
     def pressure(self) -> Expression:
         # FIXME: coefficient on pressure fast
         return self.density * self.temperature * scipy.constants.electron_volt
 
-    pressure_thermal: Expression = sp_property(units="Pa")
+    pressure_thermal: Expression = annotation(units="Pa")
 
-    pressure_fast_perpendicular: Expression = sp_property(units="Pa")
+    pressure_fast_perpendicular: Expression = annotation(units="Pa")
 
-    pressure_fast_parallel: Expression = sp_property(units="Pa")
+    pressure_fast_parallel: Expression = annotation(units="Pa")
 
-    rotation_frequency_tor: Expression = sp_property(units="rad.s^-1")
+    rotation_frequency_tor: Expression = annotation(units="rad.s^-1")
 
-    velocity: CoreVectorComponents = sp_property(units="m.s^-1")
+    velocity: CoreVectorComponents = annotation(units="m.s^-1")
 
 
 class CoreProfilesState(CoreProfilesSpecies):
@@ -59,7 +59,7 @@ class CoreProfilesState(CoreProfilesSpecies):
     electron_configuration: str
     """ Configuration of atomic orbitals of this state, e.g. 1s2-2s1"""
 
-    vibrational_level: float = sp_property(units="Elementary Charge Unit")
+    vibrational_level: float = annotation(units="Elementary Charge Unit")
     """ Vibrational level (can be bundled)"""
 
     vibrational_mode: str
@@ -72,13 +72,13 @@ class CoreProfilesState(CoreProfilesSpecies):
 
 
 class CoreProfilesIon(CoreProfilesSpecies):
-    z_ion_1d: Expression = sp_property(unit="C")
+    z_ion_1d: Expression = annotation(unit="C")
 
     @sp_property
     def z_ion_square_1d(self) -> Expression:
         return self.z_ion_1d * self.z_ion_1d
 
-    # velocity: core_profiles_vector_components_2 = sp_property(units="m.s^-1")
+    # velocity: core_profiles_vector_components_2 = annotation(units="m.s^-1")
 
     @sp_property(unit="s^-1", default_value=0.1)
     def collision_frequency(self) -> Expression:
@@ -130,45 +130,45 @@ class CoreProfilesElectrons(CoreProfilesSpecies, default_value={"label": "electr
 class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
     vacuum_toroidal_field: VacuumToroidalField
 
-    ip: float = sp_property(units="A")
+    ip: float = annotation(units="A")
 
-    current_non_inductive: float = sp_property(units="A")
+    current_non_inductive: float = annotation(units="A")
 
-    current_bootstrap: float = sp_property(units="A")
+    current_bootstrap: float = annotation(units="A")
 
-    v_loop: float = sp_property(units="V")
+    v_loop: float = annotation(units="V")
 
-    li_3: float = sp_property(units="-")
+    li_3: float = annotation(units="-")
 
-    beta_tor: float = sp_property(units="-")
+    beta_tor: float = annotation(units="-")
 
-    beta_tor_norm: float = sp_property(units="-")
+    beta_tor_norm: float = annotation(units="-")
 
-    beta_pol: float = sp_property(units="-")
+    beta_pol: float = annotation(units="-")
 
-    energy_diamagnetic: float = sp_property(units="J")
+    energy_diamagnetic: float = annotation(units="J")
 
-    z_eff_resistive: float = sp_property(units="-")
+    z_eff_resistive: float = annotation(units="-")
 
-    t_e_peaking: float = sp_property(units="-")
+    t_e_peaking: float = annotation(units="-")
 
-    t_i_average_peaking: float = sp_property(units="-")
+    t_i_average_peaking: float = annotation(units="-")
 
-    resistive_psi_losses: float = sp_property(units="Wb")
+    resistive_psi_losses: float = annotation(units="Wb")
 
-    ejima: float = sp_property(units="-")
+    ejima: float = annotation(units="-")
 
-    t_e_volume_average: float = sp_property(units="eV")
+    t_e_volume_average: float = annotation(units="eV")
 
-    n_e_volume_average: float = sp_property(units="m^-3")
+    n_e_volume_average: float = annotation(units="m^-3")
 
     class GlobalQuantitiesIon:
-        t_i_volume_average: float = sp_property(units="eV")
-        n_i_volume_average: float = sp_property(units="m^-3")
+        t_i_volume_average: float = annotation(units="eV")
+        n_i_volume_average: float = annotation(units="m^-3")
 
     ion: List[GlobalQuantitiesIon]
 
-    ion_time_slice: float = sp_property(units="s")
+    ion_time_slice: float = annotation(units="s")
 
 
 class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
@@ -185,10 +185,10 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
     Neutral = CoreProfilesNeutral
     neutral: Set[CoreProfilesNeutral]
 
-    # rho_tor_norm: Expression = sp_property(label=r"\bar{\rho}_{tor}", units="-")
-    # rho_tor: Expression = sp_property(label=r"\rho_{tor}", units="m")
-    # psi_norm: Expression = sp_property(label=r"\bar{\psi}", units="-")
-    # psi: Expression = sp_property(label=r"\psi", units="Wb")
+    # rho_tor_norm: Expression = annotation(label=r"\bar{\rho}_{tor}", units="-")
+    # rho_tor: Expression = annotation(label=r"\rho_{tor}", units="m")
+    # psi_norm: Expression = annotation(label=r"\bar{\psi}", units="-")
+    # psi: Expression = annotation(label=r"\psi", units="Wb")
 
     @sp_property
     def zeff(self) -> Expression:
@@ -222,50 +222,50 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
     def n_i_thermal_total(self) -> Expression:
         return sum(ion.z * ion.density_thermal for ion in self.ion)
 
-    # t_i_average: Expression = sp_property(units="eV")
+    # t_i_average: Expression = annotation(units="eV")
 
-    # t_i_average_fit: core_profiles_1D_fit = sp_property(units="eV")
+    # t_i_average_fit: core_profiles_1D_fit = annotation(units="eV")
 
-    # n_i_total_over_n_e: Expression = sp_property(units="-")
+    # n_i_total_over_n_e: Expression = annotation(units="-")
 
-    # n_i_thermal_total: Expression = sp_property(units="m^-3")
+    # n_i_thermal_total: Expression = annotation(units="m^-3")
 
-    momentum_tor: Expression = sp_property(units="kg.m^-1.s^-1")
+    momentum_tor: Expression = annotation(units="kg.m^-1.s^-1")
 
-    zeff: Expression = sp_property(units="-")
+    zeff: Expression = annotation(units="-")
 
-    # zeff_fit: core_profiles_1D_fit = sp_property(units="-")
+    # zeff_fit: core_profiles_1D_fit = annotation(units="-")
 
-    pressure_ion_total: Expression = sp_property(units="Pa")
+    pressure_ion_total: Expression = annotation(units="Pa")
 
-    pressure_thermal: Expression = sp_property(units="Pa")
+    pressure_thermal: Expression = annotation(units="Pa")
 
-    pressure_perpendicular: Expression = sp_property(units="Pa")
+    pressure_perpendicular: Expression = annotation(units="Pa")
 
-    pressure_parallel: Expression = sp_property(units="Pa")
+    pressure_parallel: Expression = annotation(units="Pa")
 
-    j_total: Expression = sp_property(units="A/m^2")
+    j_total: Expression = annotation(units="A/m^2")
 
     @sp_property(units="A")
     def current_parallel_inside(self) -> Expression:
         return self.j_total.I
 
-    j_tor: Expression = sp_property(units="A/m^2")
+    j_tor: Expression = annotation(units="A/m^2")
 
-    j_ohmic: Expression = sp_property(units="A/m^2")
+    j_ohmic: Expression = annotation(units="A/m^2")
 
     @sp_property(units=r"A/m^2")
     def j_non_inductive(self) -> Expression:
         return self.j_total - self.j_ohmic
 
-    j_bootstrap: Expression = sp_property(units="A/m^2")
+    j_bootstrap: Expression = annotation(units="A/m^2")
 
     @sp_property(units=r"ohm^-1.m^-1")
     def conductivity_parallel(self) -> Expression:
         return self.j_ohmic / self.e_field.parallel
 
     class EFieldVectorComponents(SpTree):
-        radial: Expression = sp_property(default_value=0.0)
+        radial: Expression = annotation(default_value=0.0)
 
         diamagnetic: Expression
 
@@ -285,13 +285,13 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
                 e_par = vloop / (TWOPI * self._parent.grid.r0)
             return e_par
 
-    e_field: EFieldVectorComponents = sp_property(units="V.m^-1")
+    e_field: EFieldVectorComponents = annotation(units="V.m^-1")
 
-    phi_potential: Expression = sp_property(units="V")
+    phi_potential: Expression = annotation(units="V")
 
     rotation_frequency_tor_sonic: Expression
 
-    q: Expression = sp_property(units="-")
+    q: Expression = annotation(units="-")
 
     @sp_property(units="-")
     def magnetic_shear(self) -> Expression:
@@ -349,9 +349,9 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
         lnCoul = self.coulomb_logarithm(self.grid.rho_tor_norm)
         return 1.09e16 * ((Te / 1000.0) ** (3 / 2)) / ne / lnCoul
 
-    ffprime: Expression = sp_property(label=r"$ff^{\prime}$")
+    ffprime: Expression = annotation(label=r"$ff^{\prime}$")
 
-    pprime: Expression = sp_property(label=r"$p^{\prime}$")
+    pprime: Expression = annotation(label=r"$p^{\prime}$")
 
 
 class CoreProfilesElectrons2D(WithDomain, Species, domain=".../grid"):

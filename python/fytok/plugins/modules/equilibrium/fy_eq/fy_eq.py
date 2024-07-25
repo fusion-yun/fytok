@@ -10,7 +10,7 @@ from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
 
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property
+from spdm.core.sp_tree import annotation, sp_property
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.function import Function
@@ -20,7 +20,6 @@ from spdm.geometry.point_set import PointSetRZ
 from spdm.geometry.curve import Curve, CurveRZ
 from spdm.core.mesh import Mesh
 
-from fytok.utils.envs import FY_VERSION, FY_COPYRIGHT
 from fytok.utils.logger import logger
 from fytok.modules import equilibrium
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
@@ -99,28 +98,28 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         #         f"Singular values are caused when psi_norm takes values of 0.0 or 1.0.! {self.psi_norm[0]} {self.psi_norm[-1]}"
         #     )
 
-    b0: float = sp_property(alias="../vacuum_toroidal_field/b0")
-    r0: float = sp_property(alias="../vacuum_toroidal_field/r0")
-    ip: float = sp_property(alias="../global_quantities/ip")
+    b0: float = annotation(alias="../vacuum_toroidal_field/b0")
+    r0: float = annotation(alias="../vacuum_toroidal_field/r0")
+    ip: float = annotation(alias="../global_quantities/ip")
 
     # 磁面坐标
-    psirz: Field = sp_property(alias="../profiles_2d/psi")
+    psirz: Field = annotation(alias="../profiles_2d/psi")
 
-    psi_norm: array_type = sp_property(alias="../profiles_1d/psi_norm")
+    psi_norm: array_type = annotation(alias="../profiles_1d/psi_norm")
 
     @sp_property
     def critical_points(self) -> typing.Tuple[List[OXPoint], List[OXPoint]]:
         return find_critical_points(self.psirz)
 
-    o_points: List[OXPoint] = sp_property(alias="critical_points/0")
+    o_points: List[OXPoint] = annotation(alias="critical_points/0")
 
-    x_points: List[OXPoint] = sp_property(alias="critical_points/1")
+    x_points: List[OXPoint] = annotation(alias="critical_points/1")
 
-    magnetic_axis: PointRZ = sp_property(alias="critical_points/0/0/0")
+    magnetic_axis: PointRZ = annotation(alias="critical_points/0/0/0")
 
-    psi_axis: float = sp_property(alias="critical_points/0/0/1")
+    psi_axis: float = annotation(alias="critical_points/0/0/1")
 
-    psi_boundary: float = sp_property(alias="critical_points/1/0/1")
+    psi_boundary: float = annotation(alias="critical_points/1/0/1")
 
     @sp_property(label=r"\frac{d V}{d\psi}")
     def dvolume_dpsi(self) -> Expression:
@@ -136,8 +135,8 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         )
 
     # 磁面坐标的函数，ffprime，pprime
-    ffprime: Expression = sp_property(alias="../profiles_1d/f_df_dpsi", label=r" \frac{f df}{d\psi}")
-    pprime: Expression = sp_property(alias="../profiles_1d/dpressure_dpsi", label=r" \frac{dP}{d\psi}")
+    ffprime: Expression = annotation(alias="../profiles_1d/f_df_dpsi", label=r" \frac{f df}{d\psi}")
+    pprime: Expression = annotation(alias="../profiles_1d/dpressure_dpsi", label=r" \frac{dP}{d\psi}")
     #################################
     # Profiles 2D
 
@@ -188,7 +187,7 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
     # surface integral
     def find_surfaces_by_psi(
         self, psi, enclose_axis=True
-    ) -> typing.Generator[typing.Tuple[float, GeoObject], None, None]:
+    ) -> typing.Generator[typing.Tuple[float, GeoObject | None], None, None]:
 
         psi_axis = self.psi_axis
         psi_boundary = self.psi_boundary
@@ -350,19 +349,13 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
 
 
 class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
-    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
-    _profiles_1d: equilibrium.EquilibriumProfiles1D = sp_property(alias="../profiles_1d")
-    _global_quantities: equilibrium.EquilibriumGlobalQuantities = sp_property(alias="../global_quantities")
+    """Profiles 2D"""
 
-    psi: Field
-
-    j_parallel: Field
+    _coord: FyEqCoordinateSystem = annotation(alias="../coordinate_system")
+    _profiles_1d: equilibrium.EquilibriumProfiles1D = annotation(alias="../profiles_1d")
+    _global_quantities: equilibrium.EquilibriumGlobalQuantities = annotation(alias="../global_quantities")
 
     grid: Mesh
-
-    r: array_type = sp_property(alias=["grid/points", (..., 0)])
-
-    z: array_type = sp_property(alias=["grid/points", (..., 1)])
 
     @sp_property
     def psi_norm(self) -> Expression:
@@ -383,25 +376,29 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
             _R * scipy.constants.mu_0
         )
 
-    @sp_property(label="B_{r}")
+    @sp_property
+    def j_parallel(self) -> Expression:
+        raise NotImplementedError(f"TODO")
+
+    @sp_property
     def b_field_r(self) -> Expression:
         """COCOS Eq.19 [O. Sauter and S.Yu. Medvedev, Computer Physics Communications 184 (2013) 293]"""
         return self.psi.pd(0, 1) / _R * (self._coord._sRpZ * self._coord._sBp / self._coord._seBp2PI)
 
-    @sp_property(label="B_{z}")
+    @sp_property
     def b_field_z(self) -> Expression:
         return -self.psi.pd(1, 0) / _R * (self._coord._sRpZ * self._coord._sBp / self._coord._seBp2PI)
 
-    @sp_property(label="B_{tor}")
+    @sp_property
     def b_field_tor(self) -> Expression:
         return self._profiles_1d.f(self.psi_norm) / _R
 
     @sp_property
     def Bpol2(self) -> Expression:
         r"""$B_{pol}= \left|\nabla \psi \right|/2 \pi R $"""
-        return self.b_field_r**2 + self.b_field_z**2
+        return self.b_field_r**2.0 + self.b_field_z**2
 
-    @sp_property(label="B^2")
+    @sp_property
     def B2(self) -> Expression:
         return self.b_field_r**2 + self.b_field_z**2 + self.b_field_tor**2
 
@@ -419,25 +416,34 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
 
 
 class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
-    """Profiles 1d"""
+    """Profiles 1D"""
 
-    _profiles_2d: FyEqProfiles2D = sp_property(alias="../profiles_2d")
+    _profiles_2d: FyEqProfiles2D = annotation(alias="../profiles_2d")
 
-    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
-
-    psi_norm: Expression = sp_property(alias="grid/psi_norm")
+    _coord: FyEqCoordinateSystem = annotation(alias="../coordinate_system")
 
     f_df_dpsi: Expression
 
-    ffprime: Expression = sp_property(alias="f_df_dpsi")
+    ffprime: Expression = annotation(alias="f_df_dpsi")
 
     dpressure_dpsi: Expression
 
-    pprime: Expression = sp_property(alias="dpressure_dpsi")
+    pprime: Expression = annotation(alias="dpressure_dpsi")
 
     @sp_property
     def grid(self) -> CoreRadialGrid:
-        return self._parent.coordinate_system.grid.remesh("psi_norm")
+        psi_norm = self.psi_norm
+        rho_tor_boundary = self.rho_tor(1.0)
+        phi_boundary = self.phi(1.0)
+        return CoreRadialGrid(
+            psi_norm=psi_norm,
+            psi_axis=self._coord.psi_axis,
+            psi_bounday=self._coord.psi_boundary,
+            phi_norm=self.phi(psi_norm) / phi_boundary,
+            phi_boundary=phi_boundary,
+            rho_tor_norm=self.rho_tor(psi_norm) / rho_tor_boundary,
+            rho_tor_boundary=rho_tor_boundary,
+        )
 
     @sp_property(label=r"\psi")
     def psi(self) -> Expression:
@@ -677,14 +683,15 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
 
 
 class FyEqGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
+    """Global Quantities"""
 
-    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
+    _coord: FyEqCoordinateSystem = annotation(alias="../coordinate_system")
 
     psi_axis: float
 
     psi_boundary: float
 
-    magnetic_axis: PointRZ = sp_property(alias="../coordinate_system/magnetic_axis")
+    magnetic_axis: PointRZ = annotation(alias="../coordinate_system/magnetic_axis")
 
     @sp_property
     def b_field_tor_axis(self) -> float:
@@ -706,8 +713,9 @@ class FyEqGlobalQuantities(equilibrium.EquilibriumGlobalQuantities):
 
 
 class FyEqBoundary(equilibrium.EquilibriumBoundary):
+    """boundary"""
 
-    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
+    _coord: FyEqCoordinateSystem = annotation(alias="../coordinate_system")
 
     # psi_norm: float
 
@@ -796,7 +804,7 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
 
 
 class FyEqBoundarySeparatrix(FyEqBoundary):
-    _coord: FyEqCoordinateSystem = sp_property(alias="../coordinate_system")
+    _coord: FyEqCoordinateSystem = annotation(alias="../coordinate_system")
 
     @sp_property
     def outline(self) -> GeoObjectSet:

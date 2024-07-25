@@ -7,7 +7,7 @@ import numpy as np
 from spdm.utils.type_hint import array_type, ArrayType
 from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
-from spdm.core.sp_tree import SpTree, sp_property
+from spdm.core.sp_tree import SpTree, annotation, sp_property
 from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
@@ -144,36 +144,36 @@ class DetectorAperture(SpTree):
 
 class PlasmaCompositionIonState(SpTree):
     label: str
-    z_min: float = sp_property(units="Elementary Charge Unit")
-    z_max: float = sp_property(units="Elementary Charge Unit")
+    z_min: float = annotation(units="Elementary Charge Unit")
+    z_max: float = annotation(units="Elementary Charge Unit")
     electron_configuration: str
-    vibrational_level: float = sp_property(units="Elementary Charge Unit")
+    vibrational_level: float = annotation(units="Elementary Charge Unit")
     vibrational_mode: str
 
 
 class PlasmaCompositionSpecies(SpTree):
     label: str
-    a: float  # = sp_property(units="Atomic Mass Unit", )
-    z_n: float  # = sp_property(units="Elementary Charge Unit", )
+    a: float  # = annotation(units="Atomic Mass Unit", )
+    z_n: float  # = annotation(units="Elementary Charge Unit", )
 
 
 class PlasmaCompositionNeutralElement(SpTree):
-    a: float  # = sp_property(units="Atomic Mass Unit", )
-    z_n: float  # = sp_property(units="Elementary Charge Unit", )
+    a: float  # = annotation(units="Atomic Mass Unit", )
+    z_n: float  # = annotation(units="Elementary Charge Unit", )
     atoms_n: int
 
 
 class PlasmaCompositionIons(SpTree):
     label: str
     element: List[PlasmaCompositionNeutralElement]
-    z_ion: float  # = sp_property( units="Elementary Charge Unit")
+    z_ion: float  # = annotation( units="Elementary Charge Unit")
     state: PlasmaCompositionIonState
 
 
 class PlasmaCompositionNeutralState(SpTree):
     label: str
     electron_configuration: str
-    vibrational_level: float  # = sp_property(units="Elementary Charge Unit")
+    vibrational_level: float  # = annotation(units="Elementary Charge Unit")
     vibrational_mode: str
     neutral_type: str
 
@@ -193,7 +193,7 @@ class DistributionSpecies(SpTree):
 # __all__ = ["IDS", "Module", "Code", "Library",
 #            "DetectorAperture", "CoreRadialGrid",
 #            "array_type", "Function", "Field",
-#            "HTree", "List", "Dict", "SpTree", "sp_property",
+#            "HTree", "List", "Dict", "SpTree", "annotation",
 #            "List", "TimeSeriesList", "TimeSlice",
 #            "Signal", "SignalND", "Identifier"
 #            "IntFlag"]

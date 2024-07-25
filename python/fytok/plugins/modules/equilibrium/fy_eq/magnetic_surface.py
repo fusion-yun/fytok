@@ -10,7 +10,7 @@ from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.expression import Expression
 from spdm.core.htree import List
-from spdm.core.sp_tree import sp_property, sp_tree
+from spdm.core.sp_tree import annotation, sp_property, sp_tree
 from spdm.model.time_sequence import TimeSequence
 from spdm.geometry.curve import Curve
 from spdm.core.geo_object import GeoObject, GeoObjectSet
@@ -80,7 +80,7 @@ class MageticSurface(typing.Generic[_T]):
 
     psi_norm: _T
 
-    psi: _T = sp_property(units="Wb")
+    psi: _T = annotation(units="Wb")
 
     phi: _T
 
@@ -88,7 +88,7 @@ class MageticSurface(typing.Generic[_T]):
 
     outline: Curve | GeoObjectSet
 
-    x_point: GeoObjectSet = sp_property(alias="../coordinate_system/x_point")
+    x_point: GeoObjectSet = annotation(alias="../coordinate_system/x_point")
 
     @sp_property
     def strike_point(self) -> GeoObjectSet:

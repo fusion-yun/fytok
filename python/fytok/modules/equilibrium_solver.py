@@ -6,7 +6,7 @@ from spdm.utils.type_hint import array_type
 
 from spdm.core.htree import List, Dict, HTree
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree, AttributeTree
 
 from spdm.model.process import Process
 from spdm.model.port import Ports

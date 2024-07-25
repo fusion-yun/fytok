@@ -1,7 +1,7 @@
 import getpass
 import os
 import datetime
-from spdm.core.sp_tree import SpTree, sp_property
+from spdm.core.sp_tree import SpTree, annotation, sp_property
 from spdm.model.entity import Entity
 
 from fytok.utils.base import IDS

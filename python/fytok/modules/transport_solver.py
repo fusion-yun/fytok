@@ -6,7 +6,7 @@ from scipy import constants
 from spdm.utils.type_hint import array_type
 from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import sp_property, SpTree, AttributeTree
+from spdm.core.sp_tree import annotation, sp_property, SpTree, AttributeTree
 
 from spdm.model.process import Process
 
@@ -114,10 +114,10 @@ class TransportSolver(
     control_parameters: AttributeTree
     """ Solver-specific input or output quantities"""
 
-    drho_tor_dt: array_type | Expression = sp_property(units="m.s^-1")
+    drho_tor_dt: array_type | Expression = annotation(units="m.s^-1")
     """ Partial derivative of the toroidal flux coordinate profile with respect to time"""
 
-    d_dvolume_drho_tor_dt: array_type | Expression = sp_property(units="m^2.s^-1")
+    d_dvolume_drho_tor_dt: array_type | Expression = annotation(units="m^2.s^-1")
     """ Partial derivative with respect to time of the derivative of the volume with
       respect to the toroidal flux coordinate"""
 
@@ -154,7 +154,7 @@ class TransportSolver(
         core_profiles_out.time = equilibrium.time
         core_profiles_out.vacuum_toroidal_field.r0 = equilibrium.vacuum_toroidal_field.r0
         core_profiles_out.vacuum_toroidal_field.b0 = equilibrium.vacuum_toroidal_field.b0
-        
+
         # rho_tor_norm = core_profiles_in.profiles_1d.grid.rho_tor_norm
         # grid = equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
         # core_profiles_out.profiles_1d.grid = grid
