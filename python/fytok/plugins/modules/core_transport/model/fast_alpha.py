@@ -1,6 +1,8 @@
+""" FastAlpha """
+
+import typing
 import numpy as np
 
-from spdm.core.sp_tree import sp_tree
 
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_transport import CoreTransportModel
@@ -10,7 +12,7 @@ from fytok.modules.equilibrium import Equilibrium
 class FastAlpha(
     CoreTransportModel,
     category="alpha",
-    code={"name": "fast_alpha", "description": f" Fast alpha, Angioni's model"},
+    code={"name": "fast_alpha", "description": " Fast alpha, Angioni's model"},
 ):
     """
     FastAlpha   Model
@@ -26,14 +28,14 @@ class FastAlpha(
 
     """
 
-    def execute(self, *args, **kwargs):
-        res: CoreTransportModel = super().execute(*args, **kwargs)
+    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+        res: CoreTransportModel = super().refresh(
+            *args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs
+        )
 
-        eq: Equilibrium = self.in_ports.equilibrium
+        R0 = equilibrium.vacuum_toroidal_field.r0
 
-        R0 = eq.vacuum_toroidal_field.r0
-
-        profiles_1d: CoreProfiles.Profiles1D = self.in_ports.core_profiles.profiles_1d
+        profiles_1d = core_profiles.profiles_1d
 
         rho_tor_norm = self.in_ports.core_profiles.profiles_1d.rho_tor_norm
 

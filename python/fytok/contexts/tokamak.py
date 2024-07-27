@@ -5,6 +5,7 @@
 
 import typing
 from spdm.model.context import Context
+from spdm.model.component import Component
 from spdm.core.time import WithTime
 
 # ---------------------------------
@@ -113,12 +114,22 @@ class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
     transport_solver        : TransportSolver
 
     # fmt:on
-
     def __str__(self) -> str:
+        """返回 Context 的字符串表示形式。
+
+        Returns:
+            str: Context 的字符串表示形式。
+        """
+        processor_summary = "\n".join(f"{k:>19s} : {e} " for k, e in self.processes())
+        component_summary = ",".join(k for k, e in self.entities(Component))
+
         return f"""------------------------------------------------------------------------------------------------------------------------
 {self.dataset_fair}
 ------------------------------------------------------------------------------------------------------------------------
-{Context.__str__(self)}
+- Context           : {self.code}
+- Actors/Processors        :
+{processor_summary}
+- Components        : {component_summary}
 ------------------------------------------------------------------------------------------------------------------------
 """
 

@@ -3,10 +3,10 @@
 import typing
 from scipy import constants
 
-from spdm.utils.type_hint import array_type
+from spdm.utils.type_hint import array_type, ArrayType
 from spdm.core.htree import List, Dict
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import annotation, sp_property, SpTree, AttributeTree
+from spdm.core.sp_tree import annotation, SpTree, AttributeTree
 
 from spdm.model.process import Process
 
@@ -106,44 +106,32 @@ class TransportSolver(
 
     out_ports: OutPorts  # type:ignore
 
-    profiles_1d: CoreProfiles.Profiles1D
+    # profiles_1d: CoreProfiles.Profiles1D
 
-    equations: List[TransportSolverEquation]
-    """ Set of transport equations"""
+    # drho_tor_dt: ArrayType = annotation(units="m.s^-1")
+    # """ Partial derivative of the toroidal flux coordinate profile with respect to time"""
 
-    control_parameters: AttributeTree
-    """ Solver-specific input or output quantities"""
-
-    drho_tor_dt: array_type | Expression = annotation(units="m.s^-1")
-    """ Partial derivative of the toroidal flux coordinate profile with respect to time"""
-
-    d_dvolume_drho_tor_dt: array_type | Expression = annotation(units="m^2.s^-1")
+    # d_dvolume_drho_tor_dt: ArrayType = annotation(units="m^2.s^-1")
     """ Partial derivative with respect to time of the derivative of the volume with
       respect to the toroidal flux coordinate"""
 
-    solver: str = "ion_solver"
+    # solver: str = "ion_solver"
+    # ion_thermal: set
+    # ion_non_thermal: set
+    # impurities: set
+    # neutral: set
+    # equations: List[TransportSolverEquation]
+    # variables: Dict[Expression]
 
-    ion_thermal: set
+    primary_coordinate: str = "rho_tor_norm"
+    r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
+      rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    ion_non_thermal: set
-
-    impurities: set
-
-    neutral: set
-
-    # primary_coordinate: str = "rho_tor_norm"
-    # r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
-    #   rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
-
-    equations: List[TransportSolverEquation]
-
-    variables: Dict[Expression]
-
-    def refresh(self, *args, **kwargs) -> OutPorts:
+    def execute(self, *args, **kwargs):
 
         logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
 
-        super().refresh(*args, **kwargs)
+        res = super().execute(*args, **kwargs)
 
         equilibrium = self.in_ports.equilibrium
 
@@ -161,4 +149,4 @@ class TransportSolver(
 
         core_profiles_out.profiles_1d.ion = [ion.label for ion in core_profiles_in.profiles_1d.ion]
 
-        return self.out_ports
+        return res

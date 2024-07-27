@@ -170,11 +170,11 @@ class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
     code: Code
     """代码信息"""
 
-    def __str__(self) -> str:
-        return str(self.code)
-
     def __hash__(self) -> int:
         label = self.identifier
         if label is _not_found_:
             label = self.code.name
         return hash(label)
+
+    def __str__(self) -> str:
+        return str(self.code)

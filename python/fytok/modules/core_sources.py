@@ -150,7 +150,16 @@ class CoreSourcesSource(
 class CoreSources(FyEntity, WithTime, IDS, Context, code={"name": "core_sources"}):
     """Source terms for the core transport equations"""
 
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], list):
+            args = ({"source": args[0]},)
+
+        super().__init__(*args, **kwargs)
+
     in_ports: CoreSourcesSource.InPorts  # type:ignore
 
     Source = CoreSourcesSource
     source: ProcessBundle[CoreSourcesSource]
+
+    def __str__(self) -> str:
+        return str(self.source)

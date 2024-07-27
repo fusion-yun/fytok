@@ -102,7 +102,7 @@ class CoreTransportModel(
         core_profiles: CoreProfiles
         equilibrium: Equilibrium
 
-    in_ports: InPorts
+    in_ports: InPorts  # type:ignore
 
     flux_multiplier: float = 0.0
 
@@ -148,8 +148,17 @@ class CoreTransportModel(
 
 
 class CoreTransport(FyEntity, WithTime, IDS, Context, code={"name": "core_transport"}):
+    """芯部输运"""
+
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and isinstance(args[0], list):
+            args = ({"model": args[0]},)
+        super().__init__(*args, **kwargs)
 
     in_ports: CoreTransportModel.InPorts  # type:ignore
 
     Model = CoreTransportModel
     model: ProcessBundle[CoreTransportModel]
+
+    def __str__(self) -> str:
+        return str(self.model)

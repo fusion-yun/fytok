@@ -5,8 +5,7 @@ from spdm.utils.tags import _not_found_
 from spdm.utils.type_hint import array_type
 
 from spdm.core.path import Path
-from spdm.core.entry import as_entry
-from spdm.core.htree import List
+
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.mesh import Mesh
@@ -14,6 +13,7 @@ from spdm.core.field import Field
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain, MultiDomains
 
+from spdm.core.geo_object import GeoObject
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
 from spdm.geometry.point_set import PointSetRZ
@@ -30,7 +30,7 @@ class EquilibriumBoundary(equilibrium.equilibrium_boundary):
 
     type: int
 
-    outline: Curve
+    outline: GeoObject
 
     psi_norm: float = 0.995
 
@@ -60,9 +60,9 @@ class EquilibriumBoundary(equilibrium.equilibrium_boundary):
 
     squareness_lower_outer: float
 
-    x_point: List[PointRZ]
+    x_point: PointSetRZ
 
-    strike_point: List[PointRZ]
+    strike_point: PointSetRZ
 
     active_limiter_point: PointRZ
 

@@ -1,3 +1,6 @@
+""" FyEq Module"""
+
+import typing
 import collections
 import collections.abc
 import functools
@@ -7,10 +10,10 @@ import scipy.constants
 from dataclasses import dataclass
 
 from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type
+from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type, ArrayType
 
 from spdm.core.htree import List
-from spdm.core.sp_tree import annotation, sp_property
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.expression import Expression, Variable
 from spdm.core.field import Field
 from spdm.core.function import Function
@@ -62,6 +65,8 @@ COCOS_TABLE = [
 # fmt:on
 
 OXPoint = typing.Tuple[Point, float]
+
+_T = typing.TypeVar("_T")
 
 
 class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
@@ -217,17 +222,16 @@ class FyEqCoordinateSystem(equilibrium.EquilibriumCoordinateSystem):
         for p, surf in self.find_surfaces_by_psi(psi, **kwargs):
             yield (p - self.psi_axis) / (self.psi_boundary - self.psi_axis), surf
 
-    @dataclass
-    class ShapeProperty:
-        psi: float | np.ndarray
-        Rmin: float | np.ndarray
-        Zmin: float | np.ndarray
-        Rmax: float | np.ndarray
-        Zmax: float | np.ndarray
-        Rzmin: float | np.ndarray
-        Rzmax: float | np.ndarray
-        r_inboard: float | np.ndarray
-        r_outboard: float | np.ndarray
+    class ShapeProperty(typing.Generic[_T], SpTree):
+        psi: _T
+        Rmin: _T
+        Zmin: _T
+        Rmax: _T
+        Zmax: _T
+        Rzmin: _T
+        Rzmax: _T
+        r_inboard: _T
+        r_outboard: _T
 
     def shape_property(self, psi_norm: typing.Union[float, typing.Sequence[float]] = None) -> ShapeProperty:
         def shape_box(s: GeoObject):
@@ -378,7 +382,7 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
 
     @sp_property
     def j_parallel(self) -> Expression:
-        raise NotImplementedError(f"TODO")
+        raise NotImplementedError("TODO")
 
     @sp_property
     def b_field_r(self) -> Expression:
@@ -408,7 +412,7 @@ class FyEqProfiles2D(equilibrium.EquilibriumProfiles2D):
 
     @sp_property
     def grad_psi(self) -> Expression:
-        return np.sqrt(self.grad_psi2)
+        return np.sqrt(self.grad_psi2)  # type:ignore
 
     @sp_property
     def ddpsi(self) -> Expression:
@@ -726,7 +730,7 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
     rho_tor_norm: float
 
     @sp_property
-    def outline(self) -> CurveRZ:
+    def outline(self) -> GeoObject:
         try:
             _, surf = next(self._coord.find_surfaces(self.psi_norm))
         except StopIteration as error:
@@ -734,15 +738,15 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
         return surf
 
     @functools.cached_property
-    def _shape_property(self) -> FyEqCoordinateSystem.ShapeProperty:
+    def _shape_property(self) -> FyEqCoordinateSystem.ShapeProperty[float]:
         return self._coord.shape_property(self.psi_norm)
 
     @sp_property
     def geometric_axis(self) -> PointRZ:
-        return {
-            "r": (self._shape_property.Rmin + self._shape_property.Rmax) * 0.5,
-            "z": (self._shape_property.Zmin + self._shape_property.Zmax) * 0.5,
-        }
+        return PointRZ(
+            (self._shape_property.Rmin + self._shape_property.Rmax) * 0.5,
+            (self._shape_property.Zmin + self._shape_property.Zmax) * 0.5,
+        )
 
     @sp_property
     def minor_radius(self) -> float:
@@ -766,7 +770,7 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
             self._shape_property.Rmax - self._shape_property.Rmin
         )
 
-    @sp_property(coordinate1="../psi")
+    @sp_property
     def triangularity(self) -> float:
         return (
             (self._shape_property.Rzmax - self._shape_property.Rzmin)
@@ -792,11 +796,11 @@ class FyEqBoundary(equilibrium.EquilibriumBoundary):
 
     @sp_property
     def x_point(self) -> PointSetRZ:
-        return [pv[0] for pv in self._coord.x_points]
+        return PointSetRZ([pv[0] for pv in self._coord.x_points])
 
     @sp_property
     def strike_point(self) -> PointSetRZ:
-        return
+        return NotImplemented
 
     @sp_property
     def active_limiter_point(self) -> PointSetRZ:

@@ -1,10 +1,12 @@
+
+import typing
 import numpy as np
 import scipy.constants
 
-from spdm.utils.type_hint import array_type
+from spdm.utils.type_hint import ArrayType
 from spdm.utils.tags import _not_found_
 from spdm.core.expression import Variable, Expression, one, zero
-from spdm.core.path import as_path
+from spdm.core.path import as_path, Path
 from spdm.numlib.calculus import derivative
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
@@ -19,7 +21,7 @@ from .bvp import solve_bvp
 EPSILON = 1.0e-32
 
 
-def derivative_(y: array_type, x: array_type, dc_index=None):
+def derivative_(y: ArrayType, x: ArrayType, dc_index=None):
     res = derivative(y, x)
 
     if dc_index is not None:
@@ -96,8 +98,12 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                     :label: transport_electron_temperature
         """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._hyper_diff = 0.001
+
     def initialize(self, *args, **kwargs):
-        super().initialize(*args, **kwargs)
+
         enable_momentum = self.code.parameters.enable_momentum or False
         enable_impurity = self.code.parameters.enable_impurity or False
 
@@ -106,7 +112,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         ######################################################################################
         # 确定待求未知量
 
-        unknowns = self.code.parameters.unknowns
+        unknowns = []
 
         if unknowns is _not_found_:
             unknowns = []
@@ -240,12 +246,12 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         ##################################################################################################
         # 定义内部控制参数
 
-        self._hyper_diff = self.code.parameters.hyper_diff or 0.001
+        self._hyper_diff:float = self.code.parameters.hyper_diff or 0.001
         self._dc_pos = self.code.parameters.dc_pos or None
 
         # logger.debug([equ.identifier for equ in self.equations])
 
-    def func(self, X: array_type, _Y: array_type, *args) -> array_type:
+    def func(self, X: ArrayType, _Y: ArrayType, *args) -> ArrayType:
         dY = np.zeros([len(self.equations) * 2, X.size])
 
         hyper_diff = self._hyper_diff
@@ -300,7 +306,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         return dY
 
-    def bc(self, ya: array_type, yb: array_type, *args) -> array_type:
+    def bc(self, ya: ArrayType, yb: ArrayType, *args) -> ArrayType:
         x0, x1 = self.bc_pos
 
         bc = []
@@ -311,12 +317,12 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             [u0, v0, w0], [u1, v1, w1] = equ.boundary_condition_value
 
             try:
-                u0 = u0(x0, *ya, *args) if isinstance(u0, Expression) else u0
-                v0 = v0(x0, *ya, *args) if isinstance(v0, Expression) else v0
-                w0 = w0(x0, *ya, *args) if isinstance(w0, Expression) else w0
-                u1 = u1(x1, *yb, *args) if isinstance(u1, Expression) else u1
-                v1 = v1(x1, *yb, *args) if isinstance(v1, Expression) else v1
-                w1 = w1(x1, *yb, *args) if isinstance(w1, Expression) else w1
+                u0 = u0(x0, *ya, *args) 
+                v0 = v0(x0, *ya, *args) 
+                w0 = w0(x0, *ya, *args) 
+                u1 = u1(x1, *yb, *args) 
+                v1 = v1(x1, *yb, *args) 
+                w1 = w1(x1, *yb, *args) 
             except Exception as error:
                 logger.error(((u0, v0, w0), (u1, v1, w1)), exc_info=error)
                 # raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
@@ -333,12 +339,13 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         bc = np.array(bc)
         return bc
 
-    def refresh(self, *args, impurity_fraction=0.0, boundary_value=None, **kwargs):
+    def execute(self, *args,unknowns=None, impurity_fraction=0.0, boundary_value=None, **kwargs):
         """准备迭代求解
         - 方程 from self.equations
         - 初值 from initial_value
         - 边界值 from boundary_value
         """
+
         if boundary_value is None:
             boundary_value = {}
 
@@ -352,9 +359,11 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         core_profiles_out: CoreProfiles = self.in_ports.core_profiles
 
-        profiles_1d_in = core_profiles_in.profiles_1d
+        profiles_1d_in: CoreProfiles.Profiles1D = core_profiles_in.profiles_1d
 
-        profiles_1d_out = core_profiles_out.profiles_1d
+        profiles_1d_out: CoreProfiles.Profiles1D = core_profiles_out.profiles_1d
+
+        profiles_1d_prev: CoreProfiles.Profiles1D = Path(["profiles_1d"]).get(core_profiles_prev, None)
 
         grid: CoreRadialGrid = equilibrium.profiles_1d.grid
 
@@ -406,6 +415,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             rho_tor_boundary_prev = rho_tor_boundary
             vpr_prev = vpr
             gm8_prev = gm8
+            dt = 0
         else:
             dt = equilibrium.time - eq_prev.time
 
@@ -451,398 +461,384 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         profiles_1d_out.electrons.density_flux = ni_flux / (1.0 - impurity_fraction)
 
-        for idx, equ in enumerate(self.equations):
-            value = getattr(profiles_1d_in, equ.identifier, 0)
-            Y[idx * 2] = value(X) if isinstance(value, Expression) else np.full_like(X, value)
+        hyper_diff = 0.001  # self._hyper_diff
 
-        hyper_diff = self._hyper_diff
+        core_transport = self.in_ports.core_transport
 
-        tranport = self.in_ports.core_transport.model
-        sources = self.in_ports.core_sources.source
+        core_sources = self.in_ports.core_sources
 
-        for idx, equ in enumerate(self.equations):
-            identifier = as_path(equ.identifier)
-            path = identifier.parent
-            quantity = identifier[-1]
+        primary_coordinate=self.primary_coordinate
 
-            if quantity == "toroidal":
-                quantity = "velocity/toroidal"
-                path = path.parent
+        if unknowns is None:
+            unknowns = [core_profiles_in.profiles_1d.grid.primary_coordinate,"psi","electrons/temperature"] + \
+                sum(([f"{ion.label}/density",f"{ion.label}/tempetature"] for ion in profiles_1d_in.ion if ion.label !="alpha"),[])+["ion/alpha/density"]
 
-            bc_value = boundary_value.get(equ.identifier, Y[idx * 2][-1])
+        var_list: typing.List[Variable]  = [Variable(idx,name) for idx,name in unknowns]
 
-            match quantity:
-                case "psi":
-                    psi = identifier.get(profiles_1d_in, zero)
+        core_profiles_var=CoreProfiles(
+            {
+                "profiles_1d":{
+                    "grid":eq0_1d.grid.remesh(**{primary_coordinate:var_list[0]}),
+                    "ion":[{"label":ion.label} for ion in profiles_1d_in.ion]}
+            }
+            )
 
-                    psi_m = identifier.get(core_profiles_prev.profiles_1d, zero)(rho_tor_norm)
+        for var in var_list:
+            core_profiles_var.profiles_1d.put(var.name,var)
+    
+        equations=[]
+        boundary_conditions=[]
+        boundary_condition = {}
 
-                    conductivity_parallel: Expression = zero
+        if True:  # "psi":
+            psi = profiles_1d_in.get("psi", zero)
 
-                    j_parallel: Expression = zero
+            psi_m = profiles_1d_prev.get("psi", zero)(rho_tor_norm)
 
-                    for source in sources:
-                        source_1d = source.profiles_1d
-                        conductivity_parallel += as_path("conductivity_parallel").get(source_1d, zero)
-                        j_parallel += as_path("j_parallel").get(source_1d, zero)
+            conductivity_parallel = sum(
+                (source.profiles_1d.get("conductivity_parallel", zero) for source in core_sources.source),
+                zero,
+            )
 
-                    c = fpol2 / (scipy.constants.mu_0 * B0 * rho_tor * (rho_tor_boundary))
+            j_parallel = sum((source.profiles_1d.get("j_parallel", zero) for source in core_sources.source), zero)
 
-                    d_dt = one_over_dt * conductivity_parallel * (psi - psi_m) / c
+            c = fpol2 / (scipy.constants.mu_0 * B0 * rho_tor * (rho_tor_boundary))
 
-                    D = vpr * gm2 / (fpol * rho_tor_boundary * 2.0 * scipy.constants.pi)
+            d_dt = one_over_dt * conductivity_parallel * (psi - psi_m) / c
 
-                    V = -k_phi * rho_tor_norm * conductivity_parallel
+            D = vpr * gm2 / (fpol * rho_tor_boundary * 2.0 * scipy.constants.pi)
 
-                    S = (
-                        -vpr * (j_parallel) / (2.0 * scipy.constants.pi * rho_tor)
-                        - k_phi
-                        * conductivity_parallel
-                        * (2 - 2 * rho_tor_norm * fpol.dln + rho_tor_norm * conductivity_parallel.dln)
-                        * psi
-                    ) / c
+            V = -k_phi * rho_tor_norm * conductivity_parallel
 
-                    if bc_value is None:
-                        bc_value = grid.psi_boundary
+            S = (
+                -vpr * (j_parallel) / (2.0 * scipy.constants.pi * rho_tor)
+                - k_phi
+                * conductivity_parallel
+                * (2 - 2 * rho_tor_norm * fpol.dln + rho_tor_norm * conductivity_parallel.dln)
+                * psi
+            ) / c
 
-                    # at axis x=0 , dpsi_dx=0
-                    bc = [[0, 1, 0]]
+            
 
-                    if bc_value is None:
-                        assert equ.boundary_condition_type == 1
-                        bc_value = grid.psi_boundary
+            if bc_value is None:
+                bc_value = grid.psi_boundary
 
-                    # at boundary x=1
-                    match equ.boundary_condition_type:
-                        # poloidal flux;
-                        case 1:
-                            u = equ.units[1] / equ.units[0]
-                            v = 0
-                            w = bc_value * equ.units[1] / equ.units[0]
-
-                        # ip, total current inside x=1
-                        case 2:
-                            Ip = bc_value
-                            u = 0
-                            v = 1
-                            w = scipy.constants.mu_0 * Ip / fpol
+            # at axis x=0 , dpsi_dx=0
+            bc = [[0, 1, 0]]
 
-                        # loop voltage;
-                        case 3:
-                            Uloop_bdry = bc_value
-                            u = 0
-                            v = 1
-                            w = (dt * Uloop_bdry + psi_m) * (D - hyper_diff)
+            if bc_value is None:
+                assert equ.boundary_condition_type == 1
+                bc_value = grid.psi_boundary
 
-                        #  generic boundary condition y expressed as a1y'+a2y=a3.
-                        case _:
-                            if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(
-                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
-                                )
-                            u, v, w = bc_value
+            # at boundary x=1
+            match equ.boundary_condition_type:
+                # poloidal flux;
+                case 1:
+                    u = equ.units[1] / equ.units[0]
+                    v = 0
+                    w = bc_value * equ.units[1] / equ.units[0]
 
-                    bc += [[u, v, w]]
+                # ip, total current inside x=1
+                case 2:
+                    Ip = bc_value
+                    u = 0
+                    v = 1
+                    w = scipy.constants.mu_0 * Ip / fpol
 
-                case "psi_norm":
-                    dpsi = grid.psi_boundary - grid.psi_axis
+                # loop voltage;
+                case 3:
+                    Uloop_bdry = bc_value
+                    u = 0
+                    v = 1
+                    w = (dt * Uloop_bdry + psi_m) * (D - hyper_diff)
 
-                    psi_norm = profiles.psi_norm
-
-                    psi_norm_m = identifier.get(profiles_prev, zero)(rho_tor_norm)
-
-                    conductivity_parallel: Expression = zero
-
-                    j_parallel: Expression = zero
-
-                    for source in sources:
-                        source_1d = source.profiles_1d
-                        conductivity_parallel += as_path("conductivity_parallel").get(source_1d, zero)
-                        j_parallel += as_path("j_parallel").get(source_1d, zero)
-
-                    c = fpol2 / (scipy.constants.mu_0 * B0 * rho_tor * (rho_tor_boundary))
-
-                    d_dt = one_over_dt * conductivity_parallel * (psi_norm - psi_norm_m) / c
-
-                    D = vpr * gm2 / (fpol * rho_tor_boundary * 2.0 * scipy.constants.pi)
-
-                    V = -k_phi * rho_tor_norm * conductivity_parallel
-
-                    S = (
-                        (
-                            -vpr * (j_parallel) / (2.0 * scipy.constants.pi * rho_tor)
-                            - k_phi
-                            * conductivity_parallel
-                            * (2 - 2 * rho_tor_norm * fpol.dln + rho_tor_norm * conductivity_parallel.dln)
-                            * psi_norm
-                        )
-                        / c
-                        / dpsi
-                    )
-
-                    if bc_value is None:
-                        bc_value = grid.psi_norm[-1]
-
-                    # at axis x=0 , dpsi_dx=0
-                    bc = [[0, 1, 0]]
-
-                    if bc_value is None:
-                        assert equ.boundary_condition_type == 1
-                        bc_value = grid.psi_boundary
-
-                    # at boundary x=1
-                    match equ.boundary_condition_type:
-                        # poloidal flux;
-                        case 1:
-                            u = equ.units[1] / equ.units[0]
-                            v = 0
-                            w = bc_value * equ.units[1] / equ.units[0]
-
-                        # ip, total current inside x=1
-                        case 2:
-                            Ip = bc_value
-                            u = 0
-                            v = 1
-                            w = scipy.constants.mu_0 * Ip / fpol
-
-                        # loop voltage;
-                        case 3:
-                            Uloop_bdry = bc_value
-                            u = 0
-                            v = 1
-                            w = (dt * Uloop_bdry + psi_m) * (D - hyper_diff)
-
-                        #  generic boundary condition y expressed as a1y'+a2y=a3.
-                        case _:
-                            if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(
-                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
-                                )
-                            u, v, w = bc_value
-
-                    bc += [[u, v, w]]
-
-                case "density":
-                    ns = (path / "density").get(profiles, zero)
-                    ns_m = (path / "density").get(profiles_prev, zero)(rho_tor_norm)
-
-                    transp_D = zero
-                    transp_V = zero
-
-                    for transp in tranport:
-                        transp_1d = transp.profiles_1d
-
-                        transp_D += (path / "particles/d").get(transp_1d, zero)
-                        transp_V += (path / "particles/v").get(transp_1d, zero)
-                        # transp_F += (pth / "particles/flux").get(core_transp_1d, zero)
-
-                    S = zero
-
-                    for source in sources:
-                        source_1d = source.profiles_1d
-                        S += (path / "particles").get(source_1d, zero)
-
-                    d_dt = one_over_dt * (vpr * ns - vpr_prev * ns_m) * rho_tor_boundary
-
-                    D = vpr * gm3 * transp_D / rho_tor_boundary  #
-
-                    V = vpr * gm3 * (transp_V - rho_tor * k_phi)
-
-                    S = vpr * (S - k_phi * ns) * rho_tor_boundary
-
-                    # at axis x=0 , flux=0
-                    bc = [[0, 1, 0]]
-
-                    # at boundary x=1
-                    match equ.boundary_condition_type:
-                        case 1:  # 1: value of the field y;
-                            u = equ.units[1] / equ.units[0]
-                            v = 0
-                            w = bc_value * equ.units[1] / equ.units[0]
-
-                        case 2:  # 2: radial derivative of the field (-dy/drho_tor);
-                            u = V
-                            v = -1.0
-                            w = bc_value * (D - hyper_diff)
-
-                        case 3:  # 3: scale length of the field y/(-dy/drho_tor);
-                            L = bc_value
-                            u = V - (D - hyper_diff) / L
-                            v = 1.0
-                            w = 0
-                        case 4:  # 4: flux;
-                            u = 0
-                            v = 1
-                            w = bc_value
-                        # 5: generic boundary condition y expressed as a1y'+a2y=a3.
-                        case _:
-                            if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(
-                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
-                                )
-                            u, v, w = bc_value
-
-                    bc += [[u, v, w]]
-
-                case "temperature":
-                    ns = (path / "density").get(profiles, zero)
-                    Gs = (path / "density_flux").get(profiles, zero)
-                    Ts = (path / "temperature").get(profiles, zero)
-
-                    ns_m = (path / "density").get(profiles_prev, zero)(profiles)
-                    Ts_m = (path / "temperature").get(profiles_prev, zero)(profiles)
-
-                    energy_D = zero
-                    energy_V = zero
-                    energy_F = zero
-
-                    flux_multiplier = zero
-
-                    for transp in tranport:
-                        transp_1d = transp.profiles_1d
-                        flux_multiplier += transp_1d._parent.flux_multiplier
-
-                        energy_D += (path / "energy/d").get(transp_1d, zero)
-                        energy_V += (path / "energy/v").get(transp_1d, zero)
-                        energy_F += (path / "energy/flux").get(transp_1d, zero)
-
-                    if flux_multiplier is zero:
-                        flux_multiplier = one
-
-                    Q = zero
-
-                    for source in sources:
-                        source_1d = source.profiles_1d
-                        Q += (path / "energy").get(source_1d, zero)
-
-                    d_dt = (
-                        one_over_dt
-                        * (3 / 2)
-                        * (vpr * ns * Ts - (vpr_prev ** (5 / 3)) * ns_m * Ts_m * inv_vpr23)
-                        * rho_tor_boundary
-                    )
-
-                    D = vpr * gm3 * ns * energy_D / rho_tor_boundary
-
-                    V = vpr * gm3 * ns * energy_V + Gs * flux_multiplier - (3 / 2) * k_phi * vpr * rho_tor * ns
-
-                    S = vpr * (Q - k_vppr * ns * Ts) * rho_tor_boundary
-
-                    # at axis x=0, dH_dx=0
-                    bc = [[0, 1, 0]]
-
-                    # at boundary x=1
-                    match equ.boundary_condition_type:
-                        case 1:  # 1: value of the field y;
-                            u = equ.units[1] / equ.units[0]
-                            v = 0
-                            w = bc_value * equ.units[1] / equ.units[0]
-
-                        case 2:  # 2: radial derivative of the field (-dy/drho_tor);
-                            u = V
-                            v = -1.0
-                            w = bc_value * (D - hyper_diff)
-
-                        case 3:  # 3: scale length of the field y/(-dy/drho_tor);
-                            L = bc_value
-                            u = V - (D - hyper_diff) / L
-                            v = 1.0
-                            w = 0
-                        case 4:  # 4: flux;
-                            u = 0
-                            v = 1
-                            w = bc_value
-
-                        case _:  # 5: generic boundary condition y expressed as a1y'+a2y=a3.
-                            if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(
-                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
-                                )
-                            u, v, w = bc_value
-
-                    bc += [[u, v, w]]
-
-                case "velocity/toroidal":
-                    us = (path / "velocity/toroidal").get(profiles, zero)
-                    ns = (path / "density").get(profiles, zero)
-                    Gs = (path / "density_flux").get(profiles, zero)
-
-                    us_m = (path / "velocity/toroidal").get(profiles_prev, zero)(rho_tor_norm)
-                    ns_m = (path / "density").get(profiles_prev, zero)(rho_tor_norm)
-
-                    chi_u = zero
-                    V_u_pinch = zero
-
-                    for transp in tranport:
-                        transp_1d = transp.profiles_1d
-
-                        chi_u += (path / "momentum/toroidal/d").get(transp_1d, zero)
-                        V_u_pinch += (path / "momentum/toroidal/v").get(transp_1d, zero)
-
-                    U = zero
-
-                    for source in sources:
-                        source_1d = source.profiles_1d
-                        U += (identifier / "../../momentum/toroidal").get(source_1d, zero)
-
-                    U *= gm8
-
-                    ms = identifier.get(atoms).a
-
-                    d_dt = (
-                        one_over_dt
-                        * ms
-                        * (vpr * gm8 * ns * us - vpr_prev * gm8_prev * ns_m * us_m)
-                        * rho_tor_boundary
-                    )
-
-                    D = vpr * gm3 * gm8 * ms * ns * chi_u / rho_tor_boundary
-
-                    V = (vpr * gm3 * ns * V_u_pinch + Gs - k_phi * vpr * rho_tor * ns) * gm8 * ms
-
-                    S = vpr * (U - k_rho_bdry * ms * ns * us) * rho_tor_boundary
-
-                    # at axis x=0, du_dx=0
-                    bc = [[0, 1, 0]]
-
-                    # at boundary x=1
-                    match equ.boundary_condition_type:
-                        case 1:  # 1: value of the field y;
-                            u = equ.units[1]
-                            v = 0
-                            w = bc_value * equ.units[1]
-
-                        case 2:  # 2: radial derivative of the field (-dy/drho_tor);
-                            u = V
-                            v = -1.0
-                            w = bc_value * (D - hyper_diff)
-
-                        case 3:  # 3: scale length of the field y/(-dy/drho_tor);
-                            L = bc_value
-                            u = V - (D - hyper_diff) / L
-                            v = 1.0
-                            w = 0
-                        case 4:  # 4: flux;
-                            u = 0
-                            v = 1
-                            w = bc_value
-
-                        # 5: generic boundary condition y expressed as u y + v y'=w.
-                        case _:
-                            if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
-                                raise NotImplementedError(
-                                    f"5: generic boundary condition y expressed as a1y'+a2y=a3."
-                                )
-                            u, v, w = bc_value
-
-                    bc += [[u, v, w]]
-
+                #  generic boundary condition y expressed as a1y'+a2y=a3.
                 case _:
-                    raise RuntimeError(f"Unknown equation of {equ.identifier}!")
+                    if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
+                        raise NotImplementedError("5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                    u, v, w = bc_value
 
-            equ["coefficient"] = [d_dt, D, V, S]
+            bc += [[u, v, w]]
 
-            equ["boundary_condition_value"] = bc
+        if True:  # "psi_norm":
+            dpsi = grid.psi_boundary - grid.psi_axis
+
+            psi_norm = profiles_1d_in.psi_norm(rho_tor_norm)
+
+            if profiles_1d_prev is not None:
+                psi_norm_m = profiles_1d_prev.get("psi_norm", zero)(rho_tor_norm)
+            else:
+                psi_norm_m = zero
+
+            conductivity_parallel = sum(
+                (source.profiles_1d.get("conductivity_parallel", zero) for source in core_sources.source),
+                zero,
+            )
+
+            j_parallel = sum((source.profiles_1d.get("j_parallel", zero) for source in core_sources.source), zero)
+
+            c = fpol2 / (scipy.constants.mu_0 * B0 * rho_tor * (rho_tor_boundary))
+
+            d_dt = one_over_dt * conductivity_parallel * (psi_norm - psi_norm_m) / c
+
+            D = vpr * gm2 / (fpol * rho_tor_boundary * 2.0 * scipy.constants.pi)
+
+            V = -k_phi * rho_tor_norm * conductivity_parallel
+
+            S = (
+                (
+                    -vpr * (j_parallel) / (2.0 * scipy.constants.pi * rho_tor)
+                    - k_phi
+                    * conductivity_parallel
+                    * (2 - 2 * rho_tor_norm * fpol.dln + rho_tor_norm * conductivity_parallel.dln)
+                    * psi_norm
+                )
+                / c
+                / dpsi
+            )
+
+            if bc_value is None:
+                bc_value = grid.psi_norm[-1]
+
+            # at axis x=0 , dpsi_dx=0
+            bc = [[0, 1, 0]]
+
+            if bc_value is None:
+                assert equ.boundary_condition_type == 1
+                bc_value = grid.psi_boundary
+
+            # at boundary x=1
+            match boundary_condition.get(equ, 1):
+                # poloidal flux;
+                case 1:
+                    u = equ.units[1] / equ.units[0]
+                    v = 0
+                    w = bc_value * equ.units[1] / equ.units[0]
+
+                # ip, total current inside x=1
+                case 2:
+                    Ip = bc_value
+                    u = 0
+                    v = 1
+                    w = scipy.constants.mu_0 * Ip / fpol
+
+                # loop voltage;
+                case 3:
+                    Uloop_bdry = bc_value
+                    u = 0
+                    v = 1
+                    w = (dt * Uloop_bdry + psi_m) * (D - hyper_diff)
+
+                #  generic boundary condition y expressed as a1y'+a2y=a3.
+                case _:
+                    if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
+                        raise NotImplementedError("5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                    u, v, w = bc_value
+
+            bc += [[u, v, w]]
+
+        for ion in profiles_1d_in.ion:
+            ion_label = f"ion/{ion.label}"
+            ms =ion.a
+
+            if True:  # density
+
+                ns = profiles_1d_in.get(f"{ion_label}/density", zero)
+
+                ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero) if profiles_1d_prev is not None else zero
+
+                transp_D = sum(
+                    (model.profiles_1d.get(f"{ion_label}/particles/d", zero) for model in core_transport.model),
+                    zero
+                )
+
+                transp_V = sum(
+                    (model.profiles_1d.get(f"{ion_label}/particles/v", zero) for model in core_transport.model),
+                    zero,
+                )
+
+                S = sum(
+                    (source.profiles_1d.get(f"{ion_label}/particles", zero) for source in core_sources.source),
+                    zero,
+                )
+
+                d_dt = one_over_dt * (vpr * ns - vpr_prev * ns_m) * rho_tor_boundary
+
+                D = vpr * gm3 * transp_D / rho_tor_boundary
+
+                V = vpr * gm3 * (transp_V - rho_tor * k_phi)
+
+                S = vpr * (S - k_phi * ns) * rho_tor_boundary
+
+                # at axis x=0 , flux=0
+                bc = [[0, 1, 0]]
+
+                # at boundary x=1
+                match boundary_condition.get(f"{ion_label}/density", 1):
+                    case 1:  # 1: value of the field y;
+                        u = equ.units[1] / equ.units[0]
+                        v = 0
+                        w = bc_value * equ.units[1] / equ.units[0]
+
+                    case 2:  # 2: radial derivative of the field (-dy/drho_tor);
+                        u = V
+                        v = -1.0
+                        w = bc_value * (D - hyper_diff)
+
+                    case 3:  # 3: scale length of the field y/(-dy/drho_tor);
+                        L = bc_value
+                        u = V - (D - hyper_diff) / L
+                        v = 1.0
+                        w = 0
+                    case 4:  # 4: flux;
+                        u = 0
+                        v = 1
+                        w = bc_value
+                    # 5: generic boundary condition y expressed as a1y'+a2y=a3.
+                    case _:
+                        if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
+                            raise NotImplementedError("5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                        u, v, w = bc_value
+
+                bc += [[u, v, w]]
+
+            if True:  # "temperature":
+                ns = profiles_1d_in.get(f"{ion_label}/density", zero)
+                Gs = profiles_1d_in.get(f"{ion_label}/density_flux", zero)
+                Ts = profiles_1d_in.get(f"{ion_label}/temperature", zero)
+
+                if profiles_1d_prev is not None:
+                    ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero)
+                    Ts_m = profiles_1d_prev.get(f"{ion_label}/temperature", zero)
+                else:
+                    ns_m = zero
+                    Ts_m = zero
+
+                flux_multiplier = sum(
+                    (model.get("flux_multiplier", 0) for model in core_transport.model),
+                    0,
+                )
+                flux_multiplier = one
+
+                energy_D = sum(
+                    (model.profiles_1d.get(f"{ion_label}/energy/d", zero) for model in core_transport.model),
+                    zero,
+                )
+                energy_V = sum(
+                    (model.profiles_1d.get(f"{ion_label}/energy/v", zero) for model in core_transport.model),
+                    zero,
+                )
+
+                if flux_multiplier is zero:
+       
+
+                Q = sum((source.profiles_1d.get(f"{ion_label}/energy", zero) for source in core_sources.source), zero)
+
+                d_dt = (
+                    one_over_dt
+                    * (3 / 2)
+                    * (vpr * ns * Ts - (vpr_prev ** (5 / 3)) * ns_m * Ts_m * inv_vpr23)
+                    * rho_tor_boundary
+                )
+
+                D = vpr * gm3 * ns * energy_D / rho_tor_boundary
+
+                V = vpr * gm3 * ns * energy_V + Gs * flux_multiplier - (3 / 2) * k_phi * vpr * rho_tor * ns
+
+                S = vpr * (Q - k_vppr * ns * Ts) * rho_tor_boundary
+
+                # at axis x=0, dH_dx=0
+                bc = [[0, 1, 0]]
+
+                # at boundary x=1
+                match boundary_condition.get(equ, 1):
+                    case 1:  # 1: value of the field y;
+                        u = equ.units[1] / equ.units[0]
+                        v = 0
+                        w = bc_value * equ.units[1] / equ.units[0]
+
+                    case 2:  # 2: radial derivative of the field (-dy/drho_tor);
+                        u = V
+                        v = -1.0
+                        w = bc_value * (D - hyper_diff)
+
+                    case 3:  # 3: scale length of the field y/(-dy/drho_tor);
+                        L = bc_value
+                        u = V - (D - hyper_diff) / L
+                        v = 1.0
+                        w = 0
+                    case 4:  # 4: flux;
+                        u = 0
+                        v = 1
+                        w = bc_value
+
+                    case _:  # 5: generic boundary condition y expressed as a1y'+a2y=a3.
+                        if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
+                            raise NotImplementedError("5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                        u, v, w = bc_value
+
+                bc += [[u, v, w]]
+
+            if True:  # "velocity/toroidal":
+                us = profiles_1d_in.get(f"{ion_label}/velocity/toroidal" , zero)
+                ns = profiles_1d_in.get(f"{ion_label}/density" , zero)
+                Gs = profiles_1d_in.get(f"{ion_label}/density_flux" , zero)
+
+                if profiles_1d_prev is not None:
+                    us_m = profiles_1d_prev.get(f"{ion_label}/velocity/toroidal" , zero)
+                    ns_m = profiles_1d_prev.get(f"{ion_label}/density" , zero)
+                    Gs_m = profiles_1d_prev.get(f"{ion_label}/density_flux" , zero)
+                else:
+                    us_m =zero
+                    ns_m =zero
+                    Gs_m =zero
+
+                chi_u  =sum((model.profiles_1d.get(f"{ion_label}/momentum/toroidal/d", zero) for model in core_transport.model),zero)
+
+                V_u_pinch  =sum((model.profiles_1d.get(f"{ion_label}/momentum/toroidal/v", zero) for model in core_transport.model),zero)
+                
+                U  =gm8*sum((source.profiles_1d.get(f"{ion_label}/momentum/toroidal", zero) for source in core_sources.source),zero)
+
+                d_dt = one_over_dt * ms * (vpr * gm8 * ns * us - vpr_prev * gm8_prev * ns_m * us_m) * rho_tor_boundary
+
+                D = vpr * gm3 * gm8 * ms * ns * chi_u / rho_tor_boundary
+
+                V = (vpr * gm3 * ns * V_u_pinch + Gs - k_phi * vpr * rho_tor * ns) * gm8 * ms
+
+                S = vpr * (U - k_rho_bdry * ms * ns * us) * rho_tor_boundary
+
+                # at axis x=0, du_dx=0
+                bc = [[0, 1, 0]]
+
+                # at boundary x=1
+                match boundary_condition.get(f"{ion_label}/moment",1):
+                    case 1:  # 1: value of the field y;
+                        u = equ.units[1]
+                        v = 0
+                        w = bc_value * equ.units[1]
+
+                    case 2:  # 2: radial derivative of the field (-dy/drho_tor);
+                        u = V
+                        v = -1.0
+                        w = bc_value * (D - hyper_diff)
+
+                    case 3:  # 3: scale length of the field y/(-dy/drho_tor);
+                        L = bc_value
+                        u = V - (D - hyper_diff) / L
+                        v = 1.0
+                        w = 0
+                    case 4:  # 4: flux;
+                        u = 0
+                        v = 1
+                        w = bc_value
+
+                    # 5: generic boundary condition y expressed as u y + v y'=w.
+                    case _:
+                        if not isinstance(bc_value, (tuple, list)) or len(bc_value) != 3:
+                            raise NotImplementedError("5: generic boundary condition y expressed as a1y'+a2y=a3.")
+                        u, v, w = bc_value
+
+                bc += [[u, v, w]]
 
         for idx, equ in enumerate(self.equations):
             d_dt, D, V, S = equ.coefficient
@@ -852,7 +848,10 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         Y = Y / self._units.reshape(-1, 1)
 
-        self.bc_pos = (X[0], X[-1])
+        # 设定边界值
+        xa = X[0]
+        xb = X[-1]
+
         # 设定初值
         Y = np.zeros([len(self.equations) * 2, len(X)])
 
@@ -869,15 +868,15 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             )
 
         sol = solve_bvp(
-            self.func,
-            self.bc,
+            lambda X,Y,*_args: np.stack([equ(X,*Y,*_args) for equ in equations]),
+            lambda ya,yb,*_args:np.array(sum([bc(xa,ya,xb,yb,*_args) for bc in boundary_conditions],[])),
             X,
             Y,
-            discontinuity=self.code.parameters.discontinuity or [],
-            tol=self.code.parameters.tolerance or 1.0e-3,
-            bc_tol=self.code.parameters.bc_tol or 1e6,
-            max_nodes=self.code.parameters.max_nodes or 1000,
-            verbose=self.code.parameters.verbose or 0,
+            discontinuity=[],  # self.code.parameters.discontinuity or
+            tol=self.code.parameters.tolerance if isinstance(self.code.parameters.tolerance, float) else 1.0e-3,
+            bc_tol=self.code.parameters.bc_tol if isinstance(self.code.parameters.bc_tol, float) else 1e6,
+            max_nodes=1000,
+            verbose=0,
         )
 
         X = sol.X
