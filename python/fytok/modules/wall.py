@@ -4,8 +4,8 @@ from spdm.utils.tags import _not_found_
 from spdm.core.htree import List
 from spdm.model.component import Component
 
-from spdm.geometry.circle import Circle
-from spdm.geometry.polyline import Polyline
+from spdm.geometry.circle import Circle2D
+from spdm.geometry.polyline import Polyline2D
 
 from fytok.utils.base import IDS, FyEntity
 
@@ -28,11 +28,11 @@ class Wall(FyEntity, IDS, Component, wall.Wall):
             case "top":
                 vessel_r = desc.vessel.unit[0].annular.outline_outer.r
                 # vessel_z = desc.vessel.unit[0].annular.outline_outer.z
-                geo["vessel_outer"] = [Circle(0.0, 0.0, vessel_r.min()), Circle(0.0, 0.0, vessel_r.max())]
+                geo["vessel_outer"] = [Circle2D(0.0, 0.0, vessel_r.min()), Circle2D(0.0, 0.0, vessel_r.max())]
 
             case "rz":
                 if desc.limiter.unit[0].outline.r is not _not_found_:
-                    geo["limiter"] = Polyline(
+                    geo["limiter"] = Polyline2D(
                         desc.limiter.unit[0].outline.r,
                         desc.limiter.unit[0].outline.z,
                         styles={"$matplotlib": {"edgecolor": "green"}},
@@ -44,12 +44,12 @@ class Wall(FyEntity, IDS, Component, wall.Wall):
                             units.append(
                                 {
                                     "annular": {
-                                        "vessel_inner": Polyline(
+                                        "vessel_inner": Polyline2D(
                                             unit.annular.outline_inner.r,
                                             unit.annular.outline_inner.z,
                                             styles={"$matplotlib": {"edgecolor": "blue"}},
                                         ),
-                                        "vessel_outer": Polyline(
+                                        "vessel_outer": Polyline2D(
                                             unit.annular.outline_outer.r,
                                             unit.annular.outline_outer.z,
                                             styles={"$matplotlib": {"edgecolor": "blue"}},
@@ -61,7 +61,7 @@ class Wall(FyEntity, IDS, Component, wall.Wall):
                         else:
                             elements = []
                             for element in unit.element:
-                                elements.append(Polyline(element.outline.r, element.outline.z, name=element.name))
+                                elements.append(Polyline2D(element.outline.r, element.outline.z, name=element.name))
                             units.append({"element": elements})
 
                         geo["unit"] = units

@@ -1,6 +1,6 @@
 """ 极向场线圈 """
 
-from spdm.geometry.polygon import Rectangle
+from spdm.geometry.polygon import RectangleRZ
 
 from spdm.model.component import Component
 from fytok.utils.base import IDS, FyEntity
@@ -20,7 +20,7 @@ class PFActive(FyEntity, IDS, Component, pf_active.pf_active):
                     # for element in coil.element:
                     rect = coil.element[0].geometry.rectangle
                     geo_coils.append(
-                        Rectangle(
+                        RectangleRZ(
                             (rect.r - rect.width / 2.0, rect.r + rect.width / 2.0),
                             (rect.z - rect.height / 2.0, rect.z + rect.height / 2.0),
                             name=coil.name,

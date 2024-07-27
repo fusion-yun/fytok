@@ -10,8 +10,8 @@ from spdm.core.expression import Variable
 from spdm.core.htree import List
 from spdm.core.geo_object import GeoObject
 
-from spdm.geometry.curve import Curve
-from spdm.geometry.point import Point
+from spdm.geometry.curve import CurveXY
+from spdm.geometry.point import PointXY
 
 
 from .optimize import minimize_filter
@@ -38,9 +38,9 @@ def find_countours_skimage_(
         data = np.stack([x, y], axis=-1)
 
         if data.shape[0] == 1:
-            yield Point(*data[0])
+            yield PointXY(*data[0])
         else:
-            yield Curve(data)
+            yield CurveXY(data)
 
 
 def find_countours_skimage(vals: list, z: np.ndarray, x: np.ndarray, y: np.ndarray):
@@ -72,7 +72,7 @@ def find_countours_skimage(vals: list, z: np.ndarray, x: np.ndarray, y: np.ndarr
         #     if len(data) == 0:
         #         yield val, None
         #     elif data.shape[0] == 1:
-        #         yield val, Point(*data[0])
+        #         yield val, PointXY(*data[0])
         #     else:
         #         yield val, Curve(data)
         # if count == 0:
@@ -98,7 +98,7 @@ def find_contours(
 
 def find_critical_points(
     psi: Field,
-) -> typing.Tuple[List[typing.Tuple[Point, float]], List[typing.Tuple[Point, float]]]:
+) -> typing.Tuple[List[typing.Tuple[PointXY, float]], List[typing.Tuple[PointXY, float]]]:
     opoints = []
 
     xpoints = []
@@ -110,7 +110,7 @@ def find_critical_points(
     D = psi.pd(2, 0) * psi.pd(0, 2) - psi.pd(1, 1) ** 2
 
     for r, z in minimize_filter(Bp2, R, Z):
-        pv = (Point(r, z), psi(r, z))
+        pv = (PointXY(r, z), psi(r, z))
 
         if D(r, z) < 0.0:  # saddle/X-point
             xpoints.append(pv)
