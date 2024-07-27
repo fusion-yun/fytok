@@ -2,6 +2,7 @@
 
 import typing
 
+from spdm.core.path import Path
 from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.htree import Set
 from spdm.core.expression import Expression
@@ -118,6 +119,7 @@ class CoreSourcesSource(
     Actor,
     plugin_prefix="core_sources/source/",
 ):
+    """Source model for the core transport equations"""
 
     class InPorts(Actor.InPorts):
         equilibrium: Equilibrium
@@ -136,15 +138,21 @@ class CoreSourcesSource(
     Profiles2D = CoreSourcesProfiles2D
     profiles_2d: CoreSourcesProfiles2D
 
-    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-
-        res = super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
-
-        rho_tor_norm = core_profiles.profiles_1d.grid.psi_norm
-
-        res.profiles_1d.grid = equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
-
-        return res
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+        return self.__class__(
+            Path().update(
+                super().execute(*args, **kwargs),
+                {
+                    "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
+                    "profiles_1d": {
+                        "grid": equilibrium.profiles_1d.grid.remesh(
+                            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
+                        ),
+                        "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
+                    },
+                },
+            ),
+        )
 
 
 class CoreSources(FyEntity, WithTime, IDS, Context, code={"name": "core_sources"}):

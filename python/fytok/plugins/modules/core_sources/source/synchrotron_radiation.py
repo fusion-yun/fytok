@@ -4,7 +4,6 @@ from spdm.core.expression import Variable, Expression, zero
 from spdm.core.sp_tree import sp_tree
 
 
-
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_profiles import CoreProfiles
@@ -17,23 +16,18 @@ from fytok.utils.logger import logger
 PI = scipy.constants.pi
 
 
-@sp_tree
-class SynchrotronRadiation(CoreSources.Source):
-    identifier = "synchrotron"
-
-    code = {
+class SynchrotronRadiation(
+    CoreSources.Source,
+    category="synchrotron",
+    code={
         "name": "synchrotron_radiation",
-        "description": """
-    Source from Synchrotron radition 
-    
-    """,
-    }  # type: ignore
+        "description": """   Source from Synchrotron radition  """,
+    },
+):
+    """Source from Synchrotron radition"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D) -> CoreSources.Source.TimeSlice:
-        current: CoreSources.Source.TimeSlice = super().fetch(profiles_1d)
+    def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
+        current = super().execute(*args, **kwargs)
 
         source_1d = current.profiles_1d
 
@@ -82,6 +76,3 @@ class SynchrotronRadiation(CoreSources.Source):
         source_1d.electrons.energy -= qsync
 
         return current
-
-
-CoreSources.Source.register(["synchrotron_radiation"], SynchrotronRadiation)

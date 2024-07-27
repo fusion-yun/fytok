@@ -78,7 +78,7 @@ class CoreSourcesSource(FyActor):
 
         return current
 
-    def refresh(
+    def execute(
         self,
         *args,
         equilibrium: Equilibrium = None,

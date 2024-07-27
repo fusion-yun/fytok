@@ -28,10 +28,8 @@ class FastAlpha(
 
     """
 
-    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        res: CoreTransportModel = super().refresh(
-            *args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs
-        )
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
+        res = super().execute(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
         R0 = equilibrium.vacuum_toroidal_field.r0
 

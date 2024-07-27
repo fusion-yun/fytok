@@ -10,12 +10,14 @@ from fytok.modules.utilities import *
 PI = scipy.constants.pi
 
 
-@sp_tree
-class PredefinedSource(CoreSources.Source):
-    identifier = "predefined"
-    code = {"name": "predefined", "description": f"predefined"}
+class PredefinedSource(
+    CoreSources.Source, category="predefined", code={"name": "predefined", "description": "predefined"}
+):
+    """Predefined source"""
 
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D, *args, **kwargs) -> CoreSources.Source.TimeSlice:
+    def execute(
+        self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D, *args, **kwargs
+    ) -> CoreSources.Source.TimeSlice:
         current: CoreSources.Source.TimeSlice = super().fetch(*args, **kwargs)
 
         rho_tor_norm = profiles_1d.rho_tor_norm

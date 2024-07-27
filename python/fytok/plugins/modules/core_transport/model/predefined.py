@@ -1,22 +1,17 @@
-import collections
 import typing
 import numpy as np
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
-from spdm.utils.logger import logger
-from spdm.utils.type_hint import array_type
-from spdm.utils.tags import _not_found_
-from spdm.core.sp_tree import sp_tree
 
 
 class PredefinedTransport(CoreTransport.Model, category="predefined", code={"name": "predefined"}):
     """Predefined transport model"""
 
     def execute(self, *args, core_profiles: CoreProfiles, equilibrium: Equilibrium, **kwargs) -> typing.Self:
-        current = super().execute(*args, core_profiles=core_profiles, **kwargs)
+        current: typing.Self = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
-        rho_tor_norm = current.profiles_1d.grid.rho_torm_norm
+        rho_tor_norm = current.profiles_1d.grid.rho_tor_norm
 
         eq_1d = equilibrium.profiles_1d
 

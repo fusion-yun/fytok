@@ -14,14 +14,14 @@ from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 
 
-@sp_tree
-class Ohmic(CoreSources.Source):
-    identifier = "collisional_equipartition"
-
-    code = {"name": "ohmic", "description": "Fusion reaction"}  # type: ignore
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D) -> CoreSources.Source.TimeSlice:
-        current: CoreSources.Source.TimeSlice = super().fetch(profiles_1d)
+ 
+class Ohmic(CoreSources.Source
+    category = "collisional_equipartition",
+    code = {"name": "ohmic", "description": "Fusion reaction"} ,
+):
+    """ Ohmic   """
+    def execute(self,*args, profiles_1d: CoreProfiles,**kwargs) :
+        current = super().execute(*args, profiles_1d: CoreProfiles,**kwargs)
 
         #! +++ Radial electric field and ohmic heating:
         #      rho_loop13: DO irho=1,nrho
@@ -45,3 +45,4 @@ class Ohmic(CoreSources.Source):
         #      fun7                       = qoh * vpr
         #      CALL integr2(nrho, rho, fun7, intfun7)
         #      qoh_tot                    = intfun7(nrho)
+        return current

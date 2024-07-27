@@ -1,4 +1,3 @@
-
 import typing
 import numpy as np
 import scipy.constants
@@ -246,7 +245,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         ##################################################################################################
         # 定义内部控制参数
 
-        self._hyper_diff:float = self.code.parameters.hyper_diff or 0.001
+        self._hyper_diff: float = self.code.parameters.hyper_diff or 0.001
         self._dc_pos = self.code.parameters.dc_pos or None
 
         # logger.debug([equ.identifier for equ in self.equations])
@@ -317,12 +316,12 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             [u0, v0, w0], [u1, v1, w1] = equ.boundary_condition_value
 
             try:
-                u0 = u0(x0, *ya, *args) 
-                v0 = v0(x0, *ya, *args) 
-                w0 = w0(x0, *ya, *args) 
-                u1 = u1(x1, *yb, *args) 
-                v1 = v1(x1, *yb, *args) 
-                w1 = w1(x1, *yb, *args) 
+                u0 = u0(x0, *ya, *args)
+                v0 = v0(x0, *ya, *args)
+                w0 = w0(x0, *ya, *args)
+                u1 = u1(x1, *yb, *args)
+                v1 = v1(x1, *yb, *args)
+                w1 = w1(x1, *yb, *args)
             except Exception as error:
                 logger.error(((u0, v0, w0), (u1, v1, w1)), exc_info=error)
                 # raise RuntimeError(f"Boundary error of equation {equ.identifier}  ") from error
@@ -339,7 +338,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         bc = np.array(bc)
         return bc
 
-    def execute(self, *args,unknowns=None, impurity_fraction=0.0, boundary_value=None, **kwargs):
+    def execute(self, *args, unknowns=None, impurity_fraction=0.0, boundary_value=None, **kwargs):
         """准备迭代求解
         - 方程 from self.equations
         - 初值 from initial_value
@@ -467,27 +466,38 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         core_sources = self.in_ports.core_sources
 
-        primary_coordinate=self.primary_coordinate
+        primary_coordinate = self.primary_coordinate
 
         if unknowns is None:
-            unknowns = [core_profiles_in.profiles_1d.grid.primary_coordinate,"psi","electrons/temperature"] + \
-                sum(([f"{ion.label}/density",f"{ion.label}/tempetature"] for ion in profiles_1d_in.ion if ion.label !="alpha"),[])+["ion/alpha/density"]
-
-        var_list: typing.List[Variable]  = [Variable(idx,name) for idx,name in unknowns]
-
-        core_profiles_var=CoreProfiles(
-            {
-                "profiles_1d":{
-                    "grid":eq0_1d.grid.remesh(**{primary_coordinate:var_list[0]}),
-                    "ion":[{"label":ion.label} for ion in profiles_1d_in.ion]}
-            }
+            unknowns = (
+                [core_profiles_in.profiles_1d.grid.primary_coordinate, "psi", "electrons/temperature"]
+                + sum(
+                    (
+                        [f"{ion.label}/density", f"{ion.label}/tempetature"]
+                        for ion in profiles_1d_in.ion
+                        if ion.label != "alpha"
+                    ),
+                    [],
+                )
+                + ["ion/alpha/density"]
             )
 
+        var_list: typing.List[Variable] = [Variable(idx, name) for idx, name in unknowns]
+
+        core_profiles_var = CoreProfiles(
+            {
+                "profiles_1d": {
+                    "grid": eq0_1d.grid.remesh(**{primary_coordinate: var_list[0]}),
+                    "ion": [{"label": ion.label} for ion in profiles_1d_in.ion],
+                }
+            }
+        )
+
         for var in var_list:
-            core_profiles_var.profiles_1d.put(var.name,var)
-    
-        equations=[]
-        boundary_conditions=[]
+            core_profiles_var.profiles_1d.put(var.name, var)
+
+        equations = []
+        boundary_conditions = []
         boundary_condition = {}
 
         if True:  # "psi":
@@ -517,8 +527,6 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 * (2 - 2 * rho_tor_norm * fpol.dln + rho_tor_norm * conductivity_parallel.dln)
                 * psi
             ) / c
-
-            
 
             if bc_value is None:
                 bc_value = grid.psi_boundary
@@ -639,7 +647,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         for ion in profiles_1d_in.ion:
             ion_label = f"ion/{ion.label}"
-            ms =ion.a
+            ms = ion.a
 
             if True:  # density
 
@@ -648,8 +656,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero) if profiles_1d_prev is not None else zero
 
                 transp_D = sum(
-                    (model.profiles_1d.get(f"{ion_label}/particles/d", zero) for model in core_transport.model),
-                    zero
+                    (model.profiles_1d.get(f"{ion_label}/particles/d", zero) for model in core_transport.model), zero
                 )
 
                 transp_V = sum(
@@ -729,9 +736,6 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                     zero,
                 )
 
-                if flux_multiplier is zero:
-       
-
                 Q = sum((source.profiles_1d.get(f"{ion_label}/energy", zero) for source in core_sources.source), zero)
 
                 d_dt = (
@@ -780,24 +784,42 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 bc += [[u, v, w]]
 
             if True:  # "velocity/toroidal":
-                us = profiles_1d_in.get(f"{ion_label}/velocity/toroidal" , zero)
-                ns = profiles_1d_in.get(f"{ion_label}/density" , zero)
-                Gs = profiles_1d_in.get(f"{ion_label}/density_flux" , zero)
+                us = profiles_1d_in.get(f"{ion_label}/velocity/toroidal", zero)
+                ns = profiles_1d_in.get(f"{ion_label}/density", zero)
+                Gs = profiles_1d_in.get(f"{ion_label}/density_flux", zero)
 
                 if profiles_1d_prev is not None:
-                    us_m = profiles_1d_prev.get(f"{ion_label}/velocity/toroidal" , zero)
-                    ns_m = profiles_1d_prev.get(f"{ion_label}/density" , zero)
-                    Gs_m = profiles_1d_prev.get(f"{ion_label}/density_flux" , zero)
+                    us_m = profiles_1d_prev.get(f"{ion_label}/velocity/toroidal", zero)
+                    ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero)
+                    Gs_m = profiles_1d_prev.get(f"{ion_label}/density_flux", zero)
                 else:
-                    us_m =zero
-                    ns_m =zero
-                    Gs_m =zero
+                    us_m = zero
+                    ns_m = zero
+                    Gs_m = zero
 
-                chi_u  =sum((model.profiles_1d.get(f"{ion_label}/momentum/toroidal/d", zero) for model in core_transport.model),zero)
+                chi_u = sum(
+                    (
+                        model.profiles_1d.get(f"{ion_label}/momentum/toroidal/d", zero)
+                        for model in core_transport.model
+                    ),
+                    zero,
+                )
 
-                V_u_pinch  =sum((model.profiles_1d.get(f"{ion_label}/momentum/toroidal/v", zero) for model in core_transport.model),zero)
-                
-                U  =gm8*sum((source.profiles_1d.get(f"{ion_label}/momentum/toroidal", zero) for source in core_sources.source),zero)
+                V_u_pinch = sum(
+                    (
+                        model.profiles_1d.get(f"{ion_label}/momentum/toroidal/v", zero)
+                        for model in core_transport.model
+                    ),
+                    zero,
+                )
+
+                U = gm8 * sum(
+                    (
+                        source.profiles_1d.get(f"{ion_label}/momentum/toroidal", zero)
+                        for source in core_sources.source
+                    ),
+                    zero,
+                )
 
                 d_dt = one_over_dt * ms * (vpr * gm8 * ns * us - vpr_prev * gm8_prev * ns_m * us_m) * rho_tor_boundary
 
@@ -811,7 +833,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 bc = [[0, 1, 0]]
 
                 # at boundary x=1
-                match boundary_condition.get(f"{ion_label}/moment",1):
+                match boundary_condition.get(f"{ion_label}/moment", 1):
                     case 1:  # 1: value of the field y;
                         u = equ.units[1]
                         v = 0
@@ -868,8 +890,8 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             )
 
         sol = solve_bvp(
-            lambda X,Y,*_args: np.stack([equ(X,*Y,*_args) for equ in equations]),
-            lambda ya,yb,*_args:np.array(sum([bc(xa,ya,xb,yb,*_args) for bc in boundary_conditions],[])),
+            lambda X, Y, *_args: np.stack([equ(X, *Y, *_args) for equ in equations]),
+            lambda ya, yb, *_args: np.array(sum([bc(xa, ya, xb, yb, *_args) for bc in boundary_conditions], [])),
             X,
             Y,
             discontinuity=[],  # self.code.parameters.discontinuity or

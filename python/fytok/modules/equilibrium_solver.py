@@ -1,15 +1,5 @@
-import typing
-from scipy import constants
-
 from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import array_type
-
-from spdm.core.htree import List, Dict, HTree
-from spdm.core.expression import Expression
-from spdm.core.sp_tree import annotation, sp_property, SpTree, AttributeTree
-
 from spdm.model.process import Process
-from spdm.model.port import Ports
 
 from fytok.utils.logger import logger
 from fytok.modules.core_profiles import CoreProfiles
@@ -20,7 +10,6 @@ from fytok.modules.pf_active import PFActive
 from fytok.modules.tf import TF
 from fytok.utils.base import IDS, FyEntity
 
-from fytok.modules.utilities import CoreRadialGrid
 
 from fytok.ontology import equilibrium
 
@@ -37,7 +26,7 @@ class EquilibriumSolver(
 ):
     r"""Solve  GS equaiton"""
 
-    class InPorts(Ports):
+    class InPorts(Process.InPorts):
         wall: Wall
         magnetics: Magnetics
         pf_active: PFActive
@@ -45,8 +34,11 @@ class EquilibriumSolver(
         core_profiles: CoreProfiles
         equilibrium: Equilibrium
 
-    class OutPorts(Ports):
+    class OutPorts(Process.OutPorts):
         equilibrium: Equilibrium
 
     Constraints = EequilibriumConstraints
     constraints: EequilibriumConstraints
+
+    def execute(self, *args, core_profiles: CoreProfiles, equilibrium: Equilibrium, **kwargs):
+        return {}

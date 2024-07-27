@@ -9,21 +9,22 @@ from spdm.core.expression import Expression, Variable, zero
 from spdm.core.sp_tree import sp_tree
 from fytok.modules.core_profiles import CoreProfiles, CoreProfilesSpecies
 from fytok.modules.equilibrium import Equilibrium
-from fytok.modules.core_sources import CoreSourcesSource
+from fytok.modules.core_sources import CoreSources
 from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
 
 
 class CollisionalEquipartition(
-    CoreSourcesSource,
+    CoreSources.Source,
     identifier="collisional_equipartition",
     code={"name": "collisional_equipartition", "description": "Fusion reaction"},
 ):
-    
-    def fetch(self, profiles_1d: CoreProfiles.Profiles1D) -> CoreSourcesSource:
+    """Source from Collisional"""
+
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
         ii_collision: bool = self.code.parameters.ii_collision
         ie_collision: bool = self.code.parameters.ie_collision
-        current: CoreSourcesSource = super().fetch(profiles_1d)
+        current = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
         source_1d = current.profiles_1d
 

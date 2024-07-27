@@ -227,7 +227,7 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     rho_tor: Expression = annotation(units="m", label=r"\rho_{tor}")
 
-    rho_tor_norm: Expression = annotation(units="m", label=r"\bar{\rho_{tor}}")
+    rho_tor_norm: Expression = annotation(units="-", label=r"\bar{\rho_{tor}}")
 
     dpsi_drho_tor: Expression = annotation(units="Wb/m", label=r"\frac{d\psi}{d\rho_{tor}}")
 

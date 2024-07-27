@@ -3,6 +3,7 @@ import typing
 import numpy as np
 
 from spdm.utils.tags import _not_found_
+from spdm.core.path import Path
 from spdm.core.htree import Set
 from spdm.core.sp_tree import annotation, sp_property
 from spdm.core.expression import Expression
@@ -114,16 +115,21 @@ class CoreTransportModel(
     Profiles2D = CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def refresh(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        current = super().refresh(*args, **kwargs)
-
-        current.vacuum_toroidal_field = equilibrium.vacuum_toroidal_field
-
-        current.profiles_1d.grid = equilibrium.profiles_1d.grid.remesh(
-            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+        return self.__class__(
+            Path().update(
+                super().execute(*args, **kwargs),
+                {
+                    "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
+                    "profiles_1d": {
+                        "grid": equilibrium.profiles_1d.grid.remesh(
+                            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
+                        ),
+                        "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
+                    },
+                },
+            ),
         )
-
-        return current
 
     @staticmethod
     def _flux2DV(

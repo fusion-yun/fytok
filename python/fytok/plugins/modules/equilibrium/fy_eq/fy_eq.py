@@ -449,26 +449,26 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
             rho_tor_boundary=rho_tor_boundary,
         )
 
-    @sp_property(label=r"\psi")
+    @sp_property
     def psi(self) -> Expression:
         return self.psi_norm * (self._coord.psi_boundary - self._coord.psi_axis) + self._coord.psi_axis
 
-    @sp_property(label="f")
+    @sp_property
     def f(self) -> Expression:
         return np.sqrt(
             2.0 * (self._coord.psi_boundary - self._coord.psi_axis) * self.f_df_dpsi.I
             + (self._coord.b0 * self._coord.r0) ** 2
         )
 
-    @sp_property(label=r"\phi")
+    @sp_property
     def phi(self) -> Expression:
         return self.dphi_dpsi.I * (self._coord.psi_boundary - self._coord.psi_axis)
 
-    @sp_property(label=r"\rho_{tor}")
+    @sp_property
     def rho_tor(self) -> Expression:
         return np.sqrt(np.abs(self.phi / (scipy.constants.pi * self._coord.b0)))
 
-    @sp_property(label=r"\bar{\rho}_{tor}")
+    @sp_property
     def rho_tor_norm(self) -> Expression:
         phi = np.asarray(self.phi)
 
@@ -481,7 +481,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
             r_[0] = 0.0
         return r_
 
-    @sp_property(label=r"\frac{d V}{d\psi}")
+    @sp_property
     def dvolume_dpsi(self) -> Expression:
         return self._coord.dvolume_dpsi
 
@@ -493,7 +493,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
     def magnetic_shear(self) -> Expression:
         return self.rho_tor * self.q.d / self.q * self.dpsi_drho_tor
 
-    @sp_property(label=r"\frac{d\phi}{d\psi}")
+    @sp_property
     def dphi_dpsi(self) -> Expression:
         return self.f * self._coord.surface_integral(1.0 / (_R**2))
 
@@ -520,7 +520,7 @@ class FyEqProfiles1D(equilibrium.EquilibriumProfiles1D):
     def dpsi_norm_drho_tor_norm(self) -> Expression:
         return self.dpsi_drho_tor * self._coord.rho_tor_boundary / (self._coord.psi_boundary - self._coord.psi_axis)
 
-    @sp_property(label=r"\frac{dV}{d\rho_{tor}}")
+    @sp_property
     def dvolume_drho_tor(self) -> Expression:
         return self._coord._seBp2PI * np.abs(self._coord.b0) * self.dvolume_dpsi * self.dpsi_drho_tor
 

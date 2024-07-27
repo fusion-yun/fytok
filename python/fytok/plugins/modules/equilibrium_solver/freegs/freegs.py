@@ -313,9 +313,9 @@ class EquilibriumFreeGS(EquilibriumSolver, plugin_name="freegs"):
         # except Exception as error:
         #     raise RuntimeError(f"Can not create freegs constraints!") from error
 
-    def execute(self, current: Equilibrium.TimeSlice, *previous: Equilibrium.TimeSlice):
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
         """update the last time slice, base on profiles_2d[-1].psi, and core_profiles_1d, wall, pf_active"""
-        super().execute(current, *previous)
+        res = super().execute(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
         rtol = self.code.parameters.get("tolerance", 0.1)
 
@@ -337,6 +337,8 @@ class EquilibriumFreeGS(EquilibriumSolver, plugin_name="freegs"):
         print("Plasma current: %e Amps" % (self._eq_solver.plasmaCurrent()))
         print("Plasma pressure on axis: %e Pascals" % (self._eq_solver.pressure(0.0)))
         print("Poloidal beta: %e" % (self._eq_solver.poloidalBeta()))
+
+        return res
 
         # print("Plasma psiRZ: %e psi" % (eq.psi()))
         # psiRZ = self._eq_solver.psi()

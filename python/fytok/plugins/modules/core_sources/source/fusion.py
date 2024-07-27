@@ -61,12 +61,12 @@ class FusionReaction(
         super().__init__(*args, **kwargs)
         x = np.linspace(0, 10.0, 256)
         _x = Variable(0, "x")
-        self._sivukhin = Function(x, 1.0 / (1 + x**1.5)).I(_x) / (_x)
-        self._sivukhin._metadata["name"] = "sivukhin"
-        self._sivukhin._metadata["label"] = "F"
+        # self._sivukhin = Function(x, 1.0 / (1 + x**1.5)).I(_x) / (_x)
+        # self._sivukhin._metadata["name"] = "sivukhin"
+        # self._sivukhin._metadata["label"] = "F"
 
-    def fetch(self, profiles_1d: CoreProfiles.Profiles1D) -> CoreSourcesSource:
-        current: CoreSourcesSource = super().fetch(profiles_1d)
+    def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
+        current = super().execute(*args, core_profiles=core_profiles, **kwargs)
 
         heating = self.code.parameters.heating is not False
 

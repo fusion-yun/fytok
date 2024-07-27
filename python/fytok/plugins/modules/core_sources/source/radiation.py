@@ -10,11 +10,10 @@ from fytok.modules.utilities import *
 PI = scipy.constants.pi
 
 
-@sp_tree
-class Radiation(CoreSources.Source):
-    identifier = "radiation"
-
-    code = {
+class Radiation(
+    CoreSources.Source,
+    category="radiation",
+    code={
         "name": "radiation",
         "description": """
     Source from   bremsstrahlung and impurity line radiation, and synchrotron radiation 
@@ -22,12 +21,11 @@ class Radiation(CoreSources.Source):
         Synchrotron radiation
             - Trubnikov, JETP Lett. 16 (1972) 25.
     """,
-    }  # type: ignore
+    },
+):
+    """Source from   bremsstrahlung and impurity line radiation, and synchrotron radiation"""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def fetch(self, profiles_1d: CoreProfiles.TimeSlice.Profiles1D) -> CoreSources.Source.TimeSlice:
+    def execute(self, profiles_1d: CoreProfiles) -> CoreSources.Source.TimeSlice:
         current: CoreSources.Source.TimeSlice = super().fetch(profiles_1d)
 
         source_1d = current.profiles_1d
@@ -50,6 +48,3 @@ class Radiation(CoreSources.Source):
         source_1d.electrons.energy -= Qrad
 
         return current
-
-
-CoreSources.Source.register(["radiation"], Radiation)
