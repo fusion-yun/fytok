@@ -12,7 +12,7 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import wall
 
 
-class Wall(FyEntity, IDS, Component, wall.Wall):
+class Wall(IDS, Component, FyEntity, wall.Wall):
     """Description of the torus wall and its interaction with the plasma"""
 
     Description2D = wall.wall_2d

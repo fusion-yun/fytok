@@ -331,9 +331,9 @@ class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):
 
 
 class Equilibrium(
-    FyEntity,
     WithTime,
     IDS,
+    FyEntity,
     plugin_prefix="equilibrium/",
     plugin_default="fy_eq",
     code={"name": "equilibrium"},

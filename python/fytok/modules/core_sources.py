@@ -114,9 +114,9 @@ class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profile
 
 
 class CoreSourcesSource(
-    FyEntity,
     WithCategory,
     Actor,
+    FyEntity,
     plugin_prefix="core_sources/source/",
 ):
     """Source model for the core transport equations"""
@@ -155,7 +155,7 @@ class CoreSourcesSource(
         )
 
 
-class CoreSources(FyEntity, WithTime, IDS, Context, code={"name": "core_sources"}):
+class CoreSources(WithTime, IDS, Context, FyEntity, code={"name": "core_sources"}):
     """Source terms for the core transport equations"""
 
     def __init__(self, *args, **kwargs):

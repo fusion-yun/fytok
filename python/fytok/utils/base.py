@@ -167,7 +167,7 @@ class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
     identifier: str = annotation(alias="_metadata/identifier")  # type:ignore
     """模块标识符"""
 
-    code: Code
+    code: Code = {}
     """代码信息"""
 
     def __hash__(self) -> int:

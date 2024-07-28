@@ -94,59 +94,43 @@ class TransportSolver(
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     class InPorts(Process.InPorts):
+        time: float
         equilibrium: Equilibrium
         core_profiles: CoreProfiles
         core_transport: CoreTransport
         core_sources: CoreSources
 
-    class OutPorts(Process.OutPorts):
-        core_profiles: CoreProfiles
-
     in_ports: InPorts  # type:ignore
 
-    out_ports: OutPorts  # type:ignore
-
-    # profiles_1d: CoreProfiles.Profiles1D
-
-    # drho_tor_dt: ArrayType = annotation(units="m.s^-1")
-    # """ Partial derivative of the toroidal flux coordinate profile with respect to time"""
-
-    # d_dvolume_drho_tor_dt: ArrayType = annotation(units="m^2.s^-1")
-    """ Partial derivative with respect to time of the derivative of the volume with
-      respect to the toroidal flux coordinate"""
-
-    # solver: str = "ion_solver"
-    # ion_thermal: set
-    # ion_non_thermal: set
-    # impurities: set
-    # neutral: set
-    # equations: List[TransportSolverEquation]
-    # variables: Dict[Expression]
+    out_ports: CoreProfiles  # type:ignore
 
     primary_coordinate: str = "rho_tor_norm"
     r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
       rho_tor_norm $\bar{\rho}_{tor}=\sqrt{ \Phi/\Phi_{boundary}}$ """
 
-    def execute(self, *args, **kwargs):
+    def execute(
+        self,
+        *args,
+        time: float,
+        equilibrium: Equilibrium,
+        core_profiles: CoreProfiles,
+        core_transport: CoreTransport,
+        core_sources: CoreSources,
+        **kwargs,
+    ):
 
         logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
 
-        res = super().execute(*args, **kwargs)
+        res = {
+            "time": time,
+            "vacuum_toroidal_field": {
+                "r0": equilibrium.vacuum_toroidal_field.r0,
+                "b0": equilibrium.vacuum_toroidal_field.b0,
+            },
+            "profiles_1d": {
+                "grid": equilibrium.profiles_1d.grid.remesh(self.primary_coordinate),
+                "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
+            },
+        }
 
-        equilibrium = self.in_ports.equilibrium
-
-        core_profiles_in = self.in_ports.core_profiles
-
-        core_profiles_out = self.out_ports.core_profiles
-
-        core_profiles_out.time = equilibrium.time
-        core_profiles_out.vacuum_toroidal_field.r0 = equilibrium.vacuum_toroidal_field.r0
-        core_profiles_out.vacuum_toroidal_field.b0 = equilibrium.vacuum_toroidal_field.b0
-
-        # rho_tor_norm = core_profiles_in.profiles_1d.grid.rho_tor_norm
-        # grid = equilibrium.profiles_1d.grid.remesh(rho_tor_norm=rho_tor_norm)
-        # core_profiles_out.profiles_1d.grid = grid
-
-        core_profiles_out.profiles_1d.ion = [ion.label for ion in core_profiles_in.profiles_1d.ion]
-
-        return res
+        return CoreProfiles(res)

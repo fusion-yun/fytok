@@ -92,9 +92,9 @@ class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_pr
 
 
 class CoreTransportModel(
-    FyEntity,
     WithCategory,
     Actor,
+    FyEntity,
     plugin_prefix="core_transport/model/",
 ):
     """CoreTransport Model"""
@@ -153,7 +153,7 @@ class CoreTransportModel(
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
 
 
-class CoreTransport(FyEntity, WithTime, IDS, Context, code={"name": "core_transport"}):
+class CoreTransport(WithTime, IDS, Context, FyEntity, code={"name": "core_transport"}):
     """芯部输运"""
 
     def __init__(self, *args, **kwargs):
@@ -161,9 +161,10 @@ class CoreTransport(FyEntity, WithTime, IDS, Context, code={"name": "core_transp
             args = ({"model": args[0]},)
         super().__init__(*args, **kwargs)
 
+    Model = CoreTransportModel
+
     in_ports: CoreTransportModel.InPorts  # type:ignore
 
-    Model = CoreTransportModel
     model: ProcessBundle[CoreTransportModel]
 
     def __str__(self) -> str:

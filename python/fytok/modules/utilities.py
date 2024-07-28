@@ -16,6 +16,8 @@ from fytok.utils.atoms import atoms
 
 
 class Species(abc.ABC):
+    """Species of particles"""
+
     label: str
     a: float
     z: float

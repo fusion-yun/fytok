@@ -5,12 +5,13 @@ import scipy.constants
 from spdm.utils.type_hint import ArrayType
 from spdm.utils.tags import _not_found_
 from spdm.core.expression import Variable, Expression, one, zero
-from spdm.core.path import as_path, Path
+from spdm.core.path import as_path
 from spdm.numlib.calculus import derivative
-from fytok.utils.atoms import atoms
 from fytok.utils.logger import logger
-from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
+from fytok.modules.core_profiles import CoreProfiles
+from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_sources import CoreSources
 from fytok.modules.transport_solver import TransportSolver
 from fytok.modules.utilities import CoreRadialGrid
 
@@ -338,7 +339,18 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         bc = np.array(bc)
         return bc
 
-    def execute(self, *args, unknowns=None, impurity_fraction=0.0, boundary_value=None, **kwargs):
+    def execute(
+        self,
+        *args,
+        core_profiles: CoreProfiles,
+        equilibrium: Equilibrium,
+        core_transport: CoreTransport,
+        core_sources: CoreSources,
+        unknowns=None,
+        impurity_fraction=0.0,
+        boundary_value=None,
+        **kwargs,
+    ):
         """准备迭代求解
         - 方程 from self.equations
         - 初值 from initial_value
@@ -348,21 +360,20 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         if boundary_value is None:
             boundary_value = {}
 
-        super().refresh(*args, **kwargs)
+        core_profiles_in: CoreProfiles = core_profiles
 
-        equilibrium: Equilibrium = self.in_ports.equilibrium
-
-        core_profiles_in: CoreProfiles = self.in_ports.core_profiles
-
-        core_profiles_prev: CoreProfiles = core_profiles_in.previous
-
-        core_profiles_out: CoreProfiles = self.in_ports.core_profiles
+        core_profiles_out = super().execute(
+            *args,
+            core_profiles=core_profiles,
+            equilibrium=equilibrium,
+            core_transport=core_transport,
+            core_sources=core_sources,
+            **kwargs,
+        )
 
         profiles_1d_in: CoreProfiles.Profiles1D = core_profiles_in.profiles_1d
 
         profiles_1d_out: CoreProfiles.Profiles1D = core_profiles_out.profiles_1d
-
-        profiles_1d_prev: CoreProfiles.Profiles1D = Path(["profiles_1d"]).get(core_profiles_prev, None)
 
         grid: CoreRadialGrid = equilibrium.profiles_1d.grid
 
@@ -462,10 +473,6 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         hyper_diff = 0.001  # self._hyper_diff
 
-        core_transport = self.in_ports.core_transport
-
-        core_sources = self.in_ports.core_sources
-
         primary_coordinate = self.primary_coordinate
 
         if unknowns is None:
@@ -501,9 +508,9 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         boundary_condition = {}
 
         if True:  # "psi":
-            psi = profiles_1d_in.get("psi", zero)
+            psi = profiles_1d_out.get("psi", zero)
 
-            psi_m = profiles_1d_prev.get("psi", zero)(rho_tor_norm)
+            psi_m = profiles_1d_in.get("psi", zero)(rho_tor_norm)
 
             conductivity_parallel = sum(
                 (source.profiles_1d.get("conductivity_parallel", zero) for source in core_sources.source),

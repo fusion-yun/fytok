@@ -10,7 +10,7 @@ from fytok.ontology import tf
 TWOPI = 2.0 * pi
 
 
-class TF(FyEntity, IDS, Component, tf.tf):
+class TF( IDS, Component, FyEntity,tf.tf):
 
     def __view__(self, view_point="RZ", **kwargs):
         geo = {"$styles": kwargs}

@@ -4,9 +4,12 @@
 """
 
 import typing
+import numpy as np
+
+from spdm.core.sp_tree import annotation
+from spdm.core.time import WithTime
 from spdm.model.context import Context
 from spdm.model.component import Component
-from spdm.core.time import WithTime
 
 # ---------------------------------
 # from fytok.utils.envs import *
@@ -44,7 +47,7 @@ from fytok.modules.equilibrium_solver import EquilibriumSolver
 # ---------------------------------
 
 
-class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
+class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
     """Tokamak 整合子模块"""
 
     def __init__(
@@ -76,6 +79,7 @@ class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
         super().__init__(*args, **kwargs, dataset_fair=dataset_fair)
 
     # fmt:off
+
     dataset_fair            : DatasetFAIR
     summary                 : Summary
 
@@ -98,8 +102,8 @@ class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
     interferometer          : Interferometer
 
     # transport: state of device
-    equilibrium             : Equilibrium
-    core_profiles           : CoreProfiles
+    equilibrium             : Equilibrium = annotation(input=True, output=True)
+    core_profiles           : CoreProfiles = annotation(input=True, output=True)
 
     core_transport          : CoreTransport
     core_sources            : CoreSources
@@ -143,11 +147,49 @@ class Tokamak(FyEntity, WithTime, IDS, Context, code={"name": "fy_tok"}):
         """当前状态标签，由程序版本、用户名、时间戳等信息确定"""
         return f"{self.dataset_fair.tag}_{int(self.time*100):06d}"
 
-    def refresh(self, *args, **kwargs) -> typing.Self:
+    def execute(self, *args, time: float, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
+        """刷新 Context 的状态，将执行结果更新到各个子模块。"""
+        tolerance = self.code.parameters.get("tolerance", 1e-6)
 
-        self.core_transport.refresh()
-        self.core_sources.refresh()
-        self.transport_solver.refresh()
-        self.equilibrium_solver.refresh()
+        res = super().execute(*args, time=time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
-        return super().refresh(*args, **kwargs)
+        return res
+        while True:
+
+            core_transport = self.core_transport.refresh(equilibrium=equilibrium, core_profiles=core_profiles)
+
+            core_sources = self.core_sources.refresh(equilibrium=equilibrium, core_profiles=core_profiles)
+
+            core_profiles_next = self.transport_solver.refresh(
+                time=time,
+                equilibrium=equilibrium,
+                core_profiles=core_profiles,
+                core_transport=core_transport,
+                core_sources=core_sources,
+            )
+
+            equilibrium_next = self.equilibrium_solver.refresh(
+                time=time,
+                wall=self.wall,
+                magnetics=self.magnetics,
+                pf_active=self.pf_active,
+                tf=self.tf,
+                core_profiles=core_profiles_next,
+                equilibrium=equilibrium,
+            )
+
+            if (
+                np.isclose(equilibrium_next.time, equilibrium.time)
+                and np.mean((equilibrium_next.profiles_2d.psi - equilibrium_next.profiles_2d.psi) ** 2) < tolerance
+            ):
+                break
+
+            core_profiles = core_profiles_next
+
+            equilibrium = equilibrium_next
+
+        res["core_profiles"] = core_profiles_next
+
+        res["equilibrium"] = equilibrium_next
+
+        return res

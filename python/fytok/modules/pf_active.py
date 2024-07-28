@@ -7,7 +7,7 @@ from fytok.utils.base import IDS, FyEntity
 from fytok.ontology import pf_active
 
 
-class PFActive(FyEntity, IDS, Component, pf_active.pf_active):
+class PFActive(IDS, Component,FyEntity,  pf_active.pf_active):
     """极向场线圈"""
 
     def __view__(self, view_point="RZ", **styles):

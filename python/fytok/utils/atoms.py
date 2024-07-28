@@ -15,14 +15,14 @@ from spdm.utils.tags import _not_found_
 # TODO: 需要 AMNS 数据库接口
 #################################################
 _predef_atoms = {
-    "e": {
+    "electron": {
         "label": "e",
         "z": -1,
         "a": scipy.constants.electron_mass / scipy.constants.atomic_mass,
         "mass": scipy.constants.electron_mass,
     },
-    "electron": "e",
-    "electrons": "e",
+    "e": "electron",
+    "electrons": "electron",
     "n": {
         "label": "n",
         "z": 0,
@@ -81,22 +81,16 @@ class Atom:
 
 
 class Atoms(Dict[Atom]):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    """Atoms database"""
 
-    def get(self, key: str, default_value=_not_found_) -> Atom:
+    def __get_node__(self, key: str, default_value=_not_found_) -> Atom:
         if not isinstance(key, str):
             raise RuntimeError(f"Atom key must be a string, not {key} {self._cache}")
 
         if key.startswith("ion/"):
-            key = key.split("/")[1]
-        value = super().get_cache(key, _not_found_)
-        if value is _not_found_:
-            raise KeyError(f"Can not find atom {key}")
-        elif isinstance(value, str):
-            return self.get(value, default_value)
-        else:
-            return super()._type_convert(value, key, _type_hint=Atom)
+            key = key[4:]
+
+        return super().__get_node__(key)
 
 
 atoms = Atoms(_predef_atoms)

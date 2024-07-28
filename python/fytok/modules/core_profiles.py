@@ -28,6 +28,7 @@ TWOPI = 2.0 * PI
 
 
 class CoreProfilesSpecies(Species, SpTree):
+    """Core Profiles Species"""
 
     temperature: Expression = annotation(units="eV")
 
@@ -55,6 +56,7 @@ class CoreProfilesSpecies(Species, SpTree):
 
 
 class CoreProfilesState(CoreProfilesSpecies):
+    """Core Profiles State"""
 
     electron_configuration: str
     """ Configuration of atomic orbitals of this state, e.g. 1s2-2s1"""
@@ -72,6 +74,8 @@ class CoreProfilesState(CoreProfilesSpecies):
 
 
 class CoreProfilesIon(CoreProfilesSpecies):
+    """Core Profiles Ion"""
+
     z_ion_1d: Expression = annotation(unit="C")
 
     @sp_property
@@ -112,7 +116,8 @@ class CoreProfilesNeutral(CoreProfilesSpecies):
     """ Quantities related to the different states of the species (energy, excitation,...)"""
 
 
-class CoreProfilesElectrons(CoreProfilesSpecies, default_value={"label": "electron"}):
+class CoreProfilesElectrons(CoreProfilesSpecies, label="electron"):
+    """Core Profiles Electrons"""
 
     @sp_property(units="-")
     def collisionality_norm(self) -> Expression:
@@ -128,6 +133,8 @@ class CoreProfilesElectrons(CoreProfilesSpecies, default_value={"label": "electr
 
 
 class CoreGlobalQuantities(core_profiles.core_profiles_global_quantities):
+    """Core Global Quantities"""
+
     vacuum_toroidal_field: VacuumToroidalField
 
     ip: float = annotation(units="A")
@@ -384,6 +391,8 @@ class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
 
 
 class CoreProfiles2D(WithDomain, domain="grid"):
+    """Core Profiles"""
+
     grid: Mesh
 
     electrons: CoreProfilesElectrons2D
@@ -409,7 +418,7 @@ class CoreProfiles2D(WithDomain, domain="grid"):
     """Total parallel pressure (electrons+ions, thermal+non-thermal) {dynamic} [Pa]"""
 
 
-class CoreProfiles(FyEntity, WithTime, IDS, code={"name": "core_profiles"}):
+class CoreProfiles(WithTime, IDS, FyEntity, code={"name": "core_profiles"}):
     """
     Core plasma profiles
     """
