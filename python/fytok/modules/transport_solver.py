@@ -118,8 +118,6 @@ class TransportSolver(
         **kwargs,
     ):
 
-        logger.info(f"Solve transport equations : { '  ,'.join([equ.identifier for equ in self.equations])}")
-
         res = {
             "time": time,
             "vacuum_toroidal_field": {

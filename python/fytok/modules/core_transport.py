@@ -1,11 +1,10 @@
-import abc
 import typing
 import numpy as np
 
 from spdm.utils.tags import _not_found_
 from spdm.core.path import Path
 from spdm.core.htree import Set
-from spdm.core.sp_tree import annotation, sp_property
+from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
@@ -62,7 +61,7 @@ class CoreTransportNeutral(Species, core_transport.core_transport_model_neutral)
     energy: CoreTransportModelEnergy
 
 
-class CoreTransportProfiles1D(WithDomain, domain="grid/rho_tor_norm"):
+class CoreTransportProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
     """Profiles of core transport"""
 
     grid: CoreRadialGrid
@@ -86,7 +85,7 @@ class CoreTransportProfiles1D(WithDomain, domain="grid/rho_tor_norm"):
     conductivity_parallel: Expression = annotation(label=r"$\sigma_{\parallel}$", units=r"$\Omega^{-1}\cdot m^{-1}$")
 
 
-class CoreTransportProfiles2D(WithDomain, domain="grid"):
+class CoreTransportProfiles2D(WithDomain, SpTree, domain="grid"):
     grid: Mesh
 
 
