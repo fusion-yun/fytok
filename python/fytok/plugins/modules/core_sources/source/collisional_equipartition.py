@@ -3,15 +3,11 @@ import scipy.constants
 import typing
 
 
-from spdm.utils.type_hint import array_type
 from spdm.utils.tags import _not_found_
-from spdm.core.expression import Expression, Variable, zero
-from spdm.core.sp_tree import sp_tree
+from spdm.core.expression import zero
 from fytok.modules.core_profiles import CoreProfiles, CoreProfilesSpecies
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.core_sources import CoreSources
-from fytok.utils.atoms import atoms
-from fytok.utils.logger import logger
 
 
 class CollisionalEquipartition(
@@ -25,7 +21,7 @@ class CollisionalEquipartition(
         ii_collision: bool = self.code.parameters.ii_collision
         ie_collision: bool = self.code.parameters.ie_collision
         current = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
-
+        profiles_1d = core_profiles.profiles_1d
         source_1d = current.profiles_1d
 
         e = scipy.constants.elementary_charge

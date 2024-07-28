@@ -3,10 +3,9 @@
 import typing
 from scipy import constants
 
-from spdm.utils.type_hint import array_type, ArrayType
-from spdm.core.htree import List, Dict
+from spdm.utils.type_hint import array_type
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import annotation, SpTree, AttributeTree
+from spdm.core.sp_tree import SpTree, AttributeTree
 
 from spdm.model.process import Process
 

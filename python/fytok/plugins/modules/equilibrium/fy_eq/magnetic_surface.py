@@ -1,31 +1,18 @@
-import collections
-import collections.abc
-import functools
 import typing
 import numpy as np
 import scipy.constants
 
 
-from spdm.core.expression import Expression, Variable
-from spdm.core.field import Field
-from spdm.core.expression import Expression
-from spdm.core.htree import List
+from spdm.core.expression import Variable
 from spdm.core.sp_tree import annotation, sp_property, sp_tree
-from spdm.model.time_sequence import TimeSequence
 from spdm.geometry.curve import Curve
 from spdm.core.geo_object import GeoObject, GeoObjectSet
 from spdm.geometry.point import Point
-from spdm.core.mesh import Mesh
-from spdm.domain.mesh_curvilinear import CurvilinearMesh
-from spdm.numlib.contours import find_critical_points, find_contours
 
-from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import ArrayLike, NumericType, array_type, scalar_type, as_array
+from spdm.utils.type_hint import array_type
 
-from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.utilities import *
 
-from fytok.utils.logger import logger
 
 PI = scipy.constants.pi
 

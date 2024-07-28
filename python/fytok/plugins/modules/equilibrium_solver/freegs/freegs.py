@@ -1,35 +1,16 @@
-import collections
-import collections.abc
-import functools
-import typing
-from enum import Enum
+""" FreeGS Module """
 
 import numpy as np
-import scipy.constants
 from fytok.modules.core_profiles import CoreProfiles
 from fytok.modules.equilibrium import Equilibrium
 from fytok.modules.magnetics import Magnetics
 from fytok.modules.pf_active import PFActive
 from fytok.modules.wall import Wall
-from fytok.modules.utilities import *
 
-from spdm.core.field import Field
-from spdm.core.mesh import Mesh
 
-from spdm.utils.constants import *
 from spdm.utils.logger import logger
-from spdm.numlib.numeric import bitwise_and, squeeze
 from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import (
-    ArrayLike,
-    ArrayType,
-    NumericType,
-    array_type,
-    as_array,
-    as_scalar,
-    is_array,
-    scalar_type,
-)
+from spdm.utils.type_hint import array_type
 
 from fytok.modules.equilibrium_solver import EquilibriumSolver
 
@@ -355,7 +336,7 @@ class EquilibriumFreeGS(EquilibriumSolver, plugin_name="freegs"):
         # for psi in [0.01, 0.9, 0.95]:
         #     print("\t{:.2f}\t{:.2f}".format(psi, self._eq_solver.q(psi)))
 
-    def postprocess(self, current: FyEqAnalyze.TimeSlice):
+    def postprocess(self, current):
         psi_norm = self.code.parameters.get("psi_norm", np.linspace(0, 1.0, 128))
 
         psi = psi_norm * (self._eq_solver.psi_bndry - self._eq_solver.psi_axis) + self._eq_solver.psi_axis

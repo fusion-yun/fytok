@@ -28,7 +28,7 @@ class SynchrotronRadiation(
 
     def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
         current = super().execute(*args, **kwargs)
-
+        profiles_1d = core_profiles.profiles_1d
         source_1d = current.profiles_1d
 
         ne = profiles_1d.electrons.density

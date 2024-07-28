@@ -1,12 +1,16 @@
+""" Fusion Module
+
+  
+"""
+
 import typing
+import numpy as np
 import scipy.constants
 from spdm.core.expression import Variable, zero
-from spdm.core.sp_tree import sp_tree
 from fytok.utils.atoms import nuclear_reaction, atoms
-from fytok.utils.logger import logger
 from fytok.modules.core_sources import CoreSourcesSource
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.utilities import *
+
 
 PI = scipy.constants.pi
 
@@ -67,7 +71,7 @@ class FusionReaction(
 
     def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
         current = super().execute(*args, core_profiles=core_profiles, **kwargs)
-
+        profiles_1d = core_profiles.profiles_1d
         heating = self.code.parameters.heating is not False
 
         rho_tor_norm = profiles_1d.rho_tor_norm

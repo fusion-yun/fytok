@@ -1,27 +1,16 @@
-import numpy as np
-import scipy.constants
-import typing
+""" Ohmic Source"""
+
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.equilibrium import Equilibrium
-
-from spdm.utils.type_hint import array_type
-from spdm.utils.tags import _not_found_
-from spdm.core.expression import Expression, Variable, zero
-from spdm.core.sp_tree import sp_tree
-
 from fytok.modules.core_sources import CoreSources
-from fytok.utils.atoms import atoms
-from fytok.utils.logger import logger
 
 
- 
-class Ohmic(CoreSources.Source
-    category = "collisional_equipartition",
-    code = {"name": "ohmic", "description": "Fusion reaction"} ,
+class Ohmic(
+    CoreSources.Source, category="collisional_equipartition", code={"name": "ohmic", "description": "Fusion reaction"}
 ):
-    """ Ohmic   """
-    def execute(self,*args, profiles_1d: CoreProfiles,**kwargs) :
-        current = super().execute(*args, profiles_1d: CoreProfiles,**kwargs)
+    """Ohmic"""
+
+    def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
+        current = super().execute(*args, core_profiles, **kwargs)
 
         #! +++ Radial electric field and ohmic heating:
         #      rho_loop13: DO irho=1,nrho

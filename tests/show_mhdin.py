@@ -1,11 +1,7 @@
 import os
 import pathlib
 
-import numpy as np
-from fytok.tokamak import Tokamak
-from fytok.utils.logger import logger
-from spdm.core.file import File
-from spdm.core.entry import Entry, open_entry
+from fytok.contexts.tokamak import Tokamak
 from spdm.view.sp_view import display
 
 WORKSPACE = "/home/salmon/workspace"  # "/ssd01/salmon_work/workspace/"
@@ -30,5 +26,5 @@ if __name__ == "__main__":
 
     tok = Tokamak(device)
 
-    display(tok, title=f"{tok.device.upper()} RZ   View ", output=output_path/f"{tok.device}_rz.svg")
+    display(tok, title=f"{tok.device.upper()} RZ   View ", output=output_path / f"{tok.device}_rz.svg")
     # display(tok, title=f"{tok.device.upper()} Top  View ", output=output_path/"east_top.svg", view="TOP")

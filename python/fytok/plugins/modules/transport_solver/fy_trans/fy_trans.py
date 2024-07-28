@@ -580,8 +580,8 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
             psi_norm = profiles_1d_in.psi_norm(rho_tor_norm)
 
-            if profiles_1d_prev is not None:
-                psi_norm_m = profiles_1d_prev.get("psi_norm", zero)(rho_tor_norm)
+            if profiles_1d_in is not None:
+                psi_norm_m = profiles_1d_in.get("psi_norm", zero)(rho_tor_norm)
             else:
                 psi_norm_m = zero
 
@@ -658,9 +658,9 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
             if True:  # density
 
-                ns = profiles_1d_in.get(f"{ion_label}/density", zero)
+                ns = profiles_1d_out.get(f"{ion_label}/density", zero)
 
-                ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero) if profiles_1d_prev is not None else zero
+                ns_m = profiles_1d_in.get(f"{ion_label}/density", zero)
 
                 transp_D = sum(
                     (model.profiles_1d.get(f"{ion_label}/particles/d", zero) for model in core_transport.model), zero
@@ -721,9 +721,9 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 Gs = profiles_1d_in.get(f"{ion_label}/density_flux", zero)
                 Ts = profiles_1d_in.get(f"{ion_label}/temperature", zero)
 
-                if profiles_1d_prev is not None:
-                    ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero)
-                    Ts_m = profiles_1d_prev.get(f"{ion_label}/temperature", zero)
+                if profiles_1d_in is not None:
+                    ns_m = profiles_1d_in.get(f"{ion_label}/density", zero)
+                    Ts_m = profiles_1d_in.get(f"{ion_label}/temperature", zero)
                 else:
                     ns_m = zero
                     Ts_m = zero
@@ -795,10 +795,10 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
                 ns = profiles_1d_in.get(f"{ion_label}/density", zero)
                 Gs = profiles_1d_in.get(f"{ion_label}/density_flux", zero)
 
-                if profiles_1d_prev is not None:
-                    us_m = profiles_1d_prev.get(f"{ion_label}/velocity/toroidal", zero)
-                    ns_m = profiles_1d_prev.get(f"{ion_label}/density", zero)
-                    Gs_m = profiles_1d_prev.get(f"{ion_label}/density_flux", zero)
+                if profiles_1d_in is not None:
+                    us_m = profiles_1d_in.get(f"{ion_label}/velocity/toroidal", zero)
+                    ns_m = profiles_1d_in.get(f"{ion_label}/density", zero)
+                    Gs_m = profiles_1d_in.get(f"{ion_label}/density_flux", zero)
                 else:
                     us_m = zero
                     ns_m = zero

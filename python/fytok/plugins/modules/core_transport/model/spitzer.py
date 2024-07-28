@@ -1,4 +1,4 @@
-import collections
+import typing
 import collections.abc
 
 import numpy as np
@@ -25,12 +25,12 @@ class Spitzer(
     - Tokamaks, Third Edition, Chapter 14  ,p727,  J.A.Wesson 2003
     """
 
-    def execute(self, *args, **kwargs) -> dict:
-        # residual = super().refresh(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
-
+    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+        res = super().execute(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+        core_profiles_1d = core_profiles.profiles_1d
         eV = constants.electron_volt
 
-        radial_grid = core_profiles_1d.grid
+        radial_grid = res.profiles_1d.grid
 
         B0 = radial_grid.b0
         R0 = radial_grid.r0

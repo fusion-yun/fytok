@@ -62,9 +62,8 @@ class CoreTransportNeutral(Species, core_transport.core_transport_model_neutral)
     energy: CoreTransportModelEnergy
 
 
-class CoreTransportProfiles1D(
-    WithDomain, core_transport.core_transport_model_profiles_1d, domain="grid/rho_tor_norm"
-):
+class CoreTransportProfiles1D(WithDomain, domain="grid/rho_tor_norm"):
+    """Profiles of core transport"""
 
     grid: CoreRadialGrid
     """ Radial grid"""
@@ -87,7 +86,7 @@ class CoreTransportProfiles1D(
     conductivity_parallel: Expression = annotation(label=r"$\sigma_{\parallel}$", units=r"$\Omega^{-1}\cdot m^{-1}$")
 
 
-class CoreTransportProfiles2D(WithDomain, core_transport.core_transport_model_profiles_2d, domain="grid"):
+class CoreTransportProfiles2D(WithDomain, domain="grid"):
     grid: Mesh
 
 

@@ -1,10 +1,10 @@
 import numpy as np
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransportModel
+from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 
 
-class GyroBohm(CoreTransportModel, code={"name": "gyroBohm"}):
+class GyroBohm(CoreTransport.Model, code={"name": "gyroBohm"}):
     """
     Heat conductivity Anomalous gyroBohm
     ===============================
@@ -14,8 +14,8 @@ class GyroBohm(CoreTransportModel, code={"name": "gyroBohm"}):
     - Tokamaks, Third Edition, Chapter  4.16  ,p197,  J.A.Wesson 2003
     """
 
-    def execute(self, *args, **kwargs) -> dict:
-        res = super().execute(*args, **kwargs)
+    def execute(self, *args, core_profiles: CoreProfiles, equilibrium: Equilibrium, **kwargs) -> dict:
+        res = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
         prof = self.profiles_1d[-1]
         rho_tor_norm = core_profiles.profiles_1d.grid.rho_tor_norm
@@ -37,6 +37,3 @@ class GyroBohm(CoreTransportModel, code={"name": "gyroBohm"}):
         # prof.electrons.energy.v = 0
 
         return res
-
-
- 

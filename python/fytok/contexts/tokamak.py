@@ -153,7 +153,6 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
 
         res = super().execute(*args, time=time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
 
-        return res
         while True:
 
             core_transport = self.core_transport.refresh(equilibrium=equilibrium, core_profiles=core_profiles)
