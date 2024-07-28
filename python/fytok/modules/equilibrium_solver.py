@@ -26,6 +26,8 @@ class EquilibriumSolver(
 ):
     r"""Solve  GS equaiton"""
 
+    Constraints = EequilibriumConstraints
+
     class InPorts(Process.InPorts):
         time: float
         wall: Wall
@@ -34,28 +36,14 @@ class EquilibriumSolver(
         tf: TF
         core_profiles: CoreProfiles
         equilibrium: Equilibrium
+        constraints: EequilibriumConstraints
 
-    in_ports: InPorts
-    out_ports: Equilibrium
+    OutPorts = Equilibrium
 
-    Constraints = EequilibriumConstraints
-    constraints: EequilibriumConstraints
-
-    def execute(
-        self,
-        *args,
-        time: float,
-        equilibrium: Equilibrium,
-        core_profiles: CoreProfiles,
-        wall: Wall,
-        magnetics: Magnetics,
-        pf_active: PFActive,
-        tf: TF,
-        **kwargs,
-    ):
+    def execute(self, *args, time: float, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
         res = {
             "time": time,
-            "vacuum_toroidal_field": tf.vacuum_toroidal_field,
+            "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
         }
 
         return Equilibrium(res)

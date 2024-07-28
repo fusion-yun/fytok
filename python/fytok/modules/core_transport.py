@@ -8,14 +8,13 @@ from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.expression import Expression
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
-from spdm.core.category import WithCategory
 
 from spdm.core.mesh import Mesh
 from spdm.model.actor import Actor
 from spdm.model.context import Context
 from spdm.model.process import ProcessBundle
 
-from fytok.utils.base import IDS, FyEntity
+from fytok.utils.base import IDS, FyEntity, WithIdentifier
 
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField, Species
 from fytok.modules.core_profiles import CoreProfiles
@@ -45,20 +44,20 @@ class CoreTransportModelMomentum(core_transport.core_transport_model_4_momentum)
 class CoreTransportElectrons(
     Species, core_transport.core_transport_model_electrons, default_value={"label": "electron"}
 ):
-    particles: CoreTransportModelParticles
-    energy: CoreTransportModelEnergy
-    momentum: CoreTransportModelMomentum
+    particles: CoreTransportModelParticles = {}
+    energy: CoreTransportModelEnergy = {}
+    momentum: CoreTransportModelMomentum = {}
 
 
 class CoreTransportIon(Species, core_transport.core_transport_model_ions):
-    particles: CoreTransportModelParticles
-    energy: CoreTransportModelEnergy
-    momentum: CoreTransportModelMomentum
+    particles: CoreTransportModelParticles = {}
+    energy: CoreTransportModelEnergy = {}
+    momentum: CoreTransportModelMomentum = {}
 
 
 class CoreTransportNeutral(Species, core_transport.core_transport_model_neutral):
-    particles: CoreTransportModelParticles
-    energy: CoreTransportModelEnergy
+    particles: CoreTransportModelParticles = {}
+    energy: CoreTransportModelEnergy = {}
 
 
 class CoreTransportProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
@@ -76,7 +75,7 @@ class CoreTransportProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
         rho_tor_norm = self.grid.rho_tor_norm
         return self.grid.remesh(rho_tor_norm=0.5 * (rho_tor_norm[:-1] + rho_tor_norm[1:]))
 
-    electrons: CoreTransportElectrons
+    electrons: CoreTransportElectrons = {}
     ion: Set[CoreTransportIon]
     neutral: Set[CoreTransportNeutral]
 
@@ -90,7 +89,7 @@ class CoreTransportProfiles2D(WithDomain, SpTree, domain="grid"):
 
 
 class CoreTransportModel(
-    WithCategory,
+    WithIdentifier,
     Actor,
     FyEntity,
     plugin_prefix="core_transport/model/",
@@ -114,19 +113,17 @@ class CoreTransportModel(
     profiles_2d: CoreTransportProfiles2D
 
     def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        return self.__class__(
+        return CoreTransportModel(
             Path().update(
                 super().execute(*args, **kwargs),
                 {
                     "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
                     "profiles_1d": {
-                        "grid": equilibrium.profiles_1d.grid.remesh(
-                            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
-                        ),
+                        "grid": core_profiles.profiles_1d.grid,
                         "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
                     },
                 },
-            ),
+            )
         )
 
     @staticmethod
@@ -151,7 +148,7 @@ class CoreTransportModel(
         spec.energy.v = spec.energy.flux + Chi * ion.temperature.dln / rho_tor_boundary
 
 
-class CoreTransport(WithTime, IDS, Context, FyEntity, code={"name": "core_transport"}):
+class CoreTransport(IDS, Context, FyEntity, code={"name": "core_transport"}):
     """芯部输运"""
 
     def __init__(self, *args, **kwargs):
@@ -161,9 +158,12 @@ class CoreTransport(WithTime, IDS, Context, FyEntity, code={"name": "core_transp
 
     Model = CoreTransportModel
 
-    in_ports: CoreTransportModel.InPorts  # type:ignore
+    InPorts = CoreTransportModel.InPorts  # type:ignore
 
     model: ProcessBundle[CoreTransportModel]
 
     def __str__(self) -> str:
         return str(self.model)
+
+    def execute(self, *args, **kwargs) -> typing.Any:
+        return super().execute(*args, **kwargs) | {"model": self.model.execute(*args, **kwargs)}

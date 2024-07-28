@@ -84,24 +84,22 @@ class TransportSolverEquation(SpTree):
 
 
 class TransportSolver(
-    FyEntity,
     IDS,
     Process,
+    FyEntity,
     plugin_prefix="transport_solver/",
     plugin_default="fy_trans",
 ):
     r"""Solve transport equations  $\rho=\sqrt{ \Phi/\pi B_{0}}$"""
 
     class InPorts(Process.InPorts):
-        time: float
-        equilibrium: Equilibrium
-        core_profiles: CoreProfiles
+        equilibrium_prev: Equilibrium
+        equilibrium_next: Equilibrium
+        core_profiles_prev: CoreProfiles
         core_transport: CoreTransport
         core_sources: CoreSources
 
-    in_ports: InPorts  # type:ignore
-
-    out_ports: CoreProfiles  # type:ignore
+    OutPorts = CoreProfiles  # type:ignore
 
     primary_coordinate: str = "rho_tor_norm"
     r""" 与 core_profiles 的 primary coordinate 磁面坐标一致
@@ -110,24 +108,24 @@ class TransportSolver(
     def execute(
         self,
         *args,
-        time: float,
-        equilibrium: Equilibrium,
-        core_profiles: CoreProfiles,
+        core_profiles_prev: CoreProfiles,
+        equilibrium_prev: Equilibrium,
+        equilibrium_next: Equilibrium,
         core_transport: CoreTransport,
         core_sources: CoreSources,
         **kwargs,
     ):
 
-        res = {
-            "time": time,
+        core_profiles_next = {
+            "time": equilibrium_next.time,
             "vacuum_toroidal_field": {
-                "r0": equilibrium.vacuum_toroidal_field.r0,
-                "b0": equilibrium.vacuum_toroidal_field.b0,
+                "r0": equilibrium_next.vacuum_toroidal_field.r0,
+                "b0": equilibrium_next.vacuum_toroidal_field.b0,
             },
             "profiles_1d": {
-                "grid": equilibrium.profiles_1d.grid.remesh(self.primary_coordinate),
-                "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
+                "grid": equilibrium_next.profiles_1d.grid.remesh(self.primary_coordinate),
+                "ion": [ion.label for ion in core_profiles_prev.profiles_1d.ion],
             },
         }
 
-        return CoreProfiles(res)
+        return CoreProfiles(core_profiles_next)

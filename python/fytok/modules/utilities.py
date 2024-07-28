@@ -12,7 +12,8 @@ from spdm.core.domain import DomainPPoly
 from spdm.core.expression import Expression
 from spdm.core.function import Function
 
-from fytok.utils.atoms import atoms
+from fytok.utils.logger import logger
+from fytok.utils.atoms import Atom
 
 
 class Species(abc.ABC):
@@ -28,12 +29,12 @@ class Species(abc.ABC):
 
         super().__init__(*args, **kwargs)
         if self.label is _not_found_ or self.label is None:
-            self.label = self._metadata.get("label", None)
+            self.label = self._metadata.get("label", None) or self._metadata.get("name", None)
 
-        atom_desc = atoms[self.label]
+        atom = Atom(self.label)
 
-        self._cache["z"] = atom_desc.z
-        self._cache["a"] = atom_desc.a
+        self._cache["z"] = atom.z
+        self._cache["a"] = atom.a
 
     def __hash__(self) -> int:
         return hash(self.label)

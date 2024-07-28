@@ -86,7 +86,7 @@ class Code(SpTree):
         super().__init__(*args, **kwargs)
         self._cache = Path().update(self._cache, self._parent._metadata.get("code", _not_found_))
 
-    name: str = "unnamed"
+    name: str
     """代码名称，也是调用 plugin 的 identifier"""
 
     module_path: str
@@ -99,7 +99,7 @@ class Code(SpTree):
     output_flag: array_type
     library: List[Library]
 
-    parameters: AttributeTree
+    parameters: AttributeTree = {}
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """
 
     def __str__(self) -> str:
@@ -128,6 +128,14 @@ class Identifier(SpTree):
     name: str
     index: int
     description: str
+
+
+class WithIdentifier(abc.ABC):
+    identifier: Identifier = annotation(alias="_metadata/identifier", default_value="unamed")
+    """标识符"""
+
+    def __hash__(self) -> int:
+        return hash(self.identifier.name)
 
 
 class IDS(abc.ABC):
@@ -167,7 +175,7 @@ class FyEntity(Entity, plugin_prefix="fytok/plugins/modules/"):
     identifier: str = annotation(alias="_metadata/identifier")  # type:ignore
     """模块标识符"""
 
-    code: Code = {}
+    code: Code = annotation(alias="_metadata/code", default_value={})  # type:ignore
     """代码信息"""
 
     def __hash__(self) -> int:

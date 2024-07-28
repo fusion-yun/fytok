@@ -10,14 +10,7 @@ from spdm.numlib.misc import array_like
 from fytok.utils.logger import logger
 
 
-class Spitzer(
-    CoreTransport.Model,
-    category="neoclassical",
-    code={
-        "name": "spitzer",
-        "description": " Spitzer Resistivity",
-    },
-):
+class Spitzer(CoreTransport.Model, identifier="neoclassical", code={"name": "spitzer"}):
     """
     Spitzer Resistivity
 

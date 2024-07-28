@@ -5,7 +5,7 @@
 
 import typing
 import numpy as np
-
+from spdm.utils.tags import _not_found_
 from spdm.core.sp_tree import annotation
 from spdm.core.time import WithTime
 from spdm.model.context import Context
@@ -68,7 +68,7 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
         :param shot:   指定实验炮号
         :param run:    指定模拟计算的序号
         :param time:   指定当前时间
-        :param kwargs: 指定子模块的初始化数据，，会与args中指定的数据源子节点合并。
+        :param kwargs: 指定子模块的初始化数据，会与args中指定的数据源子节点合并。
         """
 
         dataset_fair = {"description": {"device": device, "shot": shot or 0, "run": run or 0}}
@@ -131,7 +131,7 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
 {self.dataset_fair}
 ------------------------------------------------------------------------------------------------------------------------
 - Context           : {self.code}
-- Actors/Processors        :
+- Actors/Processors :
 {processor_summary}
 - Components        : {component_summary}
 ------------------------------------------------------------------------------------------------------------------------
@@ -147,50 +147,54 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
         """当前状态标签，由程序版本、用户名、时间戳等信息确定"""
         return f"{self.dataset_fair.tag}_{int(self.time*100):06d}"
 
+    def initialize(self):
+        self.equilibrium_solver.in_ports.connect(self)
+        self.transport_solver.in_ports.connect(self)
+
     def execute(self, *args, time: float, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
         """刷新 Context 的状态，将执行结果更新到各个子模块。"""
-        tolerance = self.code.parameters.get("tolerance", 1e-6)
+        tolerance = self.code.parameters.get("tolerance", 1.0e-6)
 
-        res = super().execute(*args, time=time, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+        rms = 10000
 
-        core_profiles_next = None
-        equilibrium_next = None
-        while False:
+        core_profiles_prev = core_profiles
+        core_profiles_next = core_profiles
 
-            core_transport = self.core_transport.refresh(equilibrium=equilibrium, core_profiles=core_profiles)
+        equilibrium_prev = equilibrium
+        if time > equilibrium_prev.time:
+            equilibrium_next = self.equilibrium_solver.execute(
+                time=time,
+                core_profiles=core_profiles_next,
+                equilibrium=equilibrium,
+            )
+        else:
+            equilibrium_next = equilibrium
 
-            core_sources = self.core_sources.refresh(equilibrium=equilibrium, core_profiles=core_profiles)
+        while rms > tolerance:
+            equilibrium_iter = equilibrium_next
+
+            self.core_transport.refresh(equilibrium=equilibrium_iter, core_profiles=core_profiles_next)
+
+            self.core_sources.refresh(equilibrium=equilibrium_iter, core_profiles=core_profiles_next)
 
             core_profiles_next = self.transport_solver.refresh(
-                time=time,
-                equilibrium=equilibrium,
-                core_profiles=core_profiles,
-                core_transport=core_transport,
-                core_sources=core_sources,
+                core_profiles_prev=core_profiles_prev,
+                equilibrium_prev=equilibrium_prev,
+                equilibrium_next=equilibrium_iter,
+                core_transport=self.core_transport,
+                core_sources=self.core_sources,
             )
 
             equilibrium_next = self.equilibrium_solver.refresh(
                 time=time,
-                wall=self.wall,
-                magnetics=self.magnetics,
-                pf_active=self.pf_active,
-                tf=self.tf,
                 core_profiles=core_profiles_next,
-                equilibrium=equilibrium,
+                equilibrium=equilibrium_iter,
             )
 
-            if (
-                np.isclose(equilibrium_next.time, equilibrium.time)
-                and np.mean((equilibrium_next.profiles_2d.psi - equilibrium_next.profiles_2d.psi) ** 2) < tolerance
-            ):
-                break
+            rms = np.sqrt(np.mean((equilibrium_next.profiles_2d.psi - equilibrium_iter.profiles_2d.psi) ** 2))
 
-            core_profiles = core_profiles_next
-
-            equilibrium = equilibrium_next
-
-        res["core_profiles"] = core_profiles_next
-
-        res["equilibrium"] = equilibrium_next
-
-        return res
+        return {
+            "time": time,
+            "core_profiles": core_profiles_next,
+            "equilibrium": equilibrium_next,
+        }

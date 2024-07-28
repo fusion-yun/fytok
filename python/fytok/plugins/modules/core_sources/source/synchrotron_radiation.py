@@ -18,7 +18,7 @@ PI = scipy.constants.pi
 
 class SynchrotronRadiation(
     CoreSources.Source,
-    category="synchrotron",
+    identifier="synchrotron",
     code={
         "name": "synchrotron_radiation",
         "description": """   Source from Synchrotron radition  """,

@@ -4,7 +4,7 @@ import numpy as np
 import scipy.constants
 from spdm.core.htree import Dict, List
 from spdm.core.expression import Expression
-from spdm.core.sp_tree import annotation, sp_property, sp_tree
+from spdm.core.sp_tree import annotation, sp_property, sp_tree, SpTree
 from spdm.core.sp_tree import AttributeTree
 from spdm.core.path import update_tree
 
@@ -71,8 +71,23 @@ _predef_atoms = {
 }
 
 
-@sp_tree
-class Atom:
+class Atom(SpTree):
+    """Atom database"""
+
+    def __init__(self, data: str | dict, **kwargs):
+        if data is None or data is _not_found_:
+            data = kwargs.pop("label", None)
+        data_ = data
+        while isinstance(data, str):
+            data = _predef_atoms.get(data, _not_found_)
+            if data == data_:
+                raise RuntimeError(f"Atom {data_} not found in the database")
+
+        if isinstance(data, Atom):
+            data = data._cache
+
+        super().__init__(data, **kwargs)
+
     label: str
     z: float
     a: float
@@ -80,20 +95,20 @@ class Atom:
     elements: List[AttributeTree]
 
 
-class Atoms(Dict[Atom]):
-    """Atoms database"""
+# class Atoms(Dict[Atom]):
+#     """Atoms database"""
 
-    def __get_node__(self, key: str, default_value=_not_found_) -> Atom:
-        if not isinstance(key, str):
-            raise RuntimeError(f"Atom key must be a string, not {key} {self._cache}")
+#     def __get_node__(self, key: str, default_value=_not_found_) -> Atom:
+#         if not isinstance(key, str):
+#             raise RuntimeError(f"Atom key must be a string, not {key} {self._cache}")
 
-        if key.startswith("ion/"):
-            key = key[4:]
+#         if key.startswith("ion/"):
+#             key = key[4:]
 
-        return super().__get_node__(key)
+#         return super().__get_node__(key)
 
 
-atoms = Atoms(_predef_atoms)
+# atoms = Atoms(_predef_atoms)
 
 
 def get_species(species):

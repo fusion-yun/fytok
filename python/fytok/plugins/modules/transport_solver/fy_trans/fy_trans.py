@@ -342,8 +342,9 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
     def execute(
         self,
         *args,
-        core_profiles: CoreProfiles,
-        equilibrium: Equilibrium,
+        core_profiles_prev: CoreProfiles,
+        equilibrium_prev: Equilibrium,
+        equilibrium_next: Equilibrium,
         core_transport: CoreTransport,
         core_sources: CoreSources,
         unknowns=None,
@@ -360,12 +361,13 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         if boundary_value is None:
             boundary_value = {}
 
-        core_profiles_in: CoreProfiles = core_profiles
+        core_profiles_in: CoreProfiles = core_profiles_prev
 
         core_profiles_out = super().execute(
             *args,
-            core_profiles=core_profiles,
-            equilibrium=equilibrium,
+            core_profiles_prev=core_profiles_prev,
+            equilibrium_prev=equilibrium_prev,
+            equilibrium_next=equilibrium_next,
             core_transport=core_transport,
             core_sources=core_sources,
             **kwargs,
@@ -375,15 +377,15 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         profiles_1d_out: CoreProfiles.Profiles1D = core_profiles_out.profiles_1d
 
-        grid: CoreRadialGrid = equilibrium.profiles_1d.grid
+        grid: CoreRadialGrid = equilibrium_next.profiles_1d.grid
 
         rho_tor_norm = grid.rho_tor_norm
 
         psi_norm = grid.psi_norm
 
-        eq0_1d: Equilibrium.Profiles1D = equilibrium.profiles_1d
+        eq0_1d: Equilibrium.Profiles1D = equilibrium_next.profiles_1d
 
-        eq_prev: Equilibrium = equilibrium.previous
+        equilibrium_prev: Equilibrium = equilibrium_prev
 
         # if psi_norm is _not_found_:
         #     # psi_norm = profiles.psi / (eq0_1d.grid.psi_boundary - eq0_1d.grid.psi_axis)
@@ -396,10 +398,10 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
 
         # 设定全局参数
         # $R_0$ characteristic major radius of the device   [m]
-        R0 = equilibrium.vacuum_toroidal_field.r0
+        R0 = equilibrium_next.vacuum_toroidal_field.r0
 
         # $B_0$ magnetic field measured at $R_0$            [T]
-        B0 = equilibrium.vacuum_toroidal_field.b0
+        B0 = equilibrium_next.vacuum_toroidal_field.b0
 
         rho_tor_boundary = grid.rho_tor_boundary
 
@@ -419,7 +421,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
         gm3 = eq0_1d.gm3(psi_norm)  # <|grad_rho_tor|^2>
         gm8 = eq0_1d.gm8(psi_norm)  # <R>
 
-        if eq_prev is _not_found_ or eq_prev is None:
+        if equilibrium_prev is _not_found_ or equilibrium_prev is None:
             one_over_dt = 0
             B0_prev = B0
             rho_tor_boundary_prev = rho_tor_boundary
@@ -427,7 +429,7 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             gm8_prev = gm8
             dt = 0
         else:
-            dt = equilibrium.time - eq_prev.time
+            dt = equilibrium_next.time - equilibrium_prev.time
 
             if dt < 0:
                 raise RuntimeError(f"dt={dt}<=0")
@@ -436,10 +438,10 @@ class FyTrans(TransportSolver, code={"name": "fy_trans"}):
             else:
                 one_over_dt = one / dt
 
-            B0_prev = eq_prev.vacuum_toroidal_field.b0
-            rho_tor_boundary_prev = eq_prev.profiles_1d.grid.rho_tor_boundary
-            vpr_prev = eq_prev.profiles_1d.dvolume_drho_tor(psi_norm)
-            gm8_prev = eq_prev.profiles_1d.gm8(psi_norm)
+            B0_prev = equilibrium_prev.vacuum_toroidal_field.b0
+            rho_tor_boundary_prev = equilibrium_prev.profiles_1d.grid.rho_tor_boundary
+            vpr_prev = equilibrium_prev.profiles_1d.dvolume_drho_tor(psi_norm)
+            gm8_prev = equilibrium_prev.profiles_1d.gm8(psi_norm)
 
         k_B = (B0 - B0_prev) / (B0 + B0_prev) * one_over_dt
 

@@ -7,14 +7,13 @@ from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.htree import Set
 from spdm.core.expression import Expression
 from spdm.core.mesh import Mesh
-from spdm.core.category import WithCategory
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
 from spdm.model.process import ProcessBundle
 from spdm.model.actor import Actor
 from spdm.model.context import Context
 
-from fytok.utils.base import IDS, FyEntity
+from fytok.utils.base import IDS, FyEntity, WithIdentifier
 
 from fytok.modules.utilities import CoreVectorComponents, CoreRadialGrid, DistributionSpecies, Species
 from fytok.modules.core_profiles import CoreProfiles
@@ -114,7 +113,7 @@ class CoreSourcesProfiles2D(WithDomain, core_sources.core_sources_source_profile
 
 
 class CoreSourcesSource(
-    WithCategory,
+    WithIdentifier,
     Actor,
     FyEntity,
     plugin_prefix="core_sources/source/",
@@ -124,8 +123,6 @@ class CoreSourcesSource(
     class InPorts(Actor.InPorts):
         equilibrium: Equilibrium
         core_profiles: CoreProfiles
-
-    in_ports: InPorts  # type:ignore
 
     species: DistributionSpecies
 
@@ -139,7 +136,7 @@ class CoreSourcesSource(
     profiles_2d: CoreSourcesProfiles2D
 
     def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        return self.__class__(
+        return CoreSources.Source(
             Path().update(
                 super().execute(*args, **kwargs),
                 {
@@ -155,7 +152,7 @@ class CoreSourcesSource(
         )
 
 
-class CoreSources(WithTime, IDS, Context, FyEntity, code={"name": "core_sources"}):
+class CoreSources(IDS, Context, FyEntity, code={"name": "core_sources"}):
     """Source terms for the core transport equations"""
 
     def __init__(self, *args, **kwargs):
@@ -164,10 +161,13 @@ class CoreSources(WithTime, IDS, Context, FyEntity, code={"name": "core_sources"
 
         super().__init__(*args, **kwargs)
 
-    in_ports: CoreSourcesSource.InPorts  # type:ignore
+    InPorts = CoreSourcesSource.InPorts
 
     Source = CoreSourcesSource
     source: ProcessBundle[CoreSourcesSource]
 
     def __str__(self) -> str:
         return str(self.source)
+
+    def execute(self, *args, **kwargs) -> typing.Any:
+        return super().execute(*args, **kwargs) | {"source": self.source.execute(*args, **kwargs)}

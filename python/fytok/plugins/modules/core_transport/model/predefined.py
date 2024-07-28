@@ -1,15 +1,15 @@
 import typing
 import numpy as np
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransport
+from fytok.modules.core_transport import CoreTransportModel
 from fytok.modules.equilibrium import Equilibrium
 
 
-class PredefinedTransport(CoreTransport.Model, category="predefined", code={"name": "predefined"}):
+class PredefinedTransport(CoreTransportModel, identifier="predefined", code={"name": "predefined"}):
     """Predefined transport model"""
 
     def execute(self, *args, core_profiles: CoreProfiles, equilibrium: Equilibrium, **kwargs) -> typing.Self:
-        current: typing.Self = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
+        current = super().execute(*args, core_profiles=core_profiles, equilibrium=equilibrium, **kwargs)
 
         rho_tor_norm = current.profiles_1d.grid.rho_tor_norm
 

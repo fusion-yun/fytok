@@ -6,14 +6,14 @@ from spdm.core.function import Function
 from fytok.utils.logger import logger
 
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_sources import CoreSourcesSource
+from fytok.modules.core_sources import CoreSources
 from fytok.modules.equilibrium import Equilibrium
-from fytok.utils.atoms import atoms
+from fytok.utils.atoms import Atom
 
 
 class BootstrapCurrent(
-    CoreSourcesSource,
-    category="bootstrap",
+    CoreSources.Source,
+    identifier="bootstrap",
     code={
         "name": "bootstrap_current",
         "description": "Bootstrap current, based on  Tokamaks, 3ed, sec 14.12 J.A.Wesson 2003",

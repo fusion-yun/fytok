@@ -7,8 +7,8 @@ import typing
 import numpy as np
 import scipy.constants
 from spdm.core.expression import Variable, zero
-from fytok.utils.atoms import nuclear_reaction, atoms
-from fytok.modules.core_sources import CoreSourcesSource
+from fytok.utils.atoms import nuclear_reaction, Atom
+from fytok.modules.core_sources import CoreSources
 from fytok.modules.core_profiles import CoreProfiles
 
 
@@ -16,7 +16,7 @@ PI = scipy.constants.pi
 
 
 class FusionReaction(
-    CoreSourcesSource,
+    CoreSources.Source,
     identifier="fusion",
     code={"name": "fusion", "description": "Fusion reaction"},
 ):
@@ -61,13 +61,13 @@ class FusionReaction(
     Here $E_{c}$ is the slowing down critical energy. We remind that $E_{c}/E_{\\alpha}=33.05 T_e/E_{\\alpha}$, where $E_{\\alpha}=3500 keV$  is the thirth energy of $\\alpha$ particles.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        x = np.linspace(0, 10.0, 256)
-        _x = Variable(0, "x")
-        # self._sivukhin = Function(x, 1.0 / (1 + x**1.5)).I(_x) / (_x)
-        # self._sivukhin._metadata["name"] = "sivukhin"
-        # self._sivukhin._metadata["label"] = "F"
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    # x = np.linspace(0, 10.0, 256)
+    # _x = Variable(0, "x")
+    # self._sivukhin = Function(x, 1.0 / (1 + x**1.5)).I(_x) / (_x)
+    # self._sivukhin._metadata["name"] = "sivukhin"
+    # self._sivukhin._metadata["label"] = "F"
 
     def execute(self, *args, core_profiles: CoreProfiles, **kwargs):
         current = super().execute(*args, core_profiles=core_profiles, **kwargs)
@@ -94,7 +94,7 @@ class FusionReaction(
             r0, r1 = reaction.reactants
             p0, p1 = reaction.products
 
-            pa = atoms[p1].label
+            pa = Atom[p1].label
 
             n0 = profiles_1d.ion[r0].density
             n1 = profiles_1d.ion[r1].density

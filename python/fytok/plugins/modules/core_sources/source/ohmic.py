@@ -5,7 +5,7 @@ from fytok.modules.core_sources import CoreSources
 
 
 class Ohmic(
-    CoreSources.Source, category="collisional_equipartition", code={"name": "ohmic", "description": "Fusion reaction"}
+    CoreSources.Source, identifier="collisional_equipartition", code={"name": "ohmic", "description": "Fusion reaction"}
 ):
     """Ohmic"""
 

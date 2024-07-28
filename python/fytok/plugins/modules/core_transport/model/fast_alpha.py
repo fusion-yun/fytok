@@ -5,13 +5,13 @@ import numpy as np
 
 
 from fytok.modules.core_profiles import CoreProfiles
-from fytok.modules.core_transport import CoreTransportModel
+from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 
 
 class FastAlpha(
-    CoreTransportModel,
-    category="alpha",
+    CoreTransport.Model,
+    identifier="alpha",
     code={"name": "fast_alpha", "description": " Fast alpha, Angioni's model"},
 ):
     """
@@ -29,13 +29,15 @@ class FastAlpha(
     """
 
     def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs):
-        res = super().execute(*args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs)
+        res: CoreTransport.Model = super().execute(
+            *args, equilibrium=equilibrium, core_profiles=core_profiles, **kwargs
+        )
 
         R0 = equilibrium.vacuum_toroidal_field.r0
 
-        profiles_1d = core_profiles.profiles_1d
+        profiles_1d = res.profiles_1d
 
-        rho_tor_norm = self.in_ports.core_profiles.profiles_1d.rho_tor_norm
+        rho_tor_norm = profiles_1d.grid.rho_tor_norm
 
         # _x = rho_tor_norm
 

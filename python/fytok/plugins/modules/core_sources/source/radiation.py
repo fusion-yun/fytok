@@ -12,7 +12,7 @@ PI = scipy.constants.pi
 
 class Radiation(
     CoreSources.Source,
-    category="radiation",
+    identifier="radiation",
     code={
         "name": "radiation",
         "description": """

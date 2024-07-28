@@ -4,7 +4,7 @@ from fytok.modules.core_transport import CoreTransport
 from fytok.modules.equilibrium import Equilibrium
 
 
-class GyroBohm(CoreTransport.Model, code={"name": "gyroBohm"}):
+class GyroBohm(CoreTransport.Model, identifier="turbulence", code={"name": "gyroBohm"}):
     """
     Heat conductivity Anomalous gyroBohm
     ===============================
