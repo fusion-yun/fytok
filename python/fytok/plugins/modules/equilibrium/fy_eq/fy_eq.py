@@ -848,4 +848,4 @@ class FyEq(equilibrium.Equilibrium, code={"name": "fy_eq"}):
     boundary_separatrix: FyEqBoundarySeparatrix
 
     CoordinateSystem = FyEqCoordinateSystem
-    coordinate_system: FyEqCoordinateSystem
+    coordinate_system: FyEqCoordinateSystem = {}
