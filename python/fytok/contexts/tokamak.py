@@ -12,7 +12,7 @@ from spdm.model.context import Context
 from spdm.model.component import Component
 
 # ---------------------------------
-# from fytok.utils.envs import *
+from fytok.utils.envs import FY_VERSION
 from fytok.utils.base import IDS, FyEntity
 
 # ---------------------------------
@@ -47,7 +47,7 @@ from fytok.modules.equilibrium_solver import EquilibriumSolver
 # ---------------------------------
 
 
-class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
+class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok", "version": FY_VERSION}):
     """Tokamak 整合子模块"""
 
     def __init__(
@@ -173,11 +173,7 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
         while rms > tolerance:
             equilibrium_iter = equilibrium_next
 
-            self.core_transport.refresh(equilibrium=equilibrium_iter, core_profiles=core_profiles_next)
-
-            self.core_sources.refresh(equilibrium=equilibrium_iter, core_profiles=core_profiles_next)
-
-            core_profiles_next = self.transport_solver.refresh(
+            core_profiles_next = self.transport_solver.execute(
                 core_profiles_prev=core_profiles_prev,
                 equilibrium_prev=equilibrium_prev,
                 equilibrium_next=equilibrium_iter,
@@ -185,7 +181,7 @@ class Tokamak(WithTime, IDS, Context, FyEntity, code={"name": "fy_tok"}):
                 core_sources=self.core_sources,
             )
 
-            equilibrium_next = self.equilibrium_solver.refresh(
+            equilibrium_next = self.equilibrium_solver.execute(
                 time=time,
                 core_profiles=core_profiles_next,
                 equilibrium=equilibrium_iter,

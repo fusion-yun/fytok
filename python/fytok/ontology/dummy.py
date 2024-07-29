@@ -2,7 +2,7 @@ import functools
 
 from spdm.core.htree import HTree
 
-from spdm.core.sp_tree import WithAttribute, WithProperty, WithMetadata
+from spdm.core.sp_tree import WithAttribute, WithProperty
 
 __implement__ = "dummy"
 
@@ -29,7 +29,7 @@ class DummyModule(object):
 
         new_cls = type(
             name,
-            (WithAttribute, WithProperty, WithMetadata, HTree),
+            (WithAttribute, WithProperty, HTree),
             {
                 "__module__": f"{__package__}.{self._module}",
                 "__package__": __package__,

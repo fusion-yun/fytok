@@ -6,13 +6,13 @@ FY_ONTOLOGY = "imas/3"
 """ 本体版本 """
 
 
-FY_COPYRIGHT = "(C) 2021-2024 Zhi YU @ ASIPP. All rights reserved."
+FY_COPYRIGHT = "@ASIPP"
 """ 版权信息 """
 
 try:
     from fytok.__version__ import version
 except ModuleNotFoundError as error:
-    FY_VERSION = "alpha"
+    FY_VERSION = "develop"
 else:
     FY_VERSION = version
 
@@ -34,6 +34,9 @@ for k, v in os.environ.items():
     if k.startswith("FY_"):
         os.environ[f"SP_{k[3:]}"] = v
 
+versions = {"version": FY_VERSION, "extension": FY_EXT_VERSION, "spdm": sp_envs.SP_VERSION, "ontology": FY_ONTOLOGY}
+
+versions = ", ".join([f"{k}: {v}" for k, v in versions.items() if v != ""])
 
 FY_LOGO = rf"""
 ########################################################################################################################
@@ -44,8 +47,8 @@ FY_LOGO = rf"""
     /_/    \__, /    |_|\___/|_|\_\
           /____/
 
-{FY_COPYRIGHT}
- version  = {FY_VERSION}  {FY_EXT_VERSION} spdm version = {sp_envs.SP_VERSION}  ontology = {FY_ONTOLOGY} 
+(C) 2021-2024 Zhi YU @ ASIPP. All rights reserved.
+{versions}
 ########################################################################################################################
 """
 

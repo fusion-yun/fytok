@@ -114,18 +114,18 @@ class TransportSolver(
         core_transport: CoreTransport,
         core_sources: CoreSources,
         **kwargs,
-    ):
+    ) -> dict:
 
-        core_profiles_next = {
-            "time": equilibrium_next.time,
-            "vacuum_toroidal_field": {
-                "r0": equilibrium_next.vacuum_toroidal_field.r0,
-                "b0": equilibrium_next.vacuum_toroidal_field.b0,
-            },
-            "profiles_1d": {
-                "grid": equilibrium_next.profiles_1d.grid.remesh(self.primary_coordinate),
-                "ion": [ion.label for ion in core_profiles_prev.profiles_1d.ion],
-            },
-        }
+        # core_profiles_next = {
+        #     "time": equilibrium_next.time,
+        #     "vacuum_toroidal_field": {
+        #         "r0": equilibrium_next.vacuum_toroidal_field.r0,
+        #         "b0": equilibrium_next.vacuum_toroidal_field.b0,
+        #     },
+        #     "profiles_1d": {
+        #         "grid": equilibrium_next.profiles_1d.grid.remesh(self.primary_coordinate),
+        #         "ion": [ion.label for ion in core_profiles_prev.profiles_1d.ion],
+        #     },
+        # }
 
-        return CoreProfiles(core_profiles_next)
+        return {}

@@ -113,13 +113,15 @@ class CoreTransportModel(
     profiles_2d: CoreTransportProfiles2D
 
     def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
-        return CoreTransportModel(
+
+        return CoreTransport.Model(
             Path().update(
                 super().execute(*args, **kwargs),
                 {
                     "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
                     "profiles_1d": {
                         "grid": core_profiles.profiles_1d.grid,
+                        "electrons": {},
                         "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
                     },
                 },
@@ -166,4 +168,4 @@ class CoreTransport(IDS, Context, FyEntity, code={"name": "core_transport"}):
         return str(self.model)
 
     def execute(self, *args, **kwargs) -> typing.Any:
-        return super().execute(*args, **kwargs) | {"model": self.model.execute(*args, **kwargs)}
+        return {"model": self.model.execute(*args, **kwargs)}

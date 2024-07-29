@@ -47,57 +47,20 @@ class IDSProperties(SpTree):
     provenance: AttributeTree
 
 
-class Library(SpTree):
-    """
-    Represents a library used by the code.
-
-    Attributes:
-    - name: The name of the library.
-    - commit: The commit of the library.
-    - version: The version of the library.
-    - repository: The repository of the library.
-    - parameters: The parameters of the library.
-    """
-
-    name: str
-    commit: str
-    version: str = "0.0.0"
-    repository: str = ""
-    parameters: AttributeTree
-
-
 class Code(SpTree):
     """
     Represents a code module.
 
     Attributes:
     - name: The name of the code.
-    - module_path: The module path of the code.
-    - commit: The commit of the code.
     - version: The version of the code.
     - copyright: The copyright of the code.
-    - repository: The repository of the code.
-    - output_flag: The output flag of the code.
-    - library: The libraries used by the code.
     - parameters: The parameters of the code.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._cache = Path().update(self._cache, self._parent._metadata.get("code", _not_found_))
-
-    name: str
-    """代码名称，也是调用 plugin 的 identifier"""
-
-    module_path: str
-    """模块路径， 可用于 import 模块"""
-
-    commit: str
-    version: str = FY_VERSION
-    copyright: str = FY_COPYRIGHT
-    repository: str = ""
-    output_flag: array_type
-    library: List[Library]
+    name: str = "dummy"
+    version: str
+    copyright: str
 
     parameters: AttributeTree = {}
     """指定参数列表，代码调用时所需，但不在由 Module 定义的参数列表中的参数。 """

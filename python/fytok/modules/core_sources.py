@@ -142,9 +142,8 @@ class CoreSourcesSource(
                 {
                     "vacuum_toroidal_field": equilibrium.vacuum_toroidal_field,
                     "profiles_1d": {
-                        "grid": equilibrium.profiles_1d.grid.remesh(
-                            rho_tor_norm=core_profiles.profiles_1d.grid.rho_tor_norm
-                        ),
+                        "grid": core_profiles.profiles_1d.grid,
+                        "electrons": {},
                         "ion": [ion.label for ion in core_profiles.profiles_1d.ion],
                     },
                 },
@@ -170,4 +169,4 @@ class CoreSources(IDS, Context, FyEntity, code={"name": "core_sources"}):
         return str(self.source)
 
     def execute(self, *args, **kwargs) -> typing.Any:
-        return super().execute(*args, **kwargs) | {"source": self.source.execute(*args, **kwargs)}
+        return {"source": self.source.execute(*args, **kwargs)}
