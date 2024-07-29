@@ -409,7 +409,7 @@ class Equilibrium(
     profiles_1d: EquilibriumProfiles1D
 
     Profiles2D = EquilibriumProfiles2D
-    profiles_2d: EquilibriumProfiles2D
+    profiles_2d: EquilibriumProfiles2D  
 
     CoordinateSystem = EquilibriumCoordinateSystem
     coordinate_system: EquilibriumCoordinateSystem
