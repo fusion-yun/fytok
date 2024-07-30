@@ -2,28 +2,27 @@ import collections.abc
 import typing
 import numpy as np
 import scipy.constants
-from spdm.core.Path import Path
-from spdm.core.HTree import Dict
-from spdm.core.Expression import Variable, Expression
-from spdm.core.Function import Function
-from spdm.core.sp_property import SpTree, sp_property, sp_tree, PropertyTree
-from spdm.core.AoS import AoS
-from spdm.core.Path import update_tree
-from spdm.utils.typing import get_args
+from spdm.core.htree import Dict, List
+from spdm.core.expression import Expression
+from spdm.core.sp_tree import annotation, sp_property, sp_tree, SpTree
+from spdm.core.sp_tree import AttributeTree
+from spdm.core.path import update_tree
+
+# from spdm.utils.type_hint import get_args
 from spdm.utils.tags import _not_found_
 
 #################################################
 # TODO: 需要 AMNS 数据库接口
 #################################################
 _predef_atoms = {
-    "e": {
+    "electron": {
         "label": "e",
         "z": -1,
         "a": scipy.constants.electron_mass / scipy.constants.atomic_mass,
         "mass": scipy.constants.electron_mass,
     },
-    "electron": "e",
-    "electrons": "e",
+    "e": "electron",
+    "electrons": "electron",
     "n": {
         "label": "n",
         "z": 0,
@@ -72,35 +71,44 @@ _predef_atoms = {
 }
 
 
-@sp_tree
-class Atom:
+class Atom(SpTree):
+    """Atom database"""
+
+    def __init__(self, data: str | dict, **kwargs):
+        if data is None or data is _not_found_:
+            data = kwargs.pop("label", None)
+        data_ = data
+        while isinstance(data, str):
+            data = _predef_atoms.get(data, _not_found_)
+            if data == data_:
+                raise RuntimeError(f"Atom {data_} not found in the database")
+
+        if isinstance(data, Atom):
+            data = data._cache
+
+        super().__init__(data, **kwargs)
+
     label: str
     z: float
     a: float
     mass: float
-    elements: AoS[PropertyTree]
+    elements: List[AttributeTree]
 
 
-class Atoms(Dict[Atom]):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class Atoms(Dict[Atom]):
+#     """Atoms database"""
 
-    def get(self, key: str, default_value=_not_found_) -> Atom:
-        if not isinstance(key, str):
-            raise RuntimeError(f"Atom key must be a string, not {key} {self._cache}")
+#     def __get_node__(self, key: str, default_value=_not_found_) -> Atom:
+#         if not isinstance(key, str):
+#             raise RuntimeError(f"Atom key must be a string, not {key} {self._cache}")
 
-        if key.startswith("ion/"):
-            key = key.split("/")[1]
-        value = super().get_cache(key, _not_found_)
-        if value is _not_found_:
-            raise KeyError(f"Can not find atom {key}")
-        elif isinstance(value, str):
-            return self.get(value, default_value)
-        else:
-            return super()._type_convert(value, key, _type_hint=Atom)
+#         if key.startswith("ion/"):
+#             key = key[4:]
+
+#         return super().__get_node__(key)
 
 
-atoms = Atoms(_predef_atoms)
+# atoms = Atoms(_predef_atoms)
 
 
 def get_species(species):
@@ -124,7 +132,7 @@ def get_species(species):
 class Reaction:
     reactants: tuple
     products: tuple
-    reactivities: Expression = sp_property(label=r"\sigma")
+    reactivities: Expression = annotation(label=r"\sigma")
 
     @sp_property(units="eV")
     def energy(self) -> typing.Tuple[float, float]:
@@ -146,7 +154,7 @@ class NuclearReaction(Dict[Reaction]):
         return self._find_(key, default_value=default_value)
 
 
-def reactivities_DT(ti): 
+def reactivities_DT(ti):
     # H.-S. Bosch and G.M. Hale, Nucl. Fusion 32 (1992) 611.
 
     # Table VII:
@@ -166,7 +174,7 @@ def reactivities_DT(ti):
     xi = (bg**2 / (4.0 * theta)) ** (1.0 / 3.0)
 
     sigv = c1 * theta * np.sqrt(xi / (er * (ti) ** 3)) * np.exp(-3.0 * xi)
-    return sigv * 1.0e-6 # m^3/s
+    return sigv * 1.0e-6  # m^3/s
 
 
 nuclear_reaction = NuclearReaction(
@@ -174,7 +182,7 @@ nuclear_reaction = NuclearReaction(
         r"D(t,n)alpha": {
             "reactants": ["D", "T"],
             "products": ["n", "alpha"],
-            "reactivities": reactivities_DT
+            "reactivities": reactivities_DT,
             # (
             #     # eV
             #     np.array(

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interferometer>
+    <ids_properties>
+        <comment>
+         POINT O 窗口        
+         HCN   K 窗口
+        </comment>
+        <provider> 刘海庆</provider>
+        <creation_date>2022-12-05</creation_date>
+    </ids_properties>
+
+    <channel id="0" > <name>  POINT1</name> <identifier>  POINT1</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.425 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.425 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="1" > <name>  POINT2</name> <identifier>  POINT2</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.34  </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.34  </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="2" > <name>  POINT3</name> <identifier>  POINT3</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.255 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.255 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="3" > <name>  POINT4</name> <identifier>  POINT4</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.17  </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.17  </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="4" > <name>  POINT5</name> <identifier>  POINT5</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.085 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.085 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="5" > <name>  POINT6</name> <identifier>  POINT6</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'>  0.0   </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'>  0.0   </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="6" > <name>  POINT7</name> <identifier>  POINT7</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'> -0.085 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'> -0.085 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="7" > <name>  POINT8</name> <identifier>  POINT8</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'> -0.17  </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'> -0.17  </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="8" > <name>  POINT9</name> <identifier>  POINT9</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'> -0.255 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'> -0.255 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="9" > <name> POINT10</name> <identifier> POINT10</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'> -0.34  </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'> -0.34  </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="10"> <name> POINT11</name> <identifier> POINT11</identifier><line_of_sight><first_point><r  dtype='float'> 0.0 </r><z  dtype='float'> -0.425 </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 3.0 </r><z  dtype='float'> -0.425 </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="11"> <name>    HCN1</name> <identifier>    HCN1</identifier><line_of_sight><first_point><r  dtype='float'> 2.0 </r><z  dtype='float'> -2.0   </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 2.0 </r><z  dtype='float'>  2.0   </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="12"> <name>    HCN2</name> <identifier>    HCN2</identifier><line_of_sight><first_point><r  dtype='float'> 1.82</r><z  dtype='float'> -2.0   </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 1.82</r><z  dtype='float'>  2.0   </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    <channel id="13"> <name>    HCN3</name> <identifier>    HCN3</identifier><line_of_sight><first_point><r  dtype='float'> 1.64</r><z  dtype='float'> -2.0   </z><phi  dtype='float'>  0.0</phi></first_point>  <second_point><r  dtype='float'> 1.64</r><z  dtype='float'>  2.0   </z><phi  dtype='float'>  0.0 </phi></second_point> </line_of_sight></channel>
+    
+</interferometer>
