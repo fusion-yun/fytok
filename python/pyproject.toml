@@ -28,11 +28,9 @@ dependencies = ["spdm"]
 
 
 [tool.setuptools]
-package-dir = { "" = "python" }
-
+package-dir = {""="."}
 
 [tool.setuptools.packages.find]
-where = ["python"]
 
 exclude = ["*.obsolete", "*.obsolete.*", "*.todo"]
 
@@ -43,4 +41,5 @@ namespaces = true
 
 
 [tool.setuptools_scm]
-version_file = "__version__.py"
+root = ".."
+version_file = "fytok/__version__.py"
