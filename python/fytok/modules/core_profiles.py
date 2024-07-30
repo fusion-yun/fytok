@@ -424,10 +424,10 @@ class CoreProfiles(WithTime, IDS, FyEntity, code={"name": "core_profiles"}):
     vacuum_toroidal_field: VacuumToroidalField
 
     GlobalQuantities = CoreGlobalQuantities
-    global_quantities: CoreGlobalQuantities = {}
+    global_quantities: CoreGlobalQuantities
 
     Profiles1D = CoreProfiles1D
-    profiles_1d: CoreProfiles1D = {}
+    profiles_1d: CoreProfiles1D
 
     Profiles2D = CoreProfiles2D
-    profiles_2d: CoreProfiles2D = {}
+    profiles_2d: CoreProfiles2D

@@ -327,9 +327,9 @@ def sp_from_geqdsk(geqdsk: dict, eq: typing.Optional[Entry] = None) -> Entry:
     if isinstance(limrz, np.ndarray):
         eq["wall"] = {"description_2d": [{"limiter": {"unit": [{"outline": {"r": limrz[:, 0], "z": limrz[:, 1]}}]}}]}
 
-    eq["equilibrium/time"] = [0.0]
-    eq["equilibrium/vacuum_toroidal_field/r0"] = r0
-    eq["equilibrium/vacuum_toroidal_field/b0"] = [b0]
+    # eq["equilibrium/time"] = [0.0]
+    # eq["equilibrium/vacuum_toroidal_field/r0"] = r0
+    # eq["equilibrium/vacuum_toroidal_field/b0"] = [b0]
 
     # rleft = 0.0
 
@@ -350,58 +350,58 @@ def sp_from_geqdsk(geqdsk: dict, eq: typing.Optional[Entry] = None) -> Entry:
     if psirz.shape != (nw, nh):
         raise ValueError(f"Invalid shape for psirz: {psirz.shape}!={(nw, nh)}")
 
-    eq["equilibrium/time_slice"] = [
-        {
-            "time": 0.0,
-            "vacuum_toroidal_field": {"r0": r0, "b0": b0},
-            "global_quantities": {
-                "magnetic_axis": {
-                    "r": geqdsk["rmaxis"],
-                    "z": geqdsk["zmaxis"],
-                },
+    eq["equilibrium"] = {
+        "time": 0.0,
+        "vacuum_toroidal_field": {"r0": r0, "b0": b0},
+        "global_quantities": {
+            "magnetic_axis": {
+                "r": geqdsk["rmaxis"],
+                "z": geqdsk["zmaxis"],
+            },
+            "psi_axis": psi_axis,
+            "psi_boundary": psi_boundary,
+            "ip": Ip,
+        },
+        "boundary": {  # Boundary
+            "outline": {
+                "r": geqdsk["bbsrz"][:, 0],
+                "z": geqdsk["bbsrz"][:, 1],
+            },
+            "geometric_axis": {
+                "r": geqdsk["rcentr"],
+                "z": geqdsk["zmid"],
+            },
+        },
+        "profiles_1d": {  # Profiles 1D
+            "grid": {
                 "psi_axis": psi_axis,
                 "psi_boundary": psi_boundary,
-                "ip": Ip,
             },
-            "boundary": {  # Boundary
-                "outline": {
-                    "r": geqdsk["bbsrz"][:, 0],
-                    "z": geqdsk["bbsrz"][:, 1],
-                },
-                "geometric_axis": {
-                    "r": geqdsk["rcentr"],
-                    "z": geqdsk["zmid"],
-                },
+            "psi_norm": np.linspace(0.0, 1.0, nw),
+            "f": geqdsk["fpol"],
+            "f_df_dpsi": geqdsk["ffprim"],
+            "pressure": geqdsk["pres"],
+            "dpressure_dpsi": geqdsk["pprim"],
+            "q": geqdsk["qpsi"],
+        },
+        "profiles_2d": {  # profiles 2D
+            "type": "total",  # total field
+            "grid_type": {"name": "rectangular"},
+            "grid": {
+                "dim1": np.linspace(rmin, rmax, nw),
+                "dim2": np.linspace(zmin, zmax, nh),
+                "type": "rectangular",
             },
-            "profiles_1d": {  # Profiles 1D
-                "grid": {
-                    "psi_axis": psi_axis,
-                    "psi_boundary": psi_boundary,
-                },
-                "psi_norm": np.linspace(0.0, 1.0, nw),
-                "f": geqdsk["fpol"],
-                "f_df_dpsi": geqdsk["ffprim"],
-                "pressure": geqdsk["pres"],
-                "dpressure_dpsi": geqdsk["pprim"],
-                "q": geqdsk["qpsi"],
-            },
-            "profiles_2d": {  # profiles 2D
-                "type": "total",  # total field
-                "grid_type": {"name": "rectangular"},
-                "grid": {
-                    "dim1": np.linspace(rmin, rmax, nw),
-                    "dim2": np.linspace(zmin, zmax, nh),
-                    "type": "rectangular",
-                },
-                "psi": psirz,
-            },
-        }
-    ]
+            "psi": psirz,
+        },
+    }
 
     return eq
 
 
 class GEQdskFile(File, plugin_name=["gfile", "geqdsk"]):
+    """GEqdsk File"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._root = None

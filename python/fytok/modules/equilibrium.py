@@ -388,11 +388,7 @@ class Equilibrium(
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        if self._entry is not None:
-            self._entry = self._entry.child(["time_slice", -1])
-            time = Path(["time"]).get(self._cache, _not_found_)
-            if time is not _not_found_:
-                self._entry = self._child({"time": time})
+        
 
     vacuum_toroidal_field: VacuumToroidalField
 
@@ -409,7 +405,7 @@ class Equilibrium(
     profiles_1d: EquilibriumProfiles1D
 
     Profiles2D = EquilibriumProfiles2D
-    profiles_2d: EquilibriumProfiles2D  
+    profiles_2d: EquilibriumProfiles2D
 
     CoordinateSystem = EquilibriumCoordinateSystem
     coordinate_system: EquilibriumCoordinateSystem

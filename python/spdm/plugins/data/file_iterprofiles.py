@@ -48,7 +48,7 @@ def read_iter_profiles(path, entry: Entry):
         "psi_axis": _not_found_,
     }
 
-    entry["core_profiles"] = {"time_slice": [{"time": time, "vacuum_toroidal_field": vacuum_toroidal_field}]}
+    entry["core_profiles"] = {"time": time, "vacuum_toroidal_field": vacuum_toroidal_field}
 
     # Core profile
     r_ped = 0.96  # np.sqrt(0.88)
@@ -79,17 +79,16 @@ def read_iter_profiles(path, entry: Entry):
     # Zeff = Function(bs_r_norm, baseline["Zeff"].values)
     # e_parallel = baseline["U"].values / (TWOPI * R0)
 
-    entry["core_profiles/time_slice/0/profiles_1d"] = {
-        "time": 0.0,
+    entry["core_profiles/profiles_1d"] = {
         "grid": grid,
         "electrons": {"label": "e", "density": b_ne, "temperature": b_Te},
         "ion": [
-            {"@name": "D", "density": b_nDT, "temperature": b_Ti},
-            {"@name": "T", "density": b_nDT, "temperature": b_Ti},
-            {"@name": "Be", "density": 0.02 * b_ne, "z_ion_1d": z_Be},
-            {"@name": "Ar", "density": 0.0012 * b_ne, "z_ion_1d": z_Ar},
-            {"@name": "He", "density": b_nath, "temperature": b_Ti},
-            {"@name": "alpha", "density": b_nalpha - b_nath},
+            {"label": "D", "density": b_nDT, "temperature": b_Ti},
+            {"label": "T", "density": b_nDT, "temperature": b_Ti},
+            {"label": "Be", "density": 0.02 * b_ne, "z_ion_1d": z_Be},
+            {"label": "Ar", "density": 0.0012 * b_ne, "z_ion_1d": z_Ar},
+            {"label": "He", "density": b_nath, "temperature": b_Ti},
+            {"label": "alpha", "density": b_nalpha - b_nath, "is_thermal": False},
         ],
         # "e_field": {"parallel":  Function(e_parallel,bs_r_norm)},
         # "conductivity_parallel": Function(baseline["Joh"].values*1.0e6 / baseline["U"].values * (TWOPI * grid.r0),bs_r_norm),
@@ -165,7 +164,8 @@ def read_iter_profiles(path, entry: Entry):
         "source": [
             {
                 "code": {"name": "dummy"},
-                "time_slice": [{"time": time, "vacuum_toroidal_field": vacuum_toroidal_field}],
+                "time": time,
+                "vacuum_toroidal_field": vacuum_toroidal_field,
             }
         ]
     }
@@ -198,7 +198,7 @@ def read_iter_profiles(path, entry: Entry):
     # Q_He = (profiles_1D["Pdti"].values + profiles_1D["Pdte"].values) * 1e6 / scipy.constants.electron_volt
 
     # Core Source
-    entry["core_sources/source/0/time_slice/0/profiles_1d"] = {
+    entry["core_sources/source/0/profiles_1d"] = {
         "grid": grid,
         "conductivity_parallel": profiles_1D["Joh"].values * 1.0e6 / profiles_1D["U"].values * (TWOPI * R0),
         "j_parallel": -profiles_1D["Jtot"].values * 1e6,  # A/m^2
