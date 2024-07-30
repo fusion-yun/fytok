@@ -100,8 +100,6 @@ class CoreTransportModel(
         core_profiles: CoreProfiles
         equilibrium: Equilibrium
 
-    in_ports: InPorts  # type:ignore
-
     flux_multiplier: float = 0.0
 
     vacuum_toroidal_field: VacuumToroidalField
@@ -160,7 +158,7 @@ class CoreTransport(IDS, Context, FyEntity, code={"name": "core_transport"}):
 
     Model = CoreTransportModel
 
-    InPorts = CoreTransportModel.InPorts  # type:ignore
+    InPorts = CoreTransportModel.InPorts 
 
     model: ProcessBundle[CoreTransportModel]
 

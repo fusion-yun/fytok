@@ -98,7 +98,7 @@ class WithIdentifier(abc.ABC):
     """标识符"""
 
     def __hash__(self) -> int:
-        return hash(self.identifier.name)
+        return hash(self.identifier.index)
 
 
 class IDS(abc.ABC):

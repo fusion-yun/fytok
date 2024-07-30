@@ -227,14 +227,6 @@ class CoreProfiles1D(WithDomain, SpTree, domain="grid/rho_tor_norm"):
     def n_i_thermal_total(self) -> Expression:
         return sum(ion.z * ion.density_thermal for ion in self.ion)
 
-    # t_i_average: Expression = annotation(units="eV")
-
-    # t_i_average_fit: core_profiles_1D_fit = annotation(units="eV")
-
-    # n_i_total_over_n_e: Expression = annotation(units="-")
-
-    # n_i_thermal_total: Expression = annotation(units="m^-3")
-
     momentum_tor: Expression = annotation(units=r"kg \cdot m^{-1} \cdot s^{-1}")
 
     zeff: Expression = annotation(units="-")
@@ -364,6 +356,8 @@ class CoreProfilesElectrons2D(WithDomain, Species, domain=".../grid"):
 
 
 class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
+    """Ion Profiles"""
+
     temperature: Expression
     """Temperature (average over charge states when multiple charge states are considered) {dynamic} [eV]"""
     density: Expression
@@ -390,6 +384,8 @@ class CoreProfilesIon2D(WithDomain, Species, domain=".../grid"):
 
 class CoreProfiles2D(WithDomain, domain="grid"):
     """Core Profiles"""
+
+    grid_type: str = annotation(alias="grid/type")
 
     grid: Mesh
 

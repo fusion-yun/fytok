@@ -2,16 +2,14 @@
 """
 
 from spdm.utils.tags import _not_found_
-from spdm.utils.type_hint import array_type
-
-from spdm.core.path import Path
+from spdm.utils.type_hint import array_type, ArrayType
 
 from spdm.core.expression import Expression, zero
 from spdm.core.sp_tree import annotation, sp_property, SpTree
 from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.time import WithTime
-from spdm.core.domain import WithDomain, MultiDomains
+from spdm.core.domain import WithDomain
 
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.curve import Curve
@@ -22,10 +20,8 @@ from spdm.geometry.point_set import PointSetRZ
 from fytok.utils.base import IDS, Identifier, FyEntity
 from fytok.modules.utilities import CoreRadialGrid, VacuumToroidalField
 
-from fytok.ontology import equilibrium
 
-
-class EquilibriumBoundary(equilibrium.equilibrium_boundary):
+class EquilibriumBoundary(SpTree):
     """Boundary of the equilibrium"""
 
     type: int
@@ -67,7 +63,7 @@ class EquilibriumBoundary(equilibrium.equilibrium_boundary):
     active_limiter_point: PointRZ
 
 
-class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix):
+class EquilibriumBoundarySeparatrix(SpTree):
     """Boundary of the equilibrium"""
 
     type: int
@@ -109,23 +105,7 @@ class EquilibriumBoundarySeparatrix(equilibrium.equilibrium_boundary_separatrix)
     active_limiter_point: PointRZ
 
 
-class EquilibriumCoordinateSystem(WithDomain, equilibrium.equilibrium_coordinate_system, domain="grid"):
-    """Coordinate system of the equilibrium"""
-
-    grid: Mesh
-
-    r: Field = annotation(units="m")
-
-    z: Field = annotation(units="m")
-
-    jacobian: Field = annotation(units="mixed")
-
-    tensor_covariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
-
-    tensor_contravariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
-
-
-class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
+class EquilibriumGlobalQuantities(SpTree):
     """Global quantities of the equilibrium"""
 
     psi_axis: float = annotation(units="Wb")
@@ -183,7 +163,23 @@ class EquilibriumGlobalQuantities(equilibrium.fequilibrium_global_quantities):
     plasma_resistance: float = annotation(units="ohm")
 
 
-class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, domain="psi_norm"):
+class EquilibriumCoordinateSystem(WithDomain, SpTree, domain="grid"):
+    """Coordinate system of the equilibrium"""
+
+    grid: Mesh
+
+    r: Field = annotation(units="m")
+
+    z: Field = annotation(units="m")
+
+    jacobian: Field = annotation(units="mixed")
+
+    tensor_covariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
+
+    tensor_contravariant: Field = annotation(coordinate3="1...3", coordinate4="1...3", units="mixed")
+
+
+class EquilibriumProfiles1D(WithDomain, SpTree, domain="psi_norm"):
     """
     1D profiles of the equilibrium quantities
     NOTE:
@@ -197,7 +193,7 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
 
     grid: CoreRadialGrid = {"primary_coordinate": "psi_norm"}
 
-    psi_norm: array_type = annotation(units="-", label=r"\bar{\psi}")
+    psi_norm: ArrayType = annotation(units="-", label=r"\bar{\psi}")
 
     psi: Expression = annotation(units="Wb", label=r"\psi")
 
@@ -298,12 +294,14 @@ class EquilibriumProfiles1D(WithDomain, equilibrium.equilibrium_profiles_1d, dom
     mass_density: Expression = annotation(units=r"kg \cdot m^{-3}")
 
 
-class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, domain="grid"):
+class EquilibriumProfiles2D(WithDomain, SpTree, domain="grid"):
     """Profiles 2D"""
 
     type: Identifier
 
     grid: Mesh
+
+    grid_type: str = annotation(alias="grid/type")
 
     r: Field = annotation(units="m", alias=["grid/coordinates", (0,)])
 
@@ -315,19 +313,19 @@ class EquilibriumProfiles2D(WithDomain, equilibrium.equilibrium_profiles_2d, dom
 
     phi: Expression = annotation(units="Wb")
 
-    j_tor: Expression = annotation(units="A.m^-2")
+    j_tor: Expression = annotation(units=r"A.m^{-2}")
 
-    j_parallel: Expression = annotation(units="A.m^-2", label=r"$j_{\parallel}$")
+    j_parallel: Expression = annotation(units=r"A.m^-2", label=r"$j_{\parallel}$")
 
-    b_field_r: Expression = annotation(units="T", label="B_{r}")
+    b_field_r: Expression = annotation(units="T", label=r"B_{r}")
 
-    b_field_z: Expression = annotation(units="T", label="B_{z}")
+    b_field_z: Expression = annotation(units="T", label=r"B_{z}")
 
-    b_field_tor: Expression = annotation(units="T", label="B_{tor}")
+    b_field_tor: Expression = annotation(units="T", label=r"B_{tor}")
 
 
-class EquilibriumGGD(MultiDomains, equilibrium.equilibrium_ggd):
-    pass
+class EquilibriumGGD(WithDomain, SpTree, domain="grid"):
+    grid: Mesh
 
 
 class Equilibrium(
@@ -384,11 +382,6 @@ class Equilibrium(
             Poloidal plane coordinate   : $(\rho,\theta,\phi)$
         ```
     """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        
 
     vacuum_toroidal_field: VacuumToroidalField
 
