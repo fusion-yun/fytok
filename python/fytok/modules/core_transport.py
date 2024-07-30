@@ -110,7 +110,13 @@ class CoreTransportModel(
     Profiles2D = CoreTransportProfiles2D
     profiles_2d: CoreTransportProfiles2D
 
-    def execute(self, *args, equilibrium: Equilibrium, core_profiles: CoreProfiles, **kwargs) -> typing.Self:
+    def execute(
+        self,
+        *args,
+        equilibrium: Equilibrium,
+        core_profiles: CoreProfiles,
+        **kwargs,
+    ) -> typing.Self:
 
         return CoreTransport.Model(
             Path().update(
@@ -158,7 +164,7 @@ class CoreTransport(IDS, Context, FyEntity, code={"name": "core_transport"}):
 
     Model = CoreTransportModel
 
-    InPorts = CoreTransportModel.InPorts 
+    InPorts = CoreTransportModel.InPorts
 
     model: ProcessBundle[CoreTransportModel]
 
