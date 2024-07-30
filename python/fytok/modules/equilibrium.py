@@ -10,7 +10,6 @@ from spdm.core.mesh import Mesh
 from spdm.core.field import Field
 from spdm.core.time import WithTime
 from spdm.core.domain import WithDomain
-
 from spdm.core.geo_object import GeoObject
 from spdm.geometry.curve import Curve
 from spdm.geometry.point import PointRZ
