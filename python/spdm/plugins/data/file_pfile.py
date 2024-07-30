@@ -42,7 +42,7 @@ def sp_read_pfile_txt(path: str | pathlib.Path):
 def sp_to_imas(data: dict):
     entry = Entry({})
 
-    core_profiles_1d = entry.child("core_profiles/time_slice/0/profiles_1d/")
+    core_profiles_1d = entry.child("core_profiles/profiles_1d/")
 
     core_profiles_1d["electrons/temperature"] = data["te"]
     core_profiles_1d["electrons/density"] = data["ne"]
@@ -55,18 +55,17 @@ def sp_to_imas(data: dict):
     return entry
 
 
-@File.register(["pfile"])
-class PFile(File):
+class PFile(File, plugin_name="pfile"):
     """Read pfile file  (from gacode)"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def read(self) -> Entry:
-        if self.url.authority:
-            raise NotImplementedError(f"{self.url}")
+        if self.uri.netloc:
+            raise NotImplementedError(f"{self.uri}")
 
-        path = pathlib.Path(self.url.path)
+        path = pathlib.Path(self.uri.path)
 
         if path.suffix.lower() in [".nc", ".h5"]:
             data = File(path, mode="r").read().dump()
@@ -76,4 +75,4 @@ class PFile(File):
         return sp_to_imas(data)
 
     def write(self, d, *args, **kwargs):
-        raise NotImplementedError(f"TODO: write ITERDB {self.url}")
+        raise NotImplementedError(f"TODO: write ITERDB {self.uri}")

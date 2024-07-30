@@ -81,15 +81,18 @@ def read_iter_profiles(path, entry: Entry):
 
     entry["core_profiles/profiles_1d"] = {
         "grid": grid,
-        "electrons": {"label": "e", "density": b_ne, "temperature": b_Te},
+        # fmt:off
+        "electrons": {"label": "e",                         "density": b_ne,            "temperature": b_Te },
         "ion": [
-            {"label": "D", "density": b_nDT, "temperature": b_Ti},
-            {"label": "T", "density": b_nDT, "temperature": b_Ti},
-            {"label": "Be", "density": 0.02 * b_ne, "z_ion_1d": z_Be},
-            {"label": "Ar", "density": 0.0012 * b_ne, "z_ion_1d": z_Ar},
-            {"label": "He", "density": b_nath, "temperature": b_Ti},
-            {"label": "alpha", "density": b_nalpha - b_nath, "is_thermal": False},
+            {"label": "D",                                  "density": b_nDT,           "temperature": b_Ti },
+            {"label": "T",                                  "density": b_nDT,           "temperature": b_Ti },
+            {"label": "He",                                 "density": b_nath,          "temperature": b_Ti },
+            {"label": "alpha",      "is_thermal": False,    "density": b_nalpha - b_nath                    },
+            {"label": "Be",         "is_impurity": True,    "density": b_ne * 0.02,     "z_ion_1d": z_Be    },
+            {"label": "Ar",         "is_impurity": True,    "density": b_ne * 0.0012,   "z_ion_1d": z_Ar    },
+           
         ],
+        # fmt:on
         # "e_field": {"parallel":  Function(e_parallel,bs_r_norm)},
         # "conductivity_parallel": Function(baseline["Joh"].values*1.0e6 / baseline["U"].values * (TWOPI * grid.r0),bs_r_norm),
         "rho_tor": profiles_1D["rho"].values,
@@ -187,7 +190,7 @@ def read_iter_profiles(path, entry: Entry):
 
     Q_DT = (
         (
-            +profiles_1D["Pibm"].values
+            profiles_1D["Pibm"].values
             # + profiles_1D["Peic"].values
             # + profiles_1D["Pdti"].values
         )

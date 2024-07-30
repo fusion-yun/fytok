@@ -95,7 +95,7 @@ class CoreProfilesIon(CoreProfilesSpecies):
             * PI
             * scipy.constants.elementary_charge**4
             * self.z**4
-            * self.density_thermal
+            * self.density
             / np.sqrt(self.mass)
             / self.temperature**1.5
             / self._parent.coulomb_logarithm
